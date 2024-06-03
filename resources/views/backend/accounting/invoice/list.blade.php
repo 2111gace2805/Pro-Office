@@ -13,6 +13,13 @@
 
             <div class="card-body">
                 <div class="row">
+                    <div class="col-lg-3 mb-2">
+                        <label>{{ _lang('Tipo de factura') }}</label>
+                         <select class="form-control select2 select-filter" name="tipodoc_id" id="tipodoc_id">
+                            <option value="">{{ _lang('Select One') }}</option>
+                            {{ create_option("tipo_documento", "tipodoc_id", "tipodoc_nombre", old('tipodoc_id'), ["tipodoc_estado=" => 'Activo']) }}
+                        </select>
+                   </div>	
 					<div class="col-lg-3 mb-2">
                      	<label>{{ _lang('Invoice Number') }}</label>
                      	<input type="text" class="form-control select-filter" name="invoice_number" id="invoice-number">

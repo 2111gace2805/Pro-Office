@@ -29,7 +29,8 @@ class Product extends Model
 
     public function item()
     {
-        return $this->belongsTo(Item::class, 'product_id', 'item_id');
+        // return $this->belongsTo(Item::class, 'product_id', 'item_id');
+        return $this->belongsTo('App\Item', 'item_id')->withDefault();
     }
 
     public function brand(){

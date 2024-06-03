@@ -205,7 +205,7 @@
                             <th class="item borders" style="width: 43%;">Descripción</th>
                             <th class="item borders right" style="width: 8%;">P. Unitario</th>
                             <th class="item borders" style="width: 8%;">Ventas No Sujetas</th>
-                            <th class="item borders" style="width: 8%;">Ventas Excentas</th>
+                            <th class="item borders" style="width: 8%;">Ventas Exentas</th>
                             <th class="item borders" style="width: 8%;">Ventas gravadas</th>
                         </tr>
                     </thead>
@@ -273,7 +273,7 @@
                     </tr>
                     <tr style="border-top:0;">
                         <td style="width: 64.4%;border-left: 2px solid #565656;"></td>
-                        <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Vtas. Extentas</td>
+                        <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Vtas. Exentas</td>
                         <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($exentoSum, $currency) }}</td>
                     </tr>
                     <tr class="borders" style="border-top:0;">

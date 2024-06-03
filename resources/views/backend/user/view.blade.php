@@ -31,6 +31,10 @@
                         <td>{{ $user->dui }}</td>
                     </tr>
                     <tr>
+                        <td>{{ _lang('Código Vendedor') }}</td>
+                        <td>{{ $user->seller_code ?? '-' }}</td>
+                    </tr>
+                    <tr>
                         <td>{{ _lang('Status') }}</td>
                         <td>{!! xss_clean(user_status($user->status)) !!}</td>
                     </tr>

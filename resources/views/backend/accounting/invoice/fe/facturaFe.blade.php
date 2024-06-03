@@ -32,7 +32,7 @@
             padding: 0;
             margin: 0 !important;
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 12px;
+            font-size: 10px;
         }
         .container {
             width: 100%;
@@ -65,6 +65,9 @@
             z-index: 1000;
             letter-spacing: 30px;
         }
+        @page {
+            margin: 20px;
+        }
         /* Agrega otros estilos según sea necesario */
     </style>
 </head>
@@ -72,7 +75,7 @@
     <table class="container" style="margin: 0; padding: 0;">
         <tr>
             <td>
-                <table class="header">
+                <table class="header" style="margin:0;">
                     <!-- Contenido del encabezado aquí -->
                     <table style="width: 100%;">
                         <tr>
@@ -91,7 +94,7 @@
                             </td>
                         </tr>
                     </table>
-                    <table class="info-table">
+                    <table class="info-table" style="margin-left:40px;">
                         <tr>
                             <td style="width: 25%;">Código vendedor:</td>
                             <td>{{ $invoice->seller_code->seller_code ?? '-' }}</td>
@@ -125,11 +128,11 @@
                     </table>
                     
                 </table>
-                <table style="width: 100%;">
+                <table style="width: 100%;margin:0;">
                     <tr>
-                        <td style="width: 50%; padding: 5px;">
-                            <p style="font-weight: bold; text-align: center;">EMISOR</p>
-                            <div style="border: 2px solid #565656; border-radius: 10px; padding: 10px;">
+                        <td style="width: 50%;">
+                            <p style="font-weight: bold; text-align: center; margin:0;">EMISOR</p>
+                            <div style="border: 2px solid #565656; border-radius: 10px;">
                                 <table style="width: 100%;">
                                     <tr>
                                         <td style="width: 45%;">{{ _lang('Nombre o razón social:') }}</td>
@@ -166,9 +169,9 @@
                                 </table>
                             </div>
                         </td>
-                        <td style="width: 50%; padding: 5px;">
-                            <p style="font-weight: bold; text-align: center;">RECEPTOR</p>
-                            <div style="border: 2px solid #565656; border-radius: 10px; padding: 10px;min-height:180px;">
+                        <td style="width: 50%;">
+                            <p style="font-weight: bold; text-align: center; margin:0;">RECEPTOR</p>
+                            <div style="border: 2px solid #565656; border-radius: 10px;min-height:155px;">
                                 <table style="width: 100%;">
                                     <tr>
                                         <td style="width: 45%;">{{ _lang('Nombre o razón social:') }}</td>
@@ -259,11 +262,11 @@
                     <thead>
                         <tr>
                             <th class="borders center" style="width: 6.8%;">Cantidad</th>
-                            <th class="item borders center" style="width: 7.7%;">Código</th>
+                            {{-- <th class="item borders center" style="width: 7.7%;">Código</th> --}}
                             <th class="item borders" style="width: 43%;">Descripción</th>
                             <th class="item borders right" style="width: 8%;">P. Unitario</th>
                             <th class="item borders" style="width: 8%;">Ventas No Sujetas</th>
-                            <th class="item borders" style="width: 8%;">Ventas Excentas</th>
+                            <th class="item borders" style="width: 8%;">Ventas Exentas</th>
                             <th class="item borders" style="width: 8%;">Ventas gravadas</th>
                         </tr>
                     </thead>
@@ -287,7 +290,7 @@
                             @endphp
                             <tr>
                                 <td class="item borders center">{{ $invoice->invoice_items[$i]->quantity }}</td>
-                                <td class="item borders center">{{ $invoice->invoice_items[$i]->item->product->product_code }}</td>
+                                {{-- <td class="item borders center">{{ $invoice->invoice_items[$i]->item->product->product_code }}</td> --}}
                                 <td class="item borders">{!! nl2br($invoice->invoice_items[$i]->description) !!}</td>
                                 <td class="item borders right">{{ decimalPlace($invoice->invoice_items[$i]->unit_cost, $currency) }}</td>
                                 <td class="item borders {{ $exento == '' ? 'center' : 'right' }}">{{ $noSujeto == '' ? '-' : $noSujeto }}</td>
@@ -345,36 +348,36 @@
 
                 <table class="borders" style="width: 100%;border-collapse: collapse;border-top:0;border-bottom:0;">
                     <tr>
-                        <td style="width: 64.4%;">{{ _lang('It is') }} {{ dollarToText($invoice->grand_total) }}</td>
-                        <td class="center" style="width: 8.9%;border-left: 2px solid #565656;border-bottom: 2px solid #565656;">SUMAS</td>
-                        <td class="center" style="width: 8.9%;border-left: 2px solid #565656;border-bottom: 2px solid #565656;">{{ decimalPlace($noSujetoSum, $currency) }}</td>
-                        <td class="center" style="width: 8.9%;border-left: 2px solid #565656;border-bottom: 2px solid #565656;">{{ decimalPlace($exentoSum, $currency) }}</td>
+                        <td style="width: 60.9%;">{{ _lang('It is') }} {{ dollarToText($invoice->grand_total) }}</td>
+                        <td class="center" style="width: 9.8%;border-left: 2px solid #565656;border-bottom: 2px solid #565656;">SUMAS</td>
+                        <td class="center" style="width: 9.71%;border-left: 2px solid #565656;border-bottom: 2px solid #565656;">{{ decimalPlace($noSujetoSum, $currency) }}</td>
+                        <td class="center" style="width: 9.8%;border-left: 2px solid #565656;border-bottom: 2px solid #565656;">{{ decimalPlace($exentoSum, $currency) }}</td>
                         <td class="right" style="border-left: 2px solid #565656;border-bottom: 2px solid #565656;">{{ decimalPlace($gravadoSum, $currency) }}</td>
                     </tr>
                 </table>
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr style="border-top:0;">
-                        <td style="width: 64.4%;border-left: 2px solid #565656;"></td>
+                        <td style="width: 55.3%;border-left: 2px solid #565656;"></td>
                         <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">(-) IVA Retenido</td>
                         <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($invoice->iva_retenido, $currency) }}</td>
                     </tr>
                     <tr style="border-top:0;">
-                        <td style="width: 64.4%;border-left: 2px solid #565656;"></td>
+                        <td style="width: 55.3%;border-left: 2px solid #565656;"></td>
                         <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Sub-Total</td>
-                        <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($gravadoSum + $invoice->tax_total, $currency) }}</td>
+                        <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($gravadoSum-$invoice->iva_retenido, $currency) }}</td>
                     </tr>
                     <tr style="border-top:0;">
-                        <td style="width: 64.4%;border-left: 2px solid #565656;"></td>
+                        <td style="width: 55.3%;border-left: 2px solid #565656;"></td>
                         <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Vtas. No sujetas</td>
                         <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($noSujetoSum, $currency) }}</td>
                     </tr>
                     <tr style="border-top:0;">
-                        <td style="width: 64.4%;border-left: 2px solid #565656;"></td>
-                        <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Vtas. Extentas</td>
+                        <td style="width: 55.3%;border-left: 2px solid #565656;"></td>
+                        <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Vtas. Exentas</td>
                         <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($exentoSum, $currency) }}</td>
                     </tr>
                     <tr class="borders" style="border-top:0;">
-                        <td style="width: 64.4%;">NOTA: {{ ( $invoice->note != '' ) ? $invoice->note : '' }} </td>
+                        <td style="width: 55.3%;">NOTA: {{ ( $invoice->note != '' ) ? $invoice->note : '' }} </td>
                         <td class="left" style="width: 8.9%;border-left: 2px solid #565656;border-right: 2px solid #565656;">Total</td>
                         <td class="right" style="width:8.9%;">{{ decimalPlace($invoice->grand_total, $currency) }}</td>
                     </tr> 

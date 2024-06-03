@@ -86,7 +86,8 @@ class UserController extends Controller {
         $user->user_type         = $request->input('user_type');
         $user->status            = $request->input('status');
         $user->role_id           = $request->input('role_id');
-        $user->dui              = $request->input('dui');
+        $user->dui               = $request->input('dui');
+        $user->seller_code       = $request->input('seller_code');
         $user->company_id        = company_id();
         $user->profile_picture   = $profile_picture;
         $user->email_verified_at = date('Y-m-d H:i:s');
@@ -178,13 +179,14 @@ class UserController extends Controller {
             $file->move(public_path() . "/uploads/profile/", $profile_picture);
         }
 
-        $user             = User::find($id);
-        $user->name       = $request->input('name');
-        $user->email      = $request->input('email');
-        $user->user_type  = $request->input('user_type');
-        $user->status     = $request->input('status');
-        $user->role_id    = $request->input('role_id');
-        $user->dui        = $request->input('dui');
+        $user               = User::find($id);
+        $user->name         = $request->input('name');
+        $user->email        = $request->input('email');
+        $user->user_type    = $request->input('user_type');
+        $user->status       = $request->input('status');
+        $user->role_id      = $request->input('role_id');
+        $user->dui          = $request->input('dui');
+        $user->seller_code  = $request->input('seller_code');
 		$user->company_id = company_id();
 
         if ($request->hasfile('profile_picture')) {

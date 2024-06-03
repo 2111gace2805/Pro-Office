@@ -2,23 +2,17 @@
   "use strict";
 
   $(function () {
-    var invoice_table = $("#invoice-table").DataTable({
+    var order_table = $("#order_note-table").DataTable({
       processing: true,
       serverSide: true,
       ajax: {
-        url: _url + "/invoices/get_table_data",
+        url: _url + "/order_notes/get_table_data",
         method: "POST",
         data: function (d) {
           d._token = $('meta[name="csrf-token"]').attr("content");
 
-          if ($("input[name=invoice_number]").val() != "") {
-            d.invoice_number = $("input[name=invoice_number]").val();
-          }
-
-          console.log($("select[name=tipodoc_id]").val());
-
-          if ($("select[name=tipodoc_id]").val() != "") {
-            d.tipodoc_id = $("select[name=tipodoc_id]").val();
+          if ($("input[name=order_number]").val() != "") {
+            d.order_number = $("input[name=order_number]").val();
           }
 
           if ($("select[name=client_id]").val() != "") {
@@ -38,16 +32,14 @@
         },
       },
       columns: [
-        { data: "invoice_number", name: "invoice_number" },
-        { data: "tipodoc_nombre", name: "tipodoc_nombre" },
+        { data: "order_number", name: "order_number" },
         {
-          data: "client.company_name",
-          name: "client.company_name",
+          data: "client.contact_name",
+          name: "client.contact_name",
           defaultContent: "",
         },
-        { data: "invoice_date", name: "invoice_date" },
-        // { data: "due_date", name: "due_date" },
-        { data: "grand_total", name: "grand_total" },
+        { data: "num_contract", name: "num_contract" },
+        { data: "deliver_date_contract", name: "deliver_date_contract" },
         { data: "status", name: "status" },
         { data: "action", name: "action" },
       ],
@@ -93,32 +85,32 @@
           exportOptions: {
             columns: [0, 1, 2, 3, 4, 5],
           },
-          title: "Invoice",
+          title: "Nota de pedido",
         },
         {
           extend: "copy",
           exportOptions: {
             columns: [0, 1, 2, 3, 4, 5],
           },
-          title: "Invoice",
+          title: "Nota de pedido",
         },
         {
           extend: "pdf",
           exportOptions: {
             columns: [0, 1, 2, 3, 4, 5],
           },
-          title: "Invoice",
+          title: "Nota de pedido",
         },
         {
           extend: "print",
           exportOptions: {
             columns: [0, 1, 2, 3, 4, 5],
           },
-          title: "Invoice",
+          title: "Nota de pedido",
           customize: function (win) {
             $(win.document.body)
               .css("font-size", "10pt")
-              .prepend('<h4 class="text-center">Invoice</h4>');
+              .prepend('<h4 class="text-center">Nota de pedido</h4>');
             $(win.document.body)
               .find("table")
               .addClass("compact")
@@ -131,12 +123,12 @@
       },
     });
 
-    $("#invoice-number").on("keyup", function (e) {
-      invoice_table.draw();
+    $("#order_number").on("keyup", function (e) {
+      order_table.draw();
     });
 
     $(".select-filter").on("change", function (e) {
-      invoice_table.draw();
+      order_table.draw();
     });
 
     $("#date_range").daterangepicker({
@@ -153,12 +145,12 @@
           " - " +
           picker.endDate.format("YYYY-MM-DD")
       );
-      invoice_table.draw();
+      order_table.draw();
     });
 
     $("#date_range").on("cancel.daterangepicker", function (ev, picker) {
       $(this).val("");
-      invoice_table.draw();
+      order_table.draw();
     });
   });
 })(jQuery);

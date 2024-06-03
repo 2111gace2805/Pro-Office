@@ -627,7 +627,7 @@
                                     <div class="form-group">
                                         <label class="control-label">{{ _lang('Recinto fiscal por defecto (Factura Export.)') }}</label>
                                         <input type="text" class="form-control" name="refisc_id_default"
-                                            value="{{ get_option('refisc_id_default', '') }}" required>
+                                            value="{{ get_option('refisc_id_default', '') }}">
                                     </div>
                                 </div>
                                 
@@ -635,7 +635,7 @@
                                     <div class="form-group">
                                         <label class="control-label">{{ _lang('Régimen por defecto (Factura Export.)') }}</label>
                                         <input type="text" class="form-control" name="regi_id_default"
-                                            value="{{ get_option('regi_id_default', '') }}" required>
+                                            value="{{ get_option('regi_id_default', '') }}">
                                     </div>
                                 </div>
 
@@ -651,7 +651,7 @@
                                     <div class="form-group">
                                         <label class="control-label">{{ _lang('DM') }}</label>
                                         <input type="text" class="form-control" name="dm"
-                                            value="{{ get_option('dm', '') }}" required>
+                                            value="{{ get_option('dm', '') }}">
                                     </div>
                                 </div>
                                 
@@ -659,7 +659,7 @@
                                     <div class="form-group">
                                         <label class="control-label">{{ _lang('Anexo I (encabezado del anexo de descargo I)') }}</label>
                                         <input type="text" class="form-control" name="anexo_i"
-                                            value="{{ get_option('anexo_i', '') }}" required>
+                                            value="{{ get_option('anexo_i', '') }}">
                                     </div>
                                 </div>
 

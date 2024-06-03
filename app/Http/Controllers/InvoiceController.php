@@ -40,6 +40,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Exceptions\UsuarioSinDUIException;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Cash;
+use App\OrderNote;
+use App\Kit;
 
 class InvoiceController extends Controller
 {
@@ -74,6 +76,10 @@ class InvoiceController extends Controller
             ->filter(function ($query) use ($request) {
                 if ($request->has('invoice_number')) {
                     $query->where('invoice_number', 'like', "%{$request->get('invoice_number')}%");
+                }
+
+                if ($request->has('tipodoc_id')) {
+                    $query->where('invoices.tipodoc_id', $request->get('tipodoc_id'));
                 }
 
                 if ($request->has('client_id')) {
@@ -160,6 +166,7 @@ class InvoiceController extends Controller
         $invoiceCCF = null;
         $invoiceNR = null;
         $type = null;
+        $nota_pedido = null;
         $user = Auth::user();
         if ($request->quotation_id != null) {
             $quotation = Quotation::find($request->quotation_id);
@@ -233,10 +240,17 @@ class InvoiceController extends Controller
             $type = $request->type;
         }
 
+        if( $request->id_nota_p != null ){
+            
+            $nota_pedido = new Invoice();
+            $nota = OrderNote::with('client')->find($request->id_nota_p);
+            $nota_pedido->datos = $nota;
+        }
+
         if (!$request->ajax()) {
-            return view('backend.accounting.invoice.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type']));
+            return view('backend.accounting.invoice.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido']));
         } else {
-            return view('backend.accounting.invoice.modal.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type']));
+            return view('backend.accounting.invoice.modal.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido']));
         }
     }
 
@@ -352,7 +366,7 @@ class InvoiceController extends Controller
             if ($request->input('tipodoc_id') == '01') { // 01 = FE
                 $invoice->ticket_number = get_option('ticket_starting');
             }
-            $invoice->user_id = Auth::user()->id;
+            $invoice->user_id = $request->input('seller_code');
             $invoice->save();
     
             $user = Auth::user();
@@ -363,22 +377,59 @@ class InvoiceController extends Controller
     
             //Save Invoice Item
             for ($i = 0; $i < count($request->product_id); $i++) {
-                $stock = Stock::whereRaw("product_id = {$request->product_id[$i]} and company_id = " . company_id())->first();
-                $item = Item::findOrFail($request->product_id[$i]);
-                if ($item->item_type === 'product') {
-                    if ($stock != null && $stock->quantity < $request->quantity[$i]) {
-                        if ($request->ajax()) {
-                            return response()->json(['result' => 'error', 'message' => 'Stock máximo alcanzado']);
-                        } else {
-                            return redirect()->route('invoices.create')
-                                ->withErrors(['Sorry, Error Occured !', 'Stock máximo alcanzado.'])
-                                ->withInput();
+
+
+                if( $request->kit[$i] == 0 ){
+                    $stock = Stock::whereRaw("product_id = {$request->product_id[$i]} and company_id = " . company_id())->first();
+                    $item = Item::findOrFail($request->product_id[$i]);
+                    if ($item->item_type === 'product') {
+                        if ($stock != null && $stock->quantity < $request->quantity[$i]) {
+                            if ($request->ajax()) {
+                                return response()->json(['result' => 'error', 'message' => 'Stock máximo alcanzado']);
+                            } else {
+                                return redirect()->route('invoices.create')
+                                    ->withErrors(['Sorry, Error Occured !', 'Stock máximo alcanzado.'])
+                                    ->withInput();
+                            }
                         }
                     }
                 }
+                else{
+
+                    $kit = Kit::find( $request->product_id[$i] );
+
+                    $products = json_decode( json_encode($kit->products) );
+
+                    foreach( $products as $product ){
+
+                        $cantidad_item_kit  = $product->quantity;
+                        $cantidad_kits      = $request->quantity[$i];
+    
+                        $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
+
+                        $stock = Stock::whereRaw("product_id = {$product->product_id} and company_id = " . company_id())->first();
+                        $item = Item::findOrFail($product->product_id);
+
+                        if( $item->item_type === 'product' ){
+
+                            if( $stock != null && $stock->quantity < $total_unidades ){
+                                if ($request->ajax()) {
+                                    return response()->json(['result' => 'error', 'message' => 'Stock máximo alcanzado']);
+                                }
+                                else {
+                                    return redirect()->route('invoices.create')
+                                        ->withErrors(['Sorry, Error Occured !', 'Stock máximo alcanzado.'])
+                                        ->withInput();
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $invoiceItem              = new InvoiceItem();
                 $invoiceItem->invoice_id  = $invoice->id;
-                $invoiceItem->item_id     = $request->product_id[$i];
+                $invoiceItem->item_id     = ( $request->kit[$i] == 0 ) ? $request->product_id[$i] : 0;
+                $invoiceItem->kit_id      = ( $request->kit[$i] == 1 ) ? $request->product_id[$i] : 0;
                 $invoiceItem->description = $request->product_description[$i];
                 $invoiceItem->quantity    = $request->quantity[$i];
                 $invoiceItem->unit_cost   = $request->unit_cost[$i];
@@ -431,6 +482,30 @@ class InvoiceController extends Controller
                         // }
                     }
                 }
+
+                if (isset($request->tax[$invoiceItem->kit_id])) {
+                    foreach ($request->tax[$invoiceItem->kit_id] as $taxId) {
+                        $tax = $taxes->firstWhere('id', $taxId);
+    
+                        $invoiceItemTax                  = new InvoiceItemTax();
+                        $invoiceItemTax->invoice_id      = $invoiceItem->invoice_id;
+                        $invoiceItemTax->invoice_item_id = $invoiceItem->id;
+                        $invoiceItemTax->tax_id          = $tax->id;
+                        $tax_type                        = $tax->type == 'percent' ? '%' : '';
+                        $invoiceItemTax->name            = $tax->tax_name . ' @ ' . $tax->rate . $tax_type;
+                        // si es CCF
+                        if ($request->input('tipodoc_id') == '03') {
+                            $invoiceItemTax->amount          = $tax->type == 'percent' ? ($invoiceItem->sub_total / 100) * $tax->rate : $tax->rate;
+                        } else {
+                            $invoiceItemTax->amount = $tax->type == 'percent' ? (($invoiceItem->quantity * $request->product_price[$i] - $invoiceItem->discount) / 100) * $tax->rate : $tax->rate;
+                        }
+                        $invoiceItemTax->save();
+    
+                        // if ($tax->trib_id == '20') { // 20 es tributo IVA
+                        //     $ivaRetenido += round(($invoiceItem->quantity*$request->product_price[$i]-$invoiceItem->discount)*(floatval(get_option('retencion_iva'))/100), 2);
+                        // }
+                    }
+                }
     
     
     
@@ -440,10 +515,33 @@ class InvoiceController extends Controller
                     // $stock = Stock::where("item_id", $invoiceItem->item_id)
                     // ->join('products as p', 'p.id', 'current_stocks.product_id')
                     // ->where('company_id', company_id())->select('current_stocks.*')->first();
-                    if ($stock) {
-                        if( $request->input('tipodoc_id') != '05' && $request->input('tipodoc_id') != '06' && !$request->has('id_nr_rel') ){
-                            $stock->quantity = $stock->quantity - $invoiceItem->quantity;
-                            $stock->save();
+                    if( $stock ){
+                        if( $request->input('tipodoc_id') != '05' && $request->input('tipodoc_id') != '06' && !$request->has('id_nr_rel') && !$request->has('id_nota_p') ){
+
+                            if( $invoiceItem->kit_id > 0 ){
+
+                                $kit = Kit::find( $invoiceItem->kit_id );
+
+                                $products = json_decode( json_encode($kit->products) );
+            
+                                foreach( $products as $product ){
+            
+                                    $cantidad_item_kit  = $product->quantity;
+                                    $cantidad_kits      = $invoiceItem->quantity;
+                
+                                    $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
+
+                                    $stock = Stock::whereRaw("product_id = {$product->product_id} and company_id = " . company_id())->first();
+
+                                    $stock->quantity = $stock->quantity - $total_unidades;
+                                    $stock->save();
+                                }
+
+                            }
+                            else{
+                                $stock->quantity = $stock->quantity - $invoiceItem->quantity;
+                                $stock->save();
+                            }
                         }
                     }
                 }
@@ -475,6 +573,16 @@ class InvoiceController extends Controller
                 $invoice->save();
     
                 BlockDte::where('type_dte', '=', $tipoDocumento)->increment('correlativo');
+
+
+                if( $request->has('id_nota_p') ){
+
+                    $id_nota = $request->id_nota_p;
+    
+                    $orderNote = OrderNote::find($id_nota);
+                    $orderNote->invoiced = $invoice->id;
+                    $orderNote->save();
+                }
     
                 log::info("Invoice con ID: " . $invoice->id . " creado en modo contingencia");
             }
@@ -504,9 +612,31 @@ class InvoiceController extends Controller
     
                     $invoiceItems = InvoiceItem::where("invoice_id", $invoice->id)->get();
                     foreach ($invoiceItems as $p_item) {
-                        $invoiceItem = InvoiceItem::find($p_item->id);
-                        log::info('Se hace devolución de item con ID: ' . $p_item->id);
-                        update_stock($p_item->item_id, $invoiceItem->quantity, '+');
+
+                        if( $p_item->kit_id > 0 ){
+    
+                            $kit = Kit::find( $p_item->kit_id );
+    
+                            $products = json_decode( json_encode($kit->products) );
+        
+                            foreach( $products as $product ){
+        
+                                $cantidad_item_kit  = $product->quantity;
+                                $cantidad_kits      = $p_item->quantity;
+            
+                                $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
+
+                                log::info('Se hace devolución de item con ID: ' . $product->product_id);
+    
+                                update_stock($product->product_id, $total_unidades, '+');
+                            }
+    
+                        }
+                        else{
+                            $invoiceItem = InvoiceItem::find($p_item->id);
+                            log::info('Se hace devolución de item con ID: ' . $p_item->id);
+                            update_stock($p_item->item_id, $invoiceItem->quantity, '+');
+                        }
                     }
     
                     log::info('Se finaliza proceso de devolución de items');
@@ -545,9 +675,31 @@ class InvoiceController extends Controller
     
                     $invoiceItems = InvoiceItem::where("invoice_id", $invoice->id)->get();
                     foreach ($invoiceItems as $p_item) {
-                        $invoiceItem = InvoiceItem::find($p_item->id);
-                        log::info('Se hace devolución de item con ID: ' . $p_item->id);
-                        update_stock($p_item->item_id, $invoiceItem->quantity, '+');
+
+                        if( $p_item->kit_id > 0 ){
+    
+                            $kit = Kit::find( $p_item->kit_id );
+    
+                            $products = json_decode( json_encode($kit->products) );
+        
+                            foreach( $products as $product ){
+        
+                                $cantidad_item_kit  = $product->quantity;
+                                $cantidad_kits      = $p_item->quantity;
+            
+                                $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
+
+                                log::info('Se hace devolución de item con ID: ' . $product->product_id);
+    
+                                update_stock($product->product_id, $total_unidades, '+');
+                            }
+    
+                        }
+                        else{
+                            $invoiceItem = InvoiceItem::find($p_item->id);
+                            log::info('Se hace devolución de item con ID: ' . $p_item->id);
+                            update_stock($p_item->item_id, $invoiceItem->quantity, '+');
+                        }
                     }
     
                     log::info('Se finaliza proceso de devolución de items');
@@ -563,6 +715,15 @@ class InvoiceController extends Controller
                         return redirect()->route('invoices.create', $invoice->id)->with('error', 'Error al procesar DTE');
                     }
                 } else if ($response_mh->estado === 'PROCESADO') {
+
+                    if( $request->has('id_nota_p') ){
+
+                        $id_nota = $request->id_nota_p;
+        
+                        $orderNote = OrderNote::find($id_nota);
+                        $orderNote->invoiced = $invoice->id;
+                        $orderNote->save();
+                    }
     
                     BlockDte::where('type_dte', '=', $tipoDocumento)->increment('correlativo');
     
@@ -803,8 +964,31 @@ class InvoiceController extends Controller
 
                 $invoiceItems = InvoiceItem::where("invoice_id", $id)->get();
                 foreach ($invoiceItems as $p_item) {
-                    $invoiceItem = InvoiceItem::find($p_item->id);
-                    update_stock($p_item->item_id, $invoiceItem->quantity, '+');
+
+                    if( $p_item->type_dte_rel == '' ){
+                        if( $p_item->kit_id > 0 ){
+    
+                            $kit = Kit::find( $p_item->kit_id );
+    
+                            $products = json_decode( json_encode($kit->products) );
+        
+                            foreach( $products as $product ){
+        
+                                $cantidad_item_kit  = $product->quantity;
+                                $cantidad_kits      = $p_item->quantity;
+            
+                                $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
+    
+                                update_stock($product->product_id, $total_unidades, '+');
+                            }
+    
+                        }
+                        else{
+                            $invoiceItem = InvoiceItem::find($p_item->id);
+                            update_stock($p_item->item_id, $invoiceItem->quantity, '+');
+                        }
+                    }
+
                     // $invoiceItem->delete();
                 }
 
@@ -1875,14 +2059,14 @@ class InvoiceController extends Controller
 
             array_push($details, [
                 "numItem" => $value->line,
-                "tipoItem" => intval($value->item->tipoitem_id),
+                "tipoItem" => ( $value->item_id > 0 ) ? intval($value->item->tipoitem_id) : 1,
                 "numeroDocumento" => ( $value->cod_dte_rel != '') ? $value->cod_dte_rel : null,
                 "codigo" => $value->item->product->product_code,
                 "codTributo" => null,
                 "descripcion" => $value->description,
                 "cantidad" => intval($value->quantity),
-                "uniMedida" => intval($value->item->product->unim_id),
-                "precioUni" => intval($value->unit_cost),
+                "uniMedida" => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
+                "precioUni" => floatval(number_format($value->unit_cost, 2, '.', '')),
                 "montoDescu" => intval($value->discount),
                 "ventaNoSuj" => floatval(number_format($noSujeto, 2, '.', '')),
                 "ventaExenta" => floatval(number_format($exento, 2, '.', '')),
@@ -2118,16 +2302,16 @@ class InvoiceController extends Controller
 
             array_push($details, [
                 "numItem" => $value->line,
-                "tipoItem" => intval($value->item->tipoitem_id),
+                "tipoItem" =>  ( $value->item_id > 0 ) ? intval($value->item->tipoitem_id) : 1,
                 "numeroDocumento" => ( $value->cod_dte_rel != '') ? $value->cod_dte_rel : null,
                 "codigo" => $value->item->product->product_code,
                 "codTributo" => null,
                 "descripcion" => $value->description,
                 "cantidad" => intval($value->quantity),
-                "uniMedida" => intval($value->item->product->unim_id),
-                "precioUni" => floatval($value->unit_cost),
-                "montoDescu" => intval($value->discount),
-                "ventaNoSuj" => intval($noSujeto),
+                "uniMedida" => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
+                "precioUni" => floatval(number_format($value->unit_cost, 2, '.', '')),
+                "montoDescu" => floatval(number_format($value->discount, 2, '.', '')),
+                "ventaNoSuj" => floatval(number_format($noSujeto, 2, '.', '')),
                 "ventaExenta" => floatval(number_format($exento, 2, '.', '')),
                 "ventaGravada" => floatval($gravado),
                 "tributos" => /* Tax::whereIn('id', $value->taxes->pluck('tax_id')->toArray())
@@ -2418,16 +2602,16 @@ class InvoiceController extends Controller
 
             $data = [
                 "numItem"           => $value->line,
-                "tipoItem"          => intval($value->item->tipoitem_id),
+                "tipoItem"          => ( $value->item_id > 0 ) ? intval($value->item->tipoitem_id) : 1,
                 "numeroDocumento"   => $value->cod_dte_rel,
                 "codigo"            => $value->item->product->product_code,
                 "codTributo"        => null,
                 "descripcion"       => $value->description,
                 "cantidad"          => intval($value->quantity),
-                "uniMedida"         => intval($value->item->product->unim_id),
+                "uniMedida"         => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
                 "precioUni"         => floatval(number_format($value->unit_cost, 2, '.', '')),
-                "montoDescu"        => intval($value->discount),
-                "ventaNoSuj"        => $noSujeto,
+                "montoDescu"        => floatval(number_format($value->discount, 2, '.', '')),
+                "ventaNoSuj"        => floatval(number_format($noSujeto, 2, '.', '')),
                 "ventaExenta"       => floatval(number_format($exento, 2, '.', '')),
                 "ventaGravada"      => floatval(number_format($gravado, 2, '.', '')),
                 "tributos"          => ( $invoice->exento_iva == 'no' ) ? $tributos_item : null,
@@ -2576,10 +2760,10 @@ class InvoiceController extends Controller
                 "numItem"       => $value->line,
                 "cantidad"      => intval($value->quantity),
                 "codigo"        => $value->item->product->product_code,
-                "uniMedida"     => intval($value->item->product->unim_id),
+                "uniMedida"     => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
                 "descripcion"   => $value->description,
                 "precioUni"     => floatval(number_format($value->unit_cost, 2, '.', '')),
-                "montoDescu"    => intval($value->discount),
+                "montoDescu"    => floatval(number_format($value->discount, 2, '.', '')),
                 "ventaGravada"  => floatval(number_format($gravado, 2, '.', '')),
                 "tributos"      => Tax::whereIn('id', $value->taxes->pluck('tax_id')->toArray())
                                         ->pluck('trib_id')->toArray(),
@@ -2816,16 +3000,16 @@ class InvoiceController extends Controller
 
             $data = [
                 "numItem"           => $value->line,
-                "tipoItem"          => intval($value->item->tipoitem_id),
+                "tipoItem"          => ( $value->item_id > 0 ) ? intval($value->item->tipoitem_id) : 1,
                 "numeroDocumento"   => null,
                 "codigo"            => $value->item->product->product_code,
                 "codTributo"        => null,
                 "descripcion"       => $value->description,
                 "cantidad"          => intval($value->quantity),
-                "uniMedida"         => intval($value->item->product->unim_id),
+                "uniMedida"         => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
                 "precioUni"         => floatval(number_format($value->unit_cost, 2, '.', '')),
-                "montoDescu"        => intval($value->discount),
-                "ventaNoSuj"        => $noSujeto,
+                "montoDescu"        => floatval(number_format($value->discount, 2, '.', '')),
+                "ventaNoSuj"        => floatval(number_format($noSujeto, 2, '.', '')),
                 "ventaExenta"       => floatval(number_format($exento, 2, '.', '')),
                 "ventaGravada"      => floatval(number_format($gravado, 2, '.', '')),
                 "tributos"          => ( $invoice->exento_iva == 'no' ) ? $tributos_item : null,
@@ -3021,13 +3205,13 @@ class InvoiceController extends Controller
 
             $data = [
                 "numItem"       => $value->line,
-                "tipoItem"      => intval($value->item->tipoitem_id),
+                "tipoItem"      => ( $value->item_id > 0 ) ? intval($value->item->tipoitem_id) : 1,
                 "cantidad"      => intval($value->quantity),
                 "codigo"        => $value->item->product->product_code,
-                "uniMedida"     => intval($value->item->product->unim_id),
+                "uniMedida"     => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
                 "descripcion"   => $value->description,
                 "precioUni"     => floatval(number_format($value->unit_cost, 2, '.', '')),
-                "montoDescu"    => intval($value->discount),
+                "montoDescu"    => floatval(number_format($value->discount, 2, '.', '')),
                 "compra"        => floatval(number_format($gravado, 2, '.', '')),
             ];
 

@@ -227,7 +227,8 @@ class ContactController extends Controller {
 
         $validator = Validator::make($request->all(), [
             'tpers_id'  => 'required',
-            'company_name'  => 'nullable|max:50',
+            'company_name'  => 'required',
+            'tradename'     => 'required',
             'contact_email' => 'required|email|max:100',
             'contact_phone' => 'nullable|max:20',
             'pais_id'       => 'nullable',

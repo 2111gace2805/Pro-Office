@@ -17,6 +17,8 @@ use App\Maintenance;
 use FontLib\Table\Type\name;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OrderNoteController;
+use App\Http\Controllers\KitController;
 
 /*
 |--------------------------------------------------------------------------
@@ -159,6 +161,17 @@ Route::group(['middleware' => ['install']], function () {
 			Route::get('sales_returns/get_table_data','SalesReturnController@get_table_data');
 			Route::get('sales_returns/get_invoice_item','SalesReturnController@getInvoiceItem');
 			Route::resource('sales_returns','SalesReturnController');
+
+			//Order notes
+			Route::post('order_notes/get_table_data','OrderNoteController@get_table_data');
+			Route::get('order_notes/print/{id}','OrderNoteController@print');
+			Route::post('order_notes/updateStatus','OrderNoteController@updateStatus');
+			Route::post('order_notes/cancelNote','OrderNoteController@cancelNote');
+			Route::resource('order_notes','OrderNoteController');
+
+			//KITS
+			Route::post('kits/get_table_data','KitController@get_table_data');
+			Route::resource('kits','KitController');
 
 			//Cash Controller
 			Route::get('cash/get_table_data','CashController@get_table_data');

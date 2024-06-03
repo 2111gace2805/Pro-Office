@@ -21,8 +21,15 @@ var gran_contribuyente = 'no';
 
     verificarCaja();
 
-    $(document).on('change', '#product,#service', function () {
+    $(document).on('change', '#product,#service,#kit', function () {
         var product_id = $(this).val();
+
+
+        console.log({product_id});
+
+        let id = $(this).attr('id');
+
+
         if (product_id == '') {
             return;
         }
@@ -38,21 +45,49 @@ var gran_contribuyente = 'no';
             }
         }
 
+        let kit = ( id == "kit" ) ? 1 : 0;
+
         //if product has already in order table
-        if ($("#order-table > tbody > #product-" + product_id).length > 0) {
-            var line = $("#order-table > tbody > #product-" + product_id);
-            var quantity = parseFloat($(line).find(".input-quantity").val());
-
-            $(line).find(".input-quantity").val(quantity + 1).trigger('change');
-            $("#product").val("").trigger('change');;
-
-            return;
+        if( kit == 0 ){
+            if($("#order-table > tbody > #product-" + product_id).length > 0) {
+    
+                console.log('entra aqui?');
+                var line = $("#order-table > tbody > #product-" + product_id);
+                var quantity = parseFloat($(line).find(".input-quantity").val());
+    
+                $(line).find(".input-quantity").val(quantity + 1).trigger('change');
+    
+                $("#product").val("").trigger('change');
+                $("#service").val("").trigger('change');
+                $("#kit").val("").trigger('change');
+    
+                return;
+            }
         }
+        else{
+            if ($("#order-table > tbody > #kit-" + product_id).length > 0) {
+                var line = $("#order-table > tbody > #kit-" + product_id);
+                var quantity = parseFloat($(line).find(".input-quantity").val());
+    
+                $(line).find(".input-quantity").val(quantity + 1).trigger('change');
+    
+                $("#product").val("").trigger('change');
+                $("#service").val("").trigger('change');
+                $("#kit").val("").trigger('change');
+    
+                return;
+            }
+        }
+
+
 
         //Ajax request for getting product details
         $.ajax({
             method: "GET",
             url: _url + '/products/get_product/' + product_id,
+            data: {
+                kit: kit
+            },
             beforeSend: function () {
                 $("#preloader").fadeIn(100);
             },
@@ -63,12 +98,13 @@ var gran_contribuyente = 'no';
                 var product = json['product'];
                 //var tax = json['tax'];
 
-                if (item['item_type'] == 'product') {
-                    var product_price = parseFloat(product['product_price']);
+                // if (item['item_type'] == 'product') {
+                //     var product_price = parseFloat(product['product_price']);
 
-                } else if (item['item_type'] == 'service') {
-                    var product_price = parseFloat(product['product_price']);
-                }
+                // } else if (item['item_type'] == 'service') {
+                //     var product_price = parseFloat(product['product_price']);
+                // }
+                var product_price = parseFloat(product['product_price']);
 
                 //Tax Value calculation
                 var unit_cost = product_price;
@@ -88,11 +124,13 @@ var gran_contribuyente = 'no';
 
                 let refisc_id = $('#refisc_id').val();
 
-                var product_row = `<tr class="items" id="product-${item['id']}">
+                let row_id = ( kit == 1 ) ? "kit-" : "product-";
+
+                var product_row = `<tr class="items" id="${row_id}${item['id']}">
 											<td style="width: 95px"><input type="number" name="line[]" class="form-control input-line" value="${linea}"></td>
-                                            <td width="8%" class="input-product-code" title="Producto original: ${product['original']}">${product['product_code']}</td>
+                                            <td width="8%" class="input-product-code d-none" title="Producto original: ${product['original']}">${product['product_code']}</td>
 											<td class="description">
-                                                <textarea cols="10" rows="15" name="product_description[]" class="form-control input-description">${item['item_name']}</textarea>
+                                                <textarea cols="10" rows="15" name="product_description[]" class="form-control input-description">${item['item_name']} - ${product['product_code']}</textarea>
                                             </td>
 											<td class="text-center quantity" title="Cantidad máxima: ${json['available_quantity']}"><input type="number" name="quantity[]" min="1" class="form-control float-field input-quantity text-center" value="1"></td>
 											<td class="text-right unit-cost" style="width:110px"><input type="text" name="unit_cost[]" class="form-control float-field input-unit-cost text-right" value="${unit_cost.toFixed(2)}"></td>
@@ -111,12 +149,14 @@ var gran_contribuyente = 'no';
 											<input type="hidden" id="precio_original" value="${product_price}">
 											<input type="hidden" class="cambio_precio" value="0">
 											<input type="hidden" name="dtes_relacionados[]" class="input-dte-relacionados" value="${dte_relacionado}">
+											<input type="hidden" name="kit[]" class="input-kit" value="${kit}">
 									</tr>`;
                 $("#order-table > tbody").append(product_row);
                 update_summary();
 
                 $("#product").val("").trigger('change');
                 $("#service").val("").trigger('change');
+                $("#kit").val("").trigger('change');
                 $("#doc_relacionado").val("").trigger('change');
                 if( $("#tipodoc_id").val() == '14' ){
                     $('.selectIva').prop('disabled', true);
@@ -224,6 +264,7 @@ var gran_contribuyente = 'no';
         let selectedTipodoc = $('#tipodoc_id').val();
 
         let precio  = $(this).val();
+        precio = ( precio == "" ) ? 0 : precio;
         let line    = $(this).parent().parent();
         let total   = ( selectedTipodoc == '03' ) ? precio * 1.13 : precio;
 
@@ -362,6 +403,13 @@ var gran_contribuyente = 'no';
                     setSelect2CCF();
                 }
 
+                if( selectedContact.gran_contribuyente == 'si' ){
+                    $("#dvLicitacion").show('slow');
+                }
+                else{
+                    $("#dvLicitacion").hide('slow');
+                }
+
                 if( selectedContact.exento_iva == 'si' ){
                     $("#chkVentaExenta").prop("checked", true);
                     $('#chkVentaExenta').prop('disabled', true);
@@ -425,7 +473,7 @@ function update_summary(changedByUser=false) {
     }
 
     if( $("#chkIvaRetenido").is(':checked') ){
-        if( $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '04' ){
+        if( $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
             $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
             $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
         }
@@ -444,9 +492,38 @@ function update_summary(changedByUser=false) {
         }
     }
     else{
-        if( $('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '04' ){
+        if( $('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '04' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
             $("#iva-retenido").html(_currency + ' ' + '0.00');
             $("#iva_retenido").val(0.00);
+        }
+    }
+
+    if( selectedContact != null && selectedContact.gran_contribuyente == 'si' && !$("#chkIvaRetenido").is(':checked') ){
+        if( $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
+
+            if( parseFloat( product_total_sin_iva ) >= 100 ){
+                $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+                $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+            }
+
+        }
+
+        if( $('#tipodoc_id').val()== '01' ){
+
+            if( cambio_precio == 1 ){
+                product_total_sin_iva = product_total_sin_iva / 1.13;
+
+                if( parseFloat( product_total_sin_iva ) > 100 ){
+                    $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+                    $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+                }
+            }
+            else{
+                if( parseFloat( product_total_sin_iva ) > 100 ){
+                    $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+                    $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+                }
+            }
         }
     }
     
@@ -485,6 +562,19 @@ function update_summary(changedByUser=false) {
 
 $('#chkIvaRetenido').on("change", function() {
     update_summary();
+});
+
+$('#venta_licitacion').on("change", function() {
+    let val = $(this).val();
+
+    console.log({val});
+
+    if( val == 1 ){
+        $('#chkIvaRetenido').attr('checked', true).trigger("change");
+    }
+    else{
+        $('#chkIvaRetenido').attr('checked', false).trigger("change");
+    }
 });
 
 $('#chkVentaExenta').on("change", function() {
@@ -819,6 +909,15 @@ function saveInvoice( event ){
                     let id_nr = params.get('id_nr');
                     if( id_nr != null ){
                         data.append('id_nr_rel', id_nr);
+                    }
+                }
+
+
+                if( selected == '04' ){
+                    let params = new URLSearchParams(location.search);
+                    let id_nota_p = params.get('id_nota_p');
+                    if( id_nota_p != null ){
+                        data.append('id_nota_p', id_nota_p);
                     }
                 }
     

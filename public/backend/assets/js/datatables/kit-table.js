@@ -2,35 +2,21 @@
   "use strict";
 
   $(function () {
-    var invoice_table = $("#invoice-table").DataTable({
+    var kit_table = $("#kit-table").DataTable({
       processing: true,
       serverSide: true,
       ajax: {
-        url: _url + "/invoices/get_table_data",
+        url: _url + "/kits/get_table_data",
         method: "POST",
         data: function (d) {
           d._token = $('meta[name="csrf-token"]').attr("content");
 
-          if ($("input[name=invoice_number]").val() != "") {
-            d.invoice_number = $("input[name=invoice_number]").val();
+          if ($("input[name=code]").val() != "") {
+            d.code = $("input[name=code]").val();
           }
 
-          console.log($("select[name=tipodoc_id]").val());
-
-          if ($("select[name=tipodoc_id]").val() != "") {
-            d.tipodoc_id = $("select[name=tipodoc_id]").val();
-          }
-
-          if ($("select[name=client_id]").val() != "") {
-            d.client_id = $("select[name=client_id]").val();
-          }
-
-          if ($("select[name=status]").val() != "") {
-            d.status = JSON.stringify($("select[name=status]").val());
-          }
-
-          if ($("input[name=date_range]").val() != "") {
-            d.date_range = $("input[name=date_range]").val();
+          if ($("select[name=name]").val() != "") {
+            d.name = $("select[name=name]").val();
           }
         },
         error: function (request, status, error) {
@@ -38,17 +24,10 @@
         },
       },
       columns: [
-        { data: "invoice_number", name: "invoice_number" },
-        { data: "tipodoc_nombre", name: "tipodoc_nombre" },
-        {
-          data: "client.company_name",
-          name: "client.company_name",
-          defaultContent: "",
-        },
-        { data: "invoice_date", name: "invoice_date" },
-        // { data: "due_date", name: "due_date" },
-        { data: "grand_total", name: "grand_total" },
-        { data: "status", name: "status" },
+        { data: "code", name: "name" },
+        { data: "name", name: "name"},
+        { data: "products", name: "products" },
+        { data: "amount", name: "amount" },
         { data: "action", name: "action" },
       ],
       responsive: true,
@@ -93,32 +72,32 @@
           exportOptions: {
             columns: [0, 1, 2, 3, 4, 5],
           },
-          title: "Invoice",
+          title: "Nota de pedido",
         },
         {
           extend: "copy",
           exportOptions: {
             columns: [0, 1, 2, 3, 4, 5],
           },
-          title: "Invoice",
+          title: "Nota de pedido",
         },
         {
           extend: "pdf",
           exportOptions: {
             columns: [0, 1, 2, 3, 4, 5],
           },
-          title: "Invoice",
+          title: "Nota de pedido",
         },
         {
           extend: "print",
           exportOptions: {
             columns: [0, 1, 2, 3, 4, 5],
           },
-          title: "Invoice",
+          title: "Nota de pedido",
           customize: function (win) {
             $(win.document.body)
               .css("font-size", "10pt")
-              .prepend('<h4 class="text-center">Invoice</h4>');
+              .prepend('<h4 class="text-center">Nota de pedido</h4>');
             $(win.document.body)
               .find("table")
               .addClass("compact")
@@ -131,34 +110,14 @@
       },
     });
 
-    $("#invoice-number").on("keyup", function (e) {
-      invoice_table.draw();
+    $("#code").on("keyup", function (e) {
+      kit_table.draw();
     });
 
-    $(".select-filter").on("change", function (e) {
-      invoice_table.draw();
+    $("#name").on("keyup", function (e) {
+      kit_table.draw();
     });
 
-    $("#date_range").daterangepicker({
-      autoUpdateInput: false,
-      locale: {
-        format: "YYYY-MM-DD",
-        cancelLabel: "Clear",
-      },
-    });
 
-    $("#date_range").on("apply.daterangepicker", function (ev, picker) {
-      $(this).val(
-        picker.startDate.format("YYYY-MM-DD") +
-          " - " +
-          picker.endDate.format("YYYY-MM-DD")
-      );
-      invoice_table.draw();
-    });
-
-    $("#date_range").on("cancel.daterangepicker", function (ev, picker) {
-      $(this).val("");
-      invoice_table.draw();
-    });
   });
 })(jQuery);

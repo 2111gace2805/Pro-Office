@@ -20,6 +20,7 @@ use App\Brand;
 use App\ProductGroup;
 use DataTables;
 use Illuminate\Support\Facades\Auth;
+use App\Kit;
 
 class ProductController extends Controller {
 
@@ -397,16 +398,46 @@ class ProductController extends Controller {
     }
 
     public function get_product(Request $request, $id) {
-        $item = Item::find($id);
-        $product = Product::where('item_id', $id)->first();
-        Log::info($product);
-        $product_stock = Stock::where('product_id', $item->id)->where('company_id', company_id())->first();
 
-        if ($item->item_type == 'product') {
-            echo json_encode(array("item" => $item, "product" => $product, "tax" => $product->tax, "available_quantity" => $product_stock->quantity??0));
-        } else if ($item->item_type == 'service') {
-            echo json_encode(array("item" => $item, "product" => $product, "tax" => $product->tax, "unit_cost" => $product->product_price));
+
+        $esKit = $request->query('kit');
+
+        if( $esKit == 1 ){
+
+            $kit = Kit::find($id);
+
+            $item = [
+                'id'        => $kit->id,
+                'item_name' => $kit->name,
+                'item_type' => 'kit'
+            ];
+
+            $product = [
+                'description'   => $kit->name,
+                'product_code'  => $kit->code,
+                'unim_id'       => '59',
+                'product_price' => $kit->amount,
+                'tax'           => null
+            ];
+
+            echo json_encode(array("item" => $item, "product" => $product, "tax" => null, "unit_cost" => $kit->amount));
+
         }
+        else{
+
+            $item = Item::find($id);
+            $product = Product::where('item_id', $id)->first();
+            Log::info($product);
+            $product_stock = Stock::where('product_id', $item->id)->where('company_id', company_id())->first();
+    
+            if( $item->item_type == 'product' ){
+                echo json_encode(array("item" => $item, "product" => $product, "brand_name" => optional($product->brand)->brand_name, "tax" => $product->tax, "available_quantity" => $product_stock->quantity??0));
+            }
+            else if( $item->item_type == 'service' ){
+                echo json_encode(array("item" => $item, "product" => $product, "tax" => $product->tax, "unit_cost" => $product->product_price));
+            }
+        }
+
     }
 
     public function stock(Request $request, $id)

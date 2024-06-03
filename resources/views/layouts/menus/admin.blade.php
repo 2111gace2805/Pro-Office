@@ -28,6 +28,7 @@
 </a>
 <div class="collapse" id="inventories" aria-labelledby="headingOne" data-parent="#sidenavAccordion">
     <nav class="sb-sidenav-menu-nested nav" id="navAccordionInventories">
+            <a class="nav-link" href="{{ route('kits.index') }}">{{ _lang('Kits') }}</a>
             <a class="nav-link" href="{{ route('products.index') }}">{{ _lang('Products') }}</a>
             <a class="nav-link" href="{{ route('categories.index') }}">{{ _lang('Categories') }}</a>
             <a class="nav-link" href="{{ route('brands.index') }}">{{ _lang('Brands') }}</a>
@@ -95,6 +96,7 @@
         {{-- <a class="nav-link" href="{{ route('quotations.create') }}">{{ _lang('Create Quotation') }}</a>
         <a class="nav-link" href="{{ route('quotations.index') }}">{{ _lang('Quotation List') }}</a> --}}
         <a class="nav-link" href="{{ route('sales_returns.index') }}">{{ _lang('Sales Return') }}</a>
+        <a class="nav-link" href="{{ route('order_notes.index') }}">{{ _lang('Order Notes') }}</a>
     </nav>
 </div>
 

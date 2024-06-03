@@ -48,7 +48,7 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Hora') }}</label>
-                                <input type="time" class="form-control" name="invoice_time" id="invoice_time" readonly required>
+                                <input type="time" class="form-control" name="invoice_time" id="invoice_time" readonly value="{{ now()->format('H:i:s') }}" required>
                             </div>
                         </div>
                         
@@ -120,20 +120,29 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-12 col-md-4">
-                                <div class="form-group">
-                                    <label class="control-label">{{ _lang('Nombre comercial') }}</label>
-                                    <input type="text" class="form-control" name="nombre_comercial" id="nombre_comercial"
-                                    value="{{ old('nombre_comercial') }}" readonly>
-                                </div>
+                        <div class="col-12 col-md-4" id="dvLicitacion" style="display:none;">
+                            <div class="form-group">
+                                <label class="control-label">¿Es una Licitación?</label>
+                                <select class="form-control" name="venta_licitacion" id="venta_licitacion" required>
+                                    <option value="">{{ _lang('Select one') }}</option>
+                                    <option value="0" selected>No</option>
+                                    <option value="1">Sí</option>
+                                </select>
                             </div>
-                        <div class="col-12 col-md-12">
+                        </div>
+                        <div class="col-12 col-md-8">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Nombre en Factura') }}</label>
                                 <input type="text" class="form-control" name="name_invoice" id="name_invoice" value="{{ old('name_invoice') }}" required>
                             </div>
                         </div>
-
+                        <div class="col-12 col-md-4">
+                            <div class="form-group">
+                                <label class="control-label">{{ _lang('Nombre comercial') }}</label>
+                                <input type="text" class="form-control" name="nombre_comercial" id="nombre_comercial"
+                                value="{{ old('nombre_comercial') }}" readonly>
+                            </div>
+                        </div>
                         <div class="col-12 col-md-4">
                                 <div class="form-group">
                                     <label class="control-label">{{ _lang('Tipo de persona') }}</label>
@@ -322,6 +331,26 @@
 
                         <div class="col-md-6">
                             <div class="form-group select-product-container">
+                                <label class="control-label">{{ _lang('Vendedor') }}</label>
+                                <select class="form-control select2" name="seller_code" id="seller_code">
+                                    <option value="">{{ _lang('Select') }}</option>
+                                    {{ create_option("users", "id", "name", old('id')) }}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group select-product-container">
+                                <label class="control-label">{{ _lang('Kits') }}</label>
+                                <select class="form-control select2-ajax" data-value="id" data-display="name"
+                                    data-table="kits" name="kit" id="kit">
+                                    <option value="">{{ _lang('Seleccionar Kit') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group select-product-container">
                                 <a href="{{ route('products.create') }}" data-reload="false"
                                     data-title="{{ _lang('Add Product') }}" class="ajax-modal select2-add"><i
                                         class="ti-plus"></i> {{ _lang('Add New') }}</a>
@@ -369,7 +398,7 @@
                                     <thead>
                                         <tr>
                                             <th>{{ _lang('Línea') }}</th>
-                                            <th>{{ _lang('Código') }}</th>
+                                            <th class="d-none">{{ _lang('Código') }}</th>
                                             <th>{{ _lang('Description') }}</th>
                                             <th class="text-center wp-100">{{ _lang('Quantity') }}</th>
                                             <th class="text-right">{{ _lang('Unit Cost') }}</th>
@@ -416,7 +445,7 @@
                                     <tfoot class="tfoot active">
                                         <tr>
                                             <th>{{ _lang('Sumas') }}</th>
-                                            <th></th>
+                                            <th class="d-none"></th>
                                             <th></th>
                                             <th class="text-center" id="total-qty">0</th>
                                             <th></th>
@@ -431,7 +460,7 @@
 
                                 <div class="row">
                                     <div class="col-md-2">
-                                        <div class="form-check">
+                                        <div class="form-check d-none">
                                             <input class="form-check-input" type="checkbox" value="" name="chkIvaRetenido" id="chkIvaRetenido">
                                             <label class="form-check-label" for="chkIvaRetenido">
                                                 IVA RETENIDO
@@ -539,11 +568,13 @@
 
         $("#product").closest(".col-md-6").hide()
         $("#service").closest(".col-md-6").hide()
+        $("#kit").closest(".col-md-6").hide()
+
+        let invoiceCCF = @json($invoiceCCF);
+        let dte = invoiceCCF.dte_asociado;
+        let items = dte.invoice_items;
 
         $(document).ready(function(){
-            let invoiceCCF = @json($invoiceCCF);
-            let dte = invoiceCCF.dte_asociado;
-            let items = dte.invoice_items;
 
             $("#tipodoc_id").val(invoiceCCF.type).trigger("change");
             $("#tipodoc_id").attr("style", "pointer-events: none;");
@@ -578,18 +609,29 @@
                         data: { id: dte.id }
                     });
 
-                    $("#product").select2("trigger", "select", {
-                        data: { id: value.item_id }
-                    });
+                    if( value.item_id > 0 ){
+                        $("#product").select2("trigger", "select", {
+                            data: { id: value.item_id }
+                        });
+                    }
+                    else{
+                        $("#kit").select2("trigger", "select", {
+                            data: { id: value.kit_id }
+                        });
+                    }
 
                 })
             }).catch((error) => {
                 console.error('Error durante la ejecución de la función:', error);
             });
+        });
 
+        $(document).ajaxStop(function() {
+            $.each(items, function(index, value){
 
-
-
+                let cantidad = parseInt( value.quantity  )
+                $("#order-table").find("#product-"+value.item_id).find(".input-quantity").val(cantidad).trigger("change");
+            });
         });
     @endif
 
@@ -598,11 +640,13 @@
 
         $("#product").closest(".col-md-6").hide()
         $("#service").closest(".col-md-6").hide()
+        $("#kit").closest(".col-md-6").hide()
+
+        let invoiceNR = @json($invoiceNR);
+        let dte = invoiceNR.dte_asociado;
+        let items = dte.invoice_items;
 
         $(document).ready(function(){
-            let invoiceNR = @json($invoiceNR);
-            let dte = invoiceNR.dte_asociado;
-            let items = dte.invoice_items;
             let type = {{ $type }};
             type = ( type == 3 ) ? "03" : "01";
 
@@ -610,17 +654,69 @@
             $("#tipodoc_id").val(type).trigger("change");
             $("#tipodoc_id").attr("style", "pointer-events: none;");
 
+            $("#seller_code").val(dte.user_id).trigger("change")
+
             $.each(items, function(index, value){
                 
                 $("#client_id").select2("trigger", "select", {
                     data: { id: dte.client_id, text: dte.client.company_name + ' - NIT: ' + dte.client.nit }
                 });
 
-                $("#product").select2("trigger", "select", {
-                    data: { id: value.item_id }
-                });
-
+                if( value.item_id > 0 ){
+                    $("#product").select2("trigger", "select", {
+                        data: { id: value.item_id }
+                    });
+                }
+                else{
+                    $("#kit").select2("trigger", "select", {
+                        data: { id: value.kit_id }
+                    });
+                }
             })
+        });
+
+        $(document).ajaxStop(function() {
+            $.each(items, function(index, value){
+
+                let cantidad = parseInt( value.quantity  )
+                $("#order-table").find("#product-"+value.item_id).find(".input-quantity").val(cantidad).trigger("change");
+            });
+        });
+    @endif
+
+    @if( $nota_pedido != null )
+
+        $("#product").closest(".col-md-6").hide()
+        $("#service").closest(".col-md-6").hide()
+        $("#kit").closest(".col-md-6").hide()
+
+        let nota = @json($nota_pedido);
+        let datos = nota.datos;
+        let items = datos.details;
+        
+        $(document).ready(function(){
+
+            $("#tipodoc_id").val("04").trigger("change");
+            $("#tipodoc_id").attr("style", "pointer-events: none;");
+
+            $("#client_id").select2("trigger", "select", {
+                data: { id: datos.client_id, text: datos.client.company_name + ' - NIT: ' + datos.client.nit }
+            });   
+
+            $.each(items, function(index, value){
+
+                $("#product").select2("trigger", "select", {
+                    data: { id: value.product_id }
+                });
+            });
+
+            
+        });
+
+        $(document).ajaxStop(function() {
+            $.each(items, function(index, value){
+                $("#order-table").find("#product-"+value.product_id).find(".input-quantity").val( value.quantity ).trigger("change");
+            });
         });
     @endif
 
@@ -633,11 +729,11 @@
     gran_contribuyente = @json(get_option('gran_contribuyente'));
 
     // Obtener la hora actual
-    var now = new Date();
-    var options = { timeZone: 'America/El_Salvador' };
-    var formattedTime = now.toLocaleTimeString('es-SV', options);
+    // var now = new Date();
+    // var options = { timeZone: 'America/El_Salvador' };
+    // var formattedTime = now.toLocaleTimeString('es-SV', options);
 
     // Establecer el valor del campo de entrada de hora
-    document.getElementById("invoice_time").value = formattedTime;
+    // document.getElementById("invoice_time").value = formattedTime;
 </script>
 @endsection
