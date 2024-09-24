@@ -18,7 +18,13 @@
         flex: 0 0 16.66667%;
     }
 </style>
-<div id="invoice-view" style="height:100%;">
+@php
+    $style = '';
+    if( $invoice->status == 'Canceled' ){
+        $style = 'background-image: url('.asset("backend/images/invalidado.png").');background-position: center; background-repeat: no-repeat; background-size: contain;opacity: 0.5;background-size: 70%;';
+    }
+@endphp
+<div id="invoice-view" style="height:100%;{{ $style }}">
     <div class="table-responsive invoice-header" style="">
         <table class="classic-table">
             <tbody>
@@ -50,7 +56,7 @@
             <table class="classic-table" style="font-size: 15px">
                 <tr>
                     <td class="font-weight-bold pl-2" style="width: 25%;">Código vendedor</td>
-                    <td>{{ $invoice->seller_code->seller_code ?? '-' }}</td>
+                    <td>{{ $invoice->seller_code->seller_code ?? '-' }} {{ $invoice->formatted_seller_code2 }}</td>
                 </tr>
                 <tr>
                     <td class="font-weight-bold pl-2" style="width: 25%;">{{ _lang('Sucursal:') }}</td>
@@ -84,9 +90,13 @@
                     <td class="font-weight-bold pl-2">{{ _lang('Tipo de Transmisión:') }}</td>
                     <td style="width: 370px">{{ ucfirst($invoice->transmision) }}</td>
                 </tr>
-                 <tr>
+                <tr>
                     <td class="font-weight-bold pl-2">{{ _lang('Fecha y Hora de Generación:') }}</td>
                     <td class="">{{ $invoice->created_at->format('d-m-Y H:i:s') }}</td>                    
+                </tr>
+                <tr>
+                    <td class="font-weight-bold pl-2">{{ _lang('Condición de operación:') }}</td>
+                    <td class="">{{ $invoice->condicion_operacion->conop_nombre }} {{ ( $invoice->conop_id == 2 && $invoice->plazo?->plazo_nombre != null ) ? $invoice->periodo . ' ' . $invoice->plazo->plazo_nombre : ''  }}</td>            
                 </tr>
             </table>
         </div>
@@ -138,7 +148,7 @@
             <table class="classic-table" style="font-size: 15px">
                 <tr>
                     <td class="font-weight-bold pl-2" style="width: 28%;">{{ _lang('Nombre o razón social:') }}</td>
-                    <td>{{ $invoice->name_invoice }}</td>                    
+                    <td style="word-break: break-all !important;">{{ $invoice->name_invoice }}</td>                    
                 </tr>
                 @if( $invoice->tdocrec_id != '' )
                     <tr>
@@ -156,12 +166,6 @@
                         @endphp
                         <td class="font-weight-bold pl-2">{{ $tipoDoc }}</td>
                         <td style="width: 370px">{{$invoice->num_documento }}</td>
-                    </tr>
-                @endif
-                @if( $invoice->client->descActividad != '')
-                    <tr>
-                        <td class="font-weight-bold pl-2">{{ _lang('Actividad económica:') }}</td>
-                        <td class="">{{ $invoice->client->descActividad ?? '-' }}</td>                    
                     </tr>
                 @endif
                 @if( isset($invoice->client->municipio->muni_nombre) && $invoice->client->municipio->muni_nombre != '' )
@@ -288,14 +292,14 @@
                 <tr id="product-{{ $invoice->invoice_items[$i]->item_id }}">
                     <td
                         style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656; width: 70px;" class="text-center pb-0">
-                        <b>{{ $invoice->invoice_items[$i]->quantity }}</b>
+                        <b>{{ number_format($invoice->invoice_items[$i]->quantity, 0, '.', ',') }}</b>
                     </td>
                     {{-- <td style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656;"
                         class="text-center ">{{ $invoice->invoice_items[$i]->item->product->product_code }}</td> --}}
                     <td style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656;"
                         class="pb-0">  {!! nl2br($invoice->invoice_items[$i]->description) !!}</td>
                     <td style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656;"
-                        class="text-center pb-0">{{ decimalPlace($invoice->invoice_items[$i]->unit_cost, $currency) }}</td>
+                        class="text-center pb-0">{{ $currency }} {{ number_format($invoice->invoice_items[$i]->unit_cost, 6, '.', '') }}</td>
 
                     @php
                         $noSujeto = '';
@@ -342,7 +346,7 @@
             <tr>
                 <td colspan="2" style="border-top: 2px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;"
                     class="p-1">
-                    {{ _lang('It is') }} {{dollarToText($invoice->grand_total)}}
+                    {{ _lang('It is') }} {{dollarToText($invoice->grand_total)}} DÓLARES
                 </td>
                 <td class="p-1" style="border-top: 2px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0px solid #565656; border-radius: 5px !important; padding: 0px;">SUMAS
                 </td>
@@ -370,9 +374,17 @@
                 <td colspan="2" style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;"
                     class="">
                 </td>
+                <td style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;" colspan="2" class="pl-1">Retención Renta</td>
+                <td style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;"></td>
+                <td style="border-top: 0px solid #565656; border-right: 2px solid #565656; border-left: 2px solid #565656; border-bottom: 2px solid #565656; border-radius: 5px !important; padding: 0px;" class="text-right p-1">{{ decimalPlace($invoice->retencion_renta, $currency) }}</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;"
+                    class="">
+                </td>
                 <td style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;" colspan="2" class="pl-1">Sub-Total</td>
                 <td style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;"></td>
-                <td style="border-top: 0px solid #565656; border-right: 2px solid #565656; border-left: 2px solid #565656; border-bottom: 2px solid #565656; border-radius: 5px !important; padding: 0px;" class="text-right p-1">{{ decimalPlace($gravadoSum-$invoice->iva_retenido, $currency) }}</td>
+                <td style="border-top: 0px solid #565656; border-right: 2px solid #565656; border-left: 2px solid #565656; border-bottom: 2px solid #565656; border-radius: 5px !important; padding: 0px;" class="text-right p-1">{{ decimalPlace($gravadoSum - $invoice->iva_retenido - $invoice->retencion_renta, $currency) }}</td>
             </tr>
             <tr>
                 <td colspan="2" style="border-top: 2px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 2px solid #565656; border-radius: 5px !important; padding: 0px;"

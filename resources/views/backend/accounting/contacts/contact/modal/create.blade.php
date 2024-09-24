@@ -50,7 +50,7 @@
                         <div class="col-md-6"  id="nombreComercial">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Nombre comercial (caso Pers. jurídica)') }}</label>
-                                <input type="text" class="form-control" name="tradename"
+                                <input type="text" class="form-control" name="tradename" id="tradename"
                                     value="{{ old('tradename') }}">
                             </div>
                         </div>
@@ -72,7 +72,7 @@
                         <div class="col-md-6" id="nit">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('NIT (homologado o no)') }}</label>
-                                <input type="text" class="form-control" name="nit"
+                                <input type="text" class="form-control" name="nit" id="nit"
                                     value="{{ old('nit') }}">
                             </div>
                         </div>
@@ -80,7 +80,7 @@
                         <div class="col-md-6" id="dui">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('DUI') }}</label>
-                                <input type="text" class="form-control" name="dui"
+                                <input type="text" class="form-control" name="dui" id="dui"
                                     value="{{ old('dui') }}">
                             </div>
                         </div>
@@ -88,7 +88,7 @@
                         <div class="col-md-6" id="nrc">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('NRC') }}</label>
-                                <input type="text" class="form-control" name="nrc"
+                                <input type="text" class="form-control" name="nrc" id="nrc"
                                     value="{{ old('nrc') }}">
                             </div>
                         </div>

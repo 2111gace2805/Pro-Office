@@ -3,18 +3,22 @@
 namespace App\Http\Controllers;
 
 // use PDF;
+use App\Kit;
 use App\Tax;
+use App\Cash;
 use App\Item;
 use App\User;
 use DateTime;
 use App\Stock;
 use Validator;
 use DataTables;
+use ZipArchive;
 use App\Company;
 use App\Contact;
 use App\Invoice;
 use App\BlockDte;
 use App\Municipio;
+use App\OrderNote;
 use App\Quotation;
 use Carbon\Carbon;
 use App\InvoiceItem;
@@ -39,9 +43,6 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use App\Exceptions\UsuarioSinDUIException;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use App\Cash;
-use App\OrderNote;
-use App\Kit;
 
 class InvoiceController extends Controller
 {
@@ -106,7 +107,8 @@ class InvoiceController extends Controller
                     . '<button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">' . _lang('Action')
                     . '&nbsp;<i class="fas fa-angle-down"></i></button>'
                     . '<div class="dropdown-menu">'
-                    . '<a class="dropdown-item" href="' . action('InvoiceController@show', $invoice->id) . '" data-title="' . _lang('View Invoice') . '" data-fullscreen="true"><i class="ti-eye"></i> ' . _lang('View') . '</a>';
+                    . '<a class="dropdown-item" href="' . action('InvoiceController@show', $invoice->id) . '" data-title="' . _lang('View Invoice') . '" data-fullscreen="true"><i class="ti-eye"></i> ' . _lang('View') . '</a>'
+                    . '<button class="dropdown-item" onclick="reenviarCorreo(' . $invoice->id . ');" data-title="' . _lang('Reenviar DTE') . '" data-fullscreen="true"><i class="ti-email"></i> ' . _lang('Reenviar DTE') . '</button>';
 
                 if ($invoice->tipodoc_id == '03' && $invoice->status != 'Canceled' && $invoice->contingencia == 0) {
                     $actionHtml .= '<a class="dropdown-item" href="' . action('InvoiceController@create', ['id_ccf' => $invoice->id, 'type' => '05']) . '" data-title="' . _lang('Nota Crédito') . '" data-fullscreen="true"><i class="ti-file"></i> ' . _lang('Nota Crédito') . '</a>';
@@ -138,7 +140,8 @@ class InvoiceController extends Controller
                     // . '<form action="' . action('InvoiceController@destroy', $invoice->id) . '" method="post">'
                     . csrf_field()
                     // . '<input name="_method" type="hidden" value="DELETE">'
-                    . ($invoice->status != 'Canceled' && $invoice->contingencia == 0 ? '<button class="button-link" onclick="modalAnulacion(' . $invoice->id . ', \'' . $client_name . '\', \'' . $invoice->tdocrec_id . '\', \'' . $invoice->num_documento . '\');" data-title="¿Anular factura?" data-text="Los productos serán reintegrados al stock." data-confirmtext="Sí, anular" type="submit"><i class="ti-trash"></i> ' . _lang('Anular') . '</button>' : '')
+                    // . ($invoice->status != 'Canceled' && $invoice->contingencia == 0 ? '<button class="button-link" onclick="modalAnulacion(' . $invoice->id . ', \'' . $client_name . '\', \'' . $invoice->tdocrec_id . '\', \'' . $invoice->num_documento . '\');" data-title="¿Anular factura?" data-text="Los productos serán reintegrados al stock." data-confirmtext="Sí, anular" type="submit"><i class="ti-trash"></i> ' . _lang('Anular') . '</button>' : '')
+                    . ($invoice->status != 'Canceled' ? '<button class="button-link" onclick="modalAnulacion(' . $invoice->id . ', \'' . $client_name . '\', \'' . $invoice->tdocrec_id . '\', \'' . $invoice->num_documento . '\');" data-title="¿Anular factura?" data-text="Los productos serán reintegrados al stock." data-confirmtext="Sí, anular" type="submit"><i class="ti-trash"></i> ' . _lang('Anular') . '</button>' : '')
                     . ($invoice->status != 'Canceled' && $invoice->contingencia == 1 && $invoice->sello_recepcion == '' ? '<button class="button-link" onclick="modalContingencia(' . $invoice->id . ');" ><i class="ti-reload"></i> ' . _lang('Evento contingencia') . '</button>' : '')
                     . ($invoice->status != 'Canceled' ? '<a class="dropdown-item" href="' . action('SalesReturnController@create', ['id' => $invoice->id]) . '"><i class="ti-pencil-alt"></i> ' . _lang('Devolución garantía') . '</a>' : '')
                     // . '</form>'
@@ -263,7 +266,7 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'invoice_number' => 'required|max:191',
+            // 'invoice_number' => 'required|max:191',
             // 'client_id'      => 'required',
             'invoice_date'   => 'required',
             // 'due_date'       => 'required',
@@ -292,7 +295,7 @@ class InvoiceController extends Controller
     
             $invoice                 = new Invoice();
             // $invoice->invoice_number = get_invoice_number($request->tipodoc_id);
-            $invoice->invoice_number = $request->invoice_number;
+            // $invoice->invoice_number = $request->invoice_number;
             $invoice->client_id      = $request->input('client_id');
             $invoice->name_invoice   = $request->input('name_invoice');
             $invoice->invoice_date   = Carbon::createFromFormat('d/m/Y', $request->input('invoice_date'))->format('Y-m-d');
@@ -306,6 +309,7 @@ class InvoiceController extends Controller
             $invoice->iva_retenido    = $request->iva_retenido;
             $invoice->iva_percibido    = $request->iva_percibido;
             $invoice->isr_retenido    = $request->isr_retenido;
+            $invoice->retencion_renta = $request->retencion_renta;
             $invoice->grand_total    = $request->grand_total;
             // }
             $invoice->tax_total      = $request->input('tax_total');
@@ -345,6 +349,7 @@ class InvoiceController extends Controller
             $invoice->complemento = $request->input('complemento');
             $invoice->telefono = $request->input('telefono');
             $invoice->correo = $request->input('correo');
+            $invoice->correo_alterno = $request->input('correo_alterno');
             $invoice->plazo_id  = $request->input('plazo_id');
             $invoice->periodo  = $request->input('periodo');
             $invoice->conop_id = $request->input('conop_id');
@@ -366,7 +371,21 @@ class InvoiceController extends Controller
             if ($request->input('tipodoc_id') == '01') { // 01 = FE
                 $invoice->ticket_number = get_option('ticket_starting');
             }
-            $invoice->user_id = $request->input('seller_code');
+
+            $sellers_code = $request->input('seller_code', []);
+
+            $user_id        = null;
+            $second_user_id = null;
+        
+            if( count( $sellers_code ) > 0 ) {
+                $user_id = $sellers_code[0];
+            }
+            if (count($sellers_code) > 1) {
+                $second_user_id = $sellers_code[1];
+            }
+
+            $invoice->user_id           = $user_id;
+            $invoice->second_user_id    = $second_user_id;
             $invoice->save();
     
             $user = Auth::user();
@@ -574,6 +593,10 @@ class InvoiceController extends Controller
     
                 BlockDte::where('type_dte', '=', $tipoDocumento)->increment('correlativo');
 
+                $correlativo_mh             = $invoice->numero_control;
+                $invoice->invoice_number    = substr($correlativo_mh, -6);
+                $invoice->save();
+
 
                 if( $request->has('id_nota_p') ){
 
@@ -592,6 +615,10 @@ class InvoiceController extends Controller
                 $invoice->save();
     
                 BlockDte::where('type_dte', '=', $tipoDocumento)->increment('correlativo');
+
+                $correlativo_mh             = $invoice->numero_control;
+                $invoice->invoice_number    = substr($correlativo_mh, -6);
+                $invoice->save();
     
                 log::info("Invoice con ID: " . $invoice->id . " creado en modo Posponer, se enviará al siguiente día a las 00:00 horas");
             }
@@ -726,9 +753,13 @@ class InvoiceController extends Controller
                     }
     
                     BlockDte::where('type_dte', '=', $tipoDocumento)->increment('correlativo');
+
+                    $correlativo_mh             = $invoice->numero_control;
+                    $invoice->invoice_number    = substr($correlativo_mh, -6);
+                    $invoice->save();
     
                     if( $invoice->correo != '' ){
-                        // $this->sendEmailFactura($invoice->id);
+                        $this->sendEmailFactura($invoice->id);
                     }
     
                 }
@@ -1002,7 +1033,7 @@ class InvoiceController extends Controller
 
                 DB::commit();
 
-                // $this->sendEmailFactura($invoice->id, true);
+                $this->sendEmailFactura($invoice->id, true);
 
                 if ($request->ajax()) {
                     return response()->json(['result' => 'success', 'message' => _lang('Invoice deleted sucessfully'), 'data' => $response]);
@@ -1307,7 +1338,7 @@ class InvoiceController extends Controller
                     $pdf = PDF::loadView("backend.accounting.invoice.fe.pdf_export_ticket", $data);
                     // $pdf->setPaper('b7', 'portrait');
                     // $page_count = $pdf->getDomPDF()->get_canvas( )->get_page_number();
-                    $pdf->setPaper([0, 0, 226.77, 650]);
+                    $pdf->setPaper([0, 0, 276.77, 650]);
                 } else {
                     $pdf = PDF::loadView("backend.accounting.invoice.fe.facturaFe", $data);
                     $pdf->setPaper('letter', 'portrait');
@@ -1321,7 +1352,7 @@ class InvoiceController extends Controller
                 } else {
                     $pdf = PDF::loadView("backend.accounting.invoice.ccf.pdf_export_ticket", $data);
                     $customPaper = array(0, 0, 50, 80);
-                    $pdf->setPaper([0, 0, 226.77, 650]);
+                    $pdf->setPaper([0, 0, 276.77, 650]);
                 }
                 break;
             case '04': // NR
@@ -1860,7 +1891,7 @@ class InvoiceController extends Controller
                         $contingencia->estado = 1;
                         $contingencia->save();
 
-                        // $this->sendEmailFactura($invoice->id);
+                        $this->sendEmailFactura($invoice->id);
 
                         log::info('DTE CON ID: ' . $invoice->id . ' Procesado luego de contingencia y enviado por correo a:' . $invoice->correo);
 
@@ -1932,7 +1963,7 @@ class InvoiceController extends Controller
                     $invoice_cod->estado = 1;
                     $invoice_cod->save();
 
-                    // $this->sendEmailFactura($invoice->id);
+                    $this->sendEmailFactura($invoice->id);
 
                     log::info('DTE CON ID: ' . $invoice->id . ' Procesado luego de contingencia y enviado por correo a:' . $invoice->correo);
 
@@ -2066,7 +2097,7 @@ class InvoiceController extends Controller
                 "descripcion" => $value->description,
                 "cantidad" => intval($value->quantity),
                 "uniMedida" => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
-                "precioUni" => floatval(number_format($value->unit_cost, 2, '.', '')),
+                "precioUni" => floatval(number_format($value->unit_cost, 6, '.', '')),
                 "montoDescu" => intval($value->discount),
                 "ventaNoSuj" => floatval(number_format($noSujeto, 2, '.', '')),
                 "ventaExenta" => floatval(number_format($exento, 2, '.', '')),
@@ -2180,10 +2211,10 @@ class InvoiceController extends Controller
                 "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum - ($descGlobalExento + $descGlobalNoSujeto + $descGlobalGravado), 2, '.', '')), // menos $descGlobalNoSujeto, etc,
                 "ivaPerci1"             => floatval(number_format($invoice->iva_percibido, 2, '.', '')),
                 "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
-                "reteRenta"             => floatval(number_format(0, 2, '.', '')),
+                "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
                 "montoTotalOperacion"   => floatval(number_format($subTotal + $totalTributos, 2, '.', '')),
                 "totalNoGravado"        => floatval(number_format(0.0, 2, '.', '')),
-                "totalPagar"            => floatval(number_format($subTotal + $totalTributos - $invoice->iva_retenido, 2, '.', '')),
+                "totalPagar"            => floatval(number_format($subTotal + $totalTributos - $invoice->iva_retenido - $invoice->retencion_renta, 2, '.', '')),
                 "totalLetras"           => _lang('It is') . ' ' . dollarToText($invoice->grand_total) . ' USD',
                 "saldoFavor"            => floatval(number_format(0.0, 2, '.', '')),
                 "condicionOperacion"    => intval($invoice->conop_id),
@@ -2309,7 +2340,7 @@ class InvoiceController extends Controller
                 "descripcion" => $value->description,
                 "cantidad" => intval($value->quantity),
                 "uniMedida" => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
-                "precioUni" => floatval(number_format($value->unit_cost, 2, '.', '')),
+                "precioUni" => floatval(number_format($value->unit_cost, 6, '.', '')),
                 "montoDescu" => floatval(number_format($value->discount, 2, '.', '')),
                 "ventaNoSuj" => floatval(number_format($noSujeto, 2, '.', '')),
                 "ventaExenta" => floatval(number_format($exento, 2, '.', '')),
@@ -2446,11 +2477,11 @@ class InvoiceController extends Controller
                 "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum - ($descGlobalExento + $descGlobalNoSujeto + $descGlobalGravado), 2, '.', '')), // menos $descGlobalNoSujeto, etc,
                 // "ivaPerci1"=> $invoice->iva_percibido,
                 "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
-                "reteRenta"             => floatval(number_format($invoice->isr_retenido, 2, '.', '')),
+                "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
                 // "montoTotalOperacion" => floatval(number_format($invoice->grand_total, 2, '.', '')),
                 "montoTotalOperacion"   => floatval(number_format($subTotal, 2, '.', '')),
                 "totalNoGravado"        => floatval(number_format(0.0, 2, '.', '')),
-                "totalPagar"            => floatval(number_format($subTotal - floatval($invoice->iva_retenido), 2, '.', '')),
+                "totalPagar"            => floatval(number_format($subTotal - floatval($invoice->iva_retenido) - floatval($invoice->retencion_renta), 2, '.', '')),
                 "totalLetras"           => _lang('It is') . ' ' . dollarToText($invoice->grand_total) . ' USD',
                 "saldoFavor"            => 0.0,
                 "condicionOperacion"    =>  intval($invoice->conop_id),
@@ -2609,7 +2640,7 @@ class InvoiceController extends Controller
                 "descripcion"       => $value->description,
                 "cantidad"          => intval($value->quantity),
                 "uniMedida"         => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
-                "precioUni"         => floatval(number_format($value->unit_cost, 2, '.', '')),
+                "precioUni"         => floatval(number_format($value->unit_cost, 6, '.', '')),
                 "montoDescu"        => floatval(number_format($value->discount, 2, '.', '')),
                 "ventaNoSuj"        => floatval(number_format($noSujeto, 2, '.', '')),
                 "ventaExenta"       => floatval(number_format($exento, 2, '.', '')),
@@ -2656,7 +2687,7 @@ class InvoiceController extends Controller
             "subTotal"              => floatval(number_format($subTotal, 2, '.', '')),
             "ivaPerci1"             => 0,
             "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
-            "reteRenta"             => floatval(number_format($invoice->isr_retenido, 2, '.', '')),
+            "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
             "montoTotalOperacion"   => floatval(number_format($montoTotal, 2, '.', '')),
             "totalLetras"           => _lang('It is') . ' ' . dollarToText($montoTotal) . ' USD',
             "condicionOperacion"    =>  intval($invoice->conop_id),
@@ -2762,7 +2793,7 @@ class InvoiceController extends Controller
                 "codigo"        => $value->item->product->product_code,
                 "uniMedida"     => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
                 "descripcion"   => $value->description,
-                "precioUni"     => floatval(number_format($value->unit_cost, 2, '.', '')),
+                "precioUni"     => floatval(number_format($value->unit_cost, 6, '.', '')),
                 "montoDescu"    => floatval(number_format($value->discount, 2, '.', '')),
                 "ventaGravada"  => floatval(number_format($gravado, 2, '.', '')),
                 "tributos"      => Tax::whereIn('id', $value->taxes->pluck('tax_id')->toArray())
@@ -3007,7 +3038,7 @@ class InvoiceController extends Controller
                 "descripcion"       => $value->description,
                 "cantidad"          => intval($value->quantity),
                 "uniMedida"         => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
-                "precioUni"         => floatval(number_format($value->unit_cost, 2, '.', '')),
+                "precioUni"         => floatval(number_format($value->unit_cost, 6, '.', '')),
                 "montoDescu"        => floatval(number_format($value->discount, 2, '.', '')),
                 "ventaNoSuj"        => floatval(number_format($noSujeto, 2, '.', '')),
                 "ventaExenta"       => floatval(number_format($exento, 2, '.', '')),
@@ -3158,11 +3189,11 @@ class InvoiceController extends Controller
         $documento = $invoice->num_documento;
         $documento = str_replace('-', '', $documento);
 
-        if ($invoice->tdocrec_id == 13) {
-            $parte1 = substr($documento, 0, 8);
-            $parte2 = substr($documento, 8);
-            $documento = $parte1 . '-' . $parte2;
-        }
+        // if ($invoice->tdocrec_id == 13) {
+        //     $parte1 = substr($documento, 0, 8);
+        //     $parte2 = substr($documento, 8);
+        //     $documento = $parte1 . '-' . $parte2;
+        // }
 
         $sujetoExcluido = [
             "tipoDocumento"     => $invoice->tdocrec_id,
@@ -3210,7 +3241,7 @@ class InvoiceController extends Controller
                 "codigo"        => $value->item->product->product_code,
                 "uniMedida"     => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
                 "descripcion"   => $value->description,
-                "precioUni"     => floatval(number_format($value->unit_cost, 2, '.', '')),
+                "precioUni"     => floatval(number_format($value->unit_cost, 6, '.', '')),
                 "montoDescu"    => floatval(number_format($value->discount, 2, '.', '')),
                 "compra"        => floatval(number_format($gravado, 2, '.', '')),
             ];
@@ -3223,19 +3254,19 @@ class InvoiceController extends Controller
         $montoTotal = $invoice->grand_total;
 
         $resumen = [
-            "totalCompra"           => floatval(number_format($montoTotal, 2, '.', '')),
+            "totalCompra"           => floatval(number_format($montoTotal + $invoice->retencion_renta, 2, '.', '')),
             "descu"                 => 0.0,
             "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
             "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
             "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
-            "reteRenta"             => floatval(number_format($invoice->isr_retenido, 2, '.', '')),
+            "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
             "totalPagar"            => floatval(number_format($montoTotal, 2, '.', '')),
             "totalLetras"           => _lang('It is') . ' ' . dollarToText($montoTotal) . ' USD',
             "condicionOperacion"    =>  intval($invoice->conop_id),
             "pagos" => [
                 [
                     "codigo"        => $invoice->forp_id,
-                    "montoPago"     => floatval(number_format($invoice->grand_total, 2, '.', '')),
+                    "montoPago"     => floatval(number_format($montoTotal, 2, '.', '')),
                     "referencia"    => null,
                     "plazo"         => null,
                     "periodo"       => null
@@ -3315,9 +3346,13 @@ class InvoiceController extends Controller
     }
 
 
-    public function sendEmailFactura($id, $anulacion = false)
+    public function sendEmailFactura($id, $anulacion = false, $reenvio = false)
     {
         try {
+
+            $anulacion  = filter_var($anulacion, FILTER_VALIDATE_BOOLEAN);
+            $reenvio    = filter_var($reenvio, FILTER_VALIDATE_BOOLEAN);
+
 
             $invoice = Invoice::find($id);
 
@@ -3333,8 +3368,14 @@ class InvoiceController extends Controller
             // Preparar el contenido del correo electrónico
             $subject = 'Factura Electrónica';
 
-            if ($anulacion) {
+            if( $anulacion ){
                 $subject = 'Anulación de Factura Electrónica';
+            }
+
+            if( $reenvio ){
+                $client = Contact::find($invoice->client_id);
+                $invoice->correo = $client->contact_email;
+                $invoice->save();
             }
 
             $content = [
@@ -3345,6 +3386,10 @@ class InvoiceController extends Controller
             // Enviar el correo electrónico con el archivo adjunto
             $mail = Mail::to($invoice->correo)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control));
 
+            if( isset($invoice->correo_alterno) && $invoice->correo_alterno != '' ){
+                $mail2 = Mail::to($invoice->correo_alterno)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control));
+            }
+
             try {
                 Storage::delete('pdf_invoices/' . $pdf);
                 Log::info('Se elimina el PDF temporal: ' . $pdf);
@@ -3353,6 +3398,10 @@ class InvoiceController extends Controller
             }
 
             Log::info('Envio por correo de DTE con ID: ' . $id);
+
+            Log::info('Correos a los que se envio el DTE: ' . $invoice->correo. ' '. $invoice->correo_alterno);
+
+            $mail = $mail.($mail2 ?? '');
 
             return $mail;
         } catch (\Exception $e) {
@@ -4332,7 +4381,7 @@ class InvoiceController extends Controller
         else if ($response_mh->estado === 'PROCESADO') {
 
             if( $invoice->correo != '' ){
-                // $this->sendEmailFactura($invoice->id);
+                $this->sendEmailFactura($invoice->id);
             }
 
         }
@@ -4346,5 +4395,117 @@ class InvoiceController extends Controller
             return response()->json(['result' => 'success', 'action' => 'store', 'message' => _lang('Factura Generada Exitosamente ' . $msg), 'data' => $invoice]);
         }
 
+    }
+
+    function downloadJsons(Request $request){
+
+
+
+        $tipo_factura   = $request->input('tipo_factura');
+        $numero_factura = $request->input('numero_factura');
+        $client_id      = $request->input('client_id');
+        $status         = $request->input('status');
+        $rangos         = $request->input('rangos');
+        $pdf            = $request->input('pdf');
+
+        $fechas         = explode(' - ', $rangos);
+
+        $fecha_inicio   = $fechas[0];
+        $fecha_fin      = $fechas[1];
+
+        $invoices = Invoice::whereBetween('invoice_date', [$fecha_inicio, $fecha_fin])->where('status_mh', 1);
+
+        if( $tipo_factura != '' ){
+            $invoices->where('tipodoc_id', $tipo_factura);
+        }
+
+        if( $numero_factura != '' ){
+            $invoices->where('invoice_number', $numero_factura);
+        }
+
+        if( $client_id != '' ){
+            $invoices->where('client_id', $client_id);
+        }
+
+        if( $status != '' ){
+            $invoices->where('status', $status);
+        }
+
+        
+        $invoices = $invoices->pluck('id', 'numero_control');
+                            
+        if ($invoices->isEmpty()) {
+            return response()->json(['error' => 'No se encontraron registros para las fechas proporcionadas'], 404);
+        }
+
+
+        if( $pdf == 1 ){
+            $zip_file_name = 'pdf_'. $rangos .'_.zip';
+        }
+        else{
+            $zip_file_name = 'json_'. $rangos .'_.zip';
+        }
+
+        $zip_path = storage_path($zip_file_name);
+        
+        // Crear una nueva instancia de ZipArchive
+        $zip = new ZipArchive;
+        
+        // Abrir el archivo ZIP (si no existe, se crea uno nuevo)
+        if( $zip->open($zip_path, ZipArchive::CREATE) === TRUE ){
+
+            foreach( $invoices as $numero_control => $id ){
+
+                $json_name = 'invoice_' . $id . '.json';
+                
+                if( $pdf == 1 ){
+                    
+                    $generate_pdf = $this->downloadPdf($id);
+
+                    $json_name = 'invoice_' . $id . '.pdf';
+
+                    $json_path = storage_path('app/pdf_invoices/' . $json_name);
+                }
+                else{
+                    $json_path = storage_path('app/json_invoices/' . $json_name);
+                }
+
+                if( file_exists($json_path) ){
+
+                    if( $pdf == 1 ){
+
+                        $json_name_legible = 'invoice_' . $id . '_' . $numero_control . '.pdf';
+                    }
+                    else{
+                        $json_name_legible = 'invoice_' . $id . '_' . $numero_control . '.json';
+                    }
+                    $zip->addFile($json_path, $json_name_legible);
+                }
+            }
+
+            $zip->close();
+
+
+            if( $pdf == 1 ){
+                $files = Storage::files('pdf_invoices');
+    
+                foreach( $files as $file ){
+                    Storage::delete($file);
+                }
+            }
+
+
+            return response()->json(['url' => url('/download-zip-json/' . $zip_file_name)]);
+        }
+        else{
+            return response()->json(['error' => 'No se pudo crear el archivo ZIP'], 500);
+        }
+    }
+
+    public function descargarZip($zip_file_name){
+
+        $zip_path = storage_path($zip_file_name);
+
+        return response()->download($zip_path)->deleteFileAfterSend(true);
     }
 }

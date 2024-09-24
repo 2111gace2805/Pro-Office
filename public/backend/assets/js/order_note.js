@@ -499,3 +499,19 @@ function update_summary() {
     $("#total-qty").html(total_quantity);
     $("#total-samples").html(total_samples);
 }
+
+
+function setWarehouses( inicio = false ){
+
+    if( inicio == false ){
+        $('#warehouse_id').val('');
+    }
+
+    $('#warehouse_id').data('where_extra', "client_id = '"+$('#client_id').val()+"'");
+
+    setSelect2Ajax();
+}
+
+$('#client_id').on('change', e=>setWarehouses());
+
+$(()=>setWarehouses(true));

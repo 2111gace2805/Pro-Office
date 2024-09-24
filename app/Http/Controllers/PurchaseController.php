@@ -360,6 +360,24 @@ class PurchaseController extends Controller {
 
         $previous_status = $purchase->order_status;
 
+        if( $previous_status == 3 ){
+            $purchase->supplier_id    = $request->input('supplier_id');
+            $purchase->payment_status = $request->input('payment_status');
+            
+            if ($request->hasfile('attachemnt')) {
+                $purchase->attachemnt = $attachemnt;
+            }
+            $purchase->note = $request->input('note');
+    
+            $purchase->save();
+
+            if (!$request->ajax()) {
+                return redirect()->route('purchase_orders.show', $purchase->id)->with('success', _lang('Purchase Order Updated Sucessfully'));
+            } else {
+                return response()->json(['result' => 'success', 'action' => 'update', 'message' => _lang('Purchase Order Updated Sucessfully'), 'data' => $purchase]);
+            }
+        }
+
         $purchase->order_date     = $request->input('order_date');
         $purchase->supplier_id    = $request->input('supplier_id');
         $purchase->order_status   = $request->input('order_status');

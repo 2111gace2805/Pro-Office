@@ -1387,13 +1387,13 @@ function taxSelected(element, afectarPrecio = true){
 	if($(line).find('.cambio_precio').val() == 0){
 		line_unit_cost += price_tax;
 	}
-    line_unit_cost = parseFloat(line_unit_cost.toFixed(2));
+    line_unit_cost = parseFloat(line_unit_cost.toFixed(6));
     // comentar linea si ya no se vera afectado el precio con el iva
-    $(line).find('.input-unit-cost').val(line_unit_cost.toFixed(2));
+    $(line).find('.input-unit-cost').val(line_unit_cost.toFixed(6));
 
     line_total = ((line_qnty * line_unit_cost)+fixedTaxAmount) - line_discount;
 
-    $(line).find('.input-sub-total').val(line_total.toFixed(2));
+    $(line).find('.input-sub-total').val(line_total.toFixed(6));
 
     $(line).find(".input-product-tax").val(product_tax);
 

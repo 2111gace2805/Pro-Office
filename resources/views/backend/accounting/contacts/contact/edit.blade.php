@@ -28,7 +28,7 @@
                         <div class="col-md-6" id="company_name">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Nombre o razón social') }}</label>
-                                <input type="text" class="form-control" name="company_name"
+                                <input type="text" class="form-control" name="company_name" id="company_nameIpt"
                                     value="{{ old('company_name', $contact->company_name) }}" required>
                             </div>
                         </div>
@@ -51,7 +51,7 @@
                         <div class="col-md-6" id="nombreComercial">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Nombre comercial (caso Pers. jurídica)') }}</label>
-                                <input type="text" class="form-control" name="tradename"
+                                <input type="text" class="form-control" name="tradename" id="tradename"
                                     value="{{ old('tradename', $contact->tradename) }}">
                             </div>
                         </div>
@@ -71,7 +71,7 @@
                         <div class="col-md-6" id="nit">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('NIT (homologado o no)') }}</label>
-                                <input type="text" class="form-control" name="nit"
+                                <input type="text" class="form-control" name="nit" id="nit_"
                                     value="{{ old('nit', $contact->nit) }}">
                             </div>
                         </div>
@@ -87,7 +87,7 @@
                         <div class="col-md-6" id="nrc">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('NRC') }}</label>
-                                <input type="text" class="form-control" name="nrc"
+                                <input type="text" class="form-control" name="nrc" id="nrc"
                                     value="{{ old('nrc', $contact->nrc) }}">
                             </div>
                         </div>
@@ -141,7 +141,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Contact Phone') }}</label>
-                                <input type="text" class="form-control" name="contact_phone"
+                                <input type="text" class="form-control" name="contact_phone" required
                                     value="{{ old('contact_phone', $contact->contact_phone) }}">
                             </div>
                         </div>
@@ -159,7 +159,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Departamento') }}</label>
-                                <select class="form-control select2" name="depa_id" id="depa_id">
+                                <select class="form-control select2" name="depa_id" id="depa_id" required>
                                     <option value="">{{ _lang('Select One') }}</option>
                                     {{ create_option("departamentos", "depa_id", "depa_nombre", old('depa_id', $contact->depa_id)) }}
                                 </select>
@@ -170,7 +170,7 @@
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Municipio') }}</label>
                                 <select class="form-control select2-ajax" data-value="munidepa_id" data-display="muni_nombre" 
-                                    data-table="municipios" name="munidepa_id" id="munidepa_id" data-where_extra="depa_id = '-1'">
+                                    data-table="municipios" name="munidepa_id" id="munidepa_id" data-where_extra="depa_id = '-1'" required>
                                     <option value="">{{ _lang('- Select One -') }}</option>
                                     {{ create_option("municipios", "munidepa_id", "muni_nombre", old('munidepa_id', $contact->munidepa_id), ['munidepa_id=' => old('munidepa_id', $contact->munidepa_id)]) }}
                                 </select>
@@ -180,7 +180,7 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Address') }}</label>
-                                <textarea class="form-control" name="address">{{ old('address', $contact->address) }}</textarea>
+                                <textarea class="form-control" name="address" required>{{ old('address', $contact->address) }}</textarea>
                             </div>
                         </div>
 
@@ -196,17 +196,17 @@
                         
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="control-label">{{ _lang('Zip') }}</label>
+                                <label class="control-label">{{ _lang('Código ZIP') }}</label>
                                 <input type="text" class="form-control" name="zip" value="{{ old('zip', $contact->zip) }}">
                             </div>
                         </div>
 
-                        <div class="col-md-12">
+                        {{-- <div class="col-md-12">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Remarks') }}</label>
                                 <textarea class="form-control" name="remarks">{{ old('remarks', $contact->remarks) }}</textarea>
                             </div>
-                        </div>
+                        </div> --}}
 
                     </div>
                 </div>

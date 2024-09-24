@@ -15,6 +15,7 @@
 
                     {{ csrf_field()}}
                     <input name="_method" type="hidden" value="PATCH">
+                    <input type="hidden" id="order_status" value="{{ $purchase->order_status }}">
 
                     <div class="row">
                         <div class="col-md-4">
@@ -48,7 +49,7 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Order Status') }}</label>
-                                <select class="form-control select2" name="order_status" required>
+                                <select class="form-control select2" name="order_status" id="slOrder_status" required>
                                     <option value="1" {{ $purchase->order_status == '1' ? 'selected' : '' }}>
                                         {{ _lang('Ordered') }}</option>
                                     <option value="2" {{ $purchase->order_status == '2' ? 'selected' : '' }}>
@@ -132,13 +133,13 @@
                                                     class="form-control input-description"
                                                     value="{{ $item->description }}"></td>
                                             <td class="text-center quantity"><input type="number" name="quantity[]"
-                                                    min="1" class="form-control input-quantity text-center"
+                                                    min="1" class="form-control input-quantity text-center inputs_tbl"
                                                     value="{{ $item->quantity }}"></td>
                                             <td class="text-right unit-cost"><input type="text" name="unit_cost[]"
-                                                    class="form-control input-unit-cost text-right"
+                                                    class="form-control input-unit-cost text-right inputs_tbl"
                                                     value="{{ $item->unit_cost }}"></td>
                                             <td class="text-right discount"><input type="text" name="discount[]"
-                                                    class="form-control input-discount text-right"
+                                                    class="form-control input-discount text-right inputs_tbl"
                                                     value="{{ $item->discount }}"></td>
                                             <td class="text-right tax">
                                                 <select class="form-control auto-multiple-select selectpicker input-tax"

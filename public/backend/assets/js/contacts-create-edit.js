@@ -2,9 +2,11 @@ $('#pais_id').on('change', function(e){
     if(e.target.value != '9300'){
         $('#depa_id').val('');
         $('#depa_id').trigger('change');
+        $('#depa_id').attr('required', false);
         $('#depa_id').attr('readonly', true);
         $('#munidepa_id').val('');
         $('#munidepa_id').trigger('change');
+        $('#munidepa_id').attr('required', false);
         $('#munidepa_id').attr('readonly', true);
     }else {
         $('#depa_id').attr('readonly', false);
@@ -12,8 +14,16 @@ $('#pais_id').on('change', function(e){
     }
 });
 
+$('#pais_id').trigger('change');
+
 $("#company_nameIpt").alphanum({
+    allow:    '&,;.:/-_.,@%&#()*+;:!?/!¡?=$"´´++][}{``^^',
     maxLength: 250
+});
+
+$("#tradename").alphanum({
+    allow:    '&,;.:/-_.,@%&#()*+;:!?/!¡?=$"´´++][}{``^^',
+    maxLength: 150
 });
 
 function depa_idChanged(inicio = false){
@@ -89,7 +99,7 @@ function CamposNatural() {
     $("#company_name").prop("required", false).hide();
     $("#nombreComercial").prop("required", false).hide();
     $("#acti_economica").prop("required", false).hide();
-    $("#nit").prop("required", false).hide();
+    // $("#nit").prop("required", false).hide();
     $("#dui").prop("required", true).show();
     $("#nrc").prop("required", false).hide();
     $("#contribuyente").prop("required", false).hide();
@@ -99,6 +109,15 @@ function CamposNatural() {
     $("#group").prop("required", false).hide();
     $("#nombre").prop("required", true).show();
     $("#apellido").prop("required", true).show();
+
+    $("#first_name").prop("required", true);
+    $("#lastName").prop("required", true);
+
+    $("#company_nameIpt").prop("required", false);
+    $("#tradename").prop("required", false);
+    $("#actie_id").prop("required", false);
+    $("#nit_").prop("required", false);
+    $("#nrc").prop("required", false);
 }
 
 function CamposJuridica() {
@@ -115,6 +134,15 @@ function CamposJuridica() {
     $("#group").prop("required", true).show();
     $("#nombre").prop("required", false).hide();
     $("#apellido").prop("required", false).hide();
+
+    $("#first_name").prop("required", false);
+    $("#lastName").prop("required", false);
+
+    $("#company_nameIpt").prop("required", true);
+    $("#tradename").prop("required", true);
+    $("#actie_id").prop("required", true);
+    $("#nit_").prop("required", true);
+
 }
 
 $(document).ready(function() {
@@ -130,8 +158,6 @@ $(".verificarCliente").on('change', function(){
 });
 
 function verifyClientExist(){
-
-    console.log('entra a funcion');
     
     let tipo_perfil = $("#tpers_id").val();
     
@@ -142,7 +168,6 @@ function verifyClientExist(){
     
     if( dui != "" || nrc != "" ){
 
-        console.log('ajax function');
         let csrfToken = document.querySelector('input[name="_token"]').value;
 
         $.ajax({

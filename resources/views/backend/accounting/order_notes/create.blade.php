@@ -16,12 +16,12 @@
                     {{ csrf_field() }}
 
                     <div class="row">
-                        <div class="col-md-8">
+                        {{-- <div class="col-md-8">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Empresa por la cual se está vendiendo') }}</label>
                                 <input type="text" class="form-control" name="sales_company" value="{{ old('sales_company') }}" required>
                             </div>
-                        </div>
+                        </div> --}}
 
                         <div class="col-md-4">
                             <div class="form-group">
@@ -38,6 +38,31 @@
                                 <label class="control-label">{{ _lang('Select Client') }}</label>
                                 <select class="form-control select2-ajax" data-value="id" data-display="company_name" data-table="contacts"  name="client_id" id="client_id" required onchange="validoDatos(this);">
                                     <option value="">{{ _lang('Select One') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <div class="form-group">
+                                <a href="{{ route('warehouses.create_order') }}" data-reload="false" data-title="{{ _lang('Add New Warehouse') }}" class="ajax-modal select2-add">
+                                    <i class="ti-plus"></i> {{ _lang('Add New') }}
+                                </a>
+                                <label class="control-label">{{ _lang('Warehouses') }}</label>
+                                <select class="form-control select2-ajax" data-value="id" data-display="name" data-table="warehouse_clients" name="warehouse_id" id="warehouse_id" data-where_extra="id = '-1'" required>
+                                    <option value="">{{ _lang('- Select One -') }}</option>
+                                    {{ create_option("warehouse_clients", "id", "name", old('warehouse_id'), ['id=' => old('warehouse_id')]) }}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-group">
+                                <a href="{{ route('warehouses.create_order') }}" data-reload="false" data-title="{{ _lang('Add New Warehouse') }}" class="ajax-modal select2-add">
+                                    <i class="ti-plus"></i> {{ _lang('Add New') }}
+                                </a>
+                                <label class="control-label">{{ _lang('Tipo de venta institucional') }}</label>
+                                <select class="form-control select2-ajax" data-value="id" data-display="name" data-table="warehouse_clients" name="warehouse_id" id="warehouse_id" data-where_extra="id = '-1'" required>
+                                    <option value="">{{ _lang('- Select One -') }}</option>
+                                    {{-- {{ create_option("warehouse_clients", "id", "name", old('warehouse_id'), ['id=' => old('warehouse_id')]) }} --}}
                                 </select>
                             </div>
                         </div>

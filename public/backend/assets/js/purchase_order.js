@@ -71,11 +71,11 @@ var current_row;
 				
 	            var product_row = `<tr id="product-${item['id']}">
 											<td><b>${item['item_name']}</b></td>
-											<td class="description"><input type="text" name="product_description[]" class="form-control input-description" value="${product['description'] != null ? product['description'] : ''}"></td>
-											<td class="text-center quantity"><input type="number" name="quantity[]" min="1" class="form-control input-quantity text-center" ${limit} value="1"></td>
-											<td class="text-right unit-cost"><input type="text" name="unit_cost[]" class="form-control input-unit-cost text-right" ${ readprice ? 'readonly' : '' } value="${unit_cost.toFixed(2)}"></td>`;
+											<td class="description"><input type="text" name="product_description[]" class="form-control input-description inputs_tbl" value="${product['description'] != null ? product['description'] : ''}"></td>
+											<td class="text-center quantity"><input type="number" name="quantity[]" min="1" class="form-control input-quantity text-center inputs_tbl" ${limit} value="1"></td>
+											<td class="text-right unit-cost"><input type="text" name="unit_cost[]" class="form-control input-unit-cost text-right inputs_tbl" ${ readprice ? 'readonly' : '' } value="${unit_cost.toFixed(2)}"></td>`;
 				if(sell){
-					product_row += `<td class="text-right discount"><input type="text" name="discount[]" class="form-control input-discount text-right" value="0.00"></td>
+					product_row += `<td class="text-right discount"><input type="text" name="discount[]" class="form-control input-discount text-right inputs_tbl" value="0.00"></td>
 					<td class="text-right tax"><select class="form-control selectpicker input-tax" name="tax[${item['id']}][]" title="${$lang_select_tax}" multiple="true">${tax_selector}</select></td>`;
 				}
 
@@ -167,6 +167,20 @@ var current_row;
 		// update_summary();
 		taxSelected(this, false);
 	});
+
+	let order_status = $("#order_status").val();
+
+	if( order_status == 3 ){
+		$(".inputs_tbl").attr("readonly", true);
+
+		$("#product").on("select2:opening", function(e) {
+			e.preventDefault();
+		});
+
+		$("#slOrder_status").on("select2:opening", function(e) {
+			e.preventDefault();
+		});
+	}
 
 })(jQuery);	
 

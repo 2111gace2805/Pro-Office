@@ -92,4 +92,20 @@ class Invoice extends Model
     {
         return $this->belongsTo('App\User',"user_id")->withDefault();
     }
+
+    public function seller_code2()
+    {
+        return $this->belongsTo('App\User',"second_user_id")->withDefault();
+    }
+
+    public function getFormattedSellerCode2Attribute()
+    {
+
+        if( $this->seller_code2 && !empty($this->seller_code2->seller_code) ){
+            return '- ' . $this->seller_code2->seller_code;
+        }
+        else{
+            return '';
+        }
+    }
 }

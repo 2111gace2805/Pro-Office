@@ -21,6 +21,7 @@ use App\ProductGroup;
 use DataTables;
 use Illuminate\Support\Facades\Auth;
 use App\Kit;
+use Illuminate\Support\Collection;
 
 class ProductController extends Controller {
 
@@ -129,6 +130,21 @@ class ProductController extends Controller {
         } else {
             return view('backend.accounting.product.modal.create');
         }
+    }
+
+    public function createService(Request $request) {
+
+        if( !$request->ajax() ){
+            return view('backend.accounting.product.create_services',);
+        }
+        else{
+            return view('backend.accounting.product.modal.create_services');
+        }
+    }
+
+    public function storeService(Request $request) {
+
+        return $this->store($request);
     }
 
     /**
@@ -332,7 +348,6 @@ class ProductController extends Controller {
                 $item->item_type = 'product';
                 $item->tipoitem_id = 1; // ref tabla tipo_item 1 es: Bienes
             }
-            $item->tipoitem_id = $request->input('tipoitem_id'); // ref tabla tipo_item 1 es: Bienes
             $item->save();
 
             $product                = Product::where("item_id", $id)->first();

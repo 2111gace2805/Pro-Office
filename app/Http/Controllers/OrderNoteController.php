@@ -30,7 +30,7 @@ class OrderNoteController extends Controller
      */
     public function create(Request $request){
 
-        $contador = OrderNote::count();
+        $contador = OrderNote::withTrashed()->count();
         $contador = ( $contador == 0 ) ? 1 : $contador;
 
         $num_order = str_pad($contador, 7, '0', STR_PAD_LEFT);

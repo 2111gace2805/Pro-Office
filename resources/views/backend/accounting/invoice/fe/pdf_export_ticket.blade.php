@@ -182,6 +182,12 @@
         <tr>
             <td>{{$invoice->sello_recepcion}}</td>
         </tr>
+        <tr>
+            <td><b>Condición de operación</b></td>
+        </tr>
+        <tr>
+            <td>{{ $invoice->condicion_operacion->conop_nombre }} {{ ( $invoice->conop_id == 2 && $invoice->plazo?->plazo_nombre != null ) ? $invoice->periodo . ' ' . $invoice->plazo->plazo_nombre : ''  }}</td>
+        </tr>
     </table>
     
     <div>-----------------------------------------------------------------------</div>

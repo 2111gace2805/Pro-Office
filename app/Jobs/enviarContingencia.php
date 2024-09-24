@@ -246,7 +246,7 @@ class enviarContingencia implements ShouldQueue
                                 $contingencia->estado = 1;
                                 $contingencia->save();
         
-                                // $this->sendEmailFactura($invoice->id);
+                                $this->sendEmailFactura($invoice->id);
         
                                 Log::info('DTE CON ID: ' . $invoice->id . ' Procesado luego de contingencia y enviado por correo a:' . $invoice->correo);
     
@@ -299,7 +299,7 @@ class enviarContingencia implements ShouldQueue
                             $invoice_cod->estado = 1;
                             $invoice_cod->save();
         
-                            // $this->sendEmailFactura($invoice->id);
+                            $this->sendEmailFactura($invoice->id);
         
                             Log::info('DTE CON ID: ' . $invoice->id . ' Procesado luego de contingencia y enviado por correo a:' . $invoice->correo);
                         }
@@ -1790,6 +1790,10 @@ class enviarContingencia implements ShouldQueue
             // Enviar el correo electrónico con el archivo adjunto
             $mail = Mail::to($invoice->correo)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion));
 
+            if( isset($invoice->correo_alterno) && $invoice->correo_alterno != '' ){
+                $mail2 = Mail::to($invoice->correo_alterno)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control));
+            }
+
             try {
                 Storage::delete('pdf_invoices/' . $pdf);
                 Log::info('Se elimina el PDF temporal: ' . $pdf);
@@ -1798,6 +1802,10 @@ class enviarContingencia implements ShouldQueue
             }
 
             Log::info('Envio por correo de DTE con ID: ' . $id);
+
+            Log::info('Correos a los que se envio el DTE: ' . $invoice->correo. ' '. $invoice->correo_alterno);
+
+            $mail = $mail.($mail2 ?? '');
 
             return $mail;
         } catch (\Exception $e) {

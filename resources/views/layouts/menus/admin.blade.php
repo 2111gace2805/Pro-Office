@@ -97,7 +97,20 @@
         <a class="nav-link" href="{{ route('quotations.index') }}">{{ _lang('Quotation List') }}</a> --}}
         <a class="nav-link" href="{{ route('sales_returns.index') }}">{{ _lang('Sales Return') }}</a>
         <a class="nav-link" href="{{ route('order_notes.index') }}">{{ _lang('Order Notes') }}</a>
+        <a class="nav-link" href="{{ route('institutions.index') }}">{{ _lang('Instituciones') }}</a>
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#type_sales" aria-expanded="false" aria-controls="collapseLayouts">
+            <div class="sb-nav-link-icon"></div>
+            {{ _lang('Tipos de ventas') }}
+            <div class="sb-sidenav-collapse-arrow"><i class="ti-angle-down"></i></div>
+            </a>
+            <div class="collapse" id="type_sales" aria-labelledby="headingOne" data-parent="#navAccordionTreasury">
+                <nav class="sb-sidenav-menu-nested nav">
+                    <a class="nav-link" href="{{ route('accounts.index') }}">{{ _lang('Institucionales') }}</a>
+                    <a class="nav-link" href="{{ route('accounts.create') }}">{{ _lang('Add New Account') }}</a>
+                </nav>
+            </div>
     </nav>
+
 </div>
 
 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#cash" aria-expanded="false"

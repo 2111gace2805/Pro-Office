@@ -7,10 +7,10 @@
 			serverSide: true,
 			ajax: _url + '/contacts/get_table_data',
 			"columns": [
-				{
-					data: "contact_image",
-					name: "contact_image"
-				},
+				// {
+				// 	data: "contact_image",
+				// 	name: "contact_image"
+				// },
 				{
 					data: "tipo_persona.tpers_nombre",
 					name: "tpers_id", // Utiliza el nombre correcto de la columna
@@ -18,7 +18,7 @@
 				},
 				{
 					data: "company_name",
-					name: "company_name"
+					name: "company_name",
 				},
 				{
 					data: "contact_email",
@@ -31,6 +31,21 @@
 				{
 					data: "group.name",
 					name: "group.name"
+				},
+				{
+					data: "nit",
+					name: "nit",
+					visible: false
+				},
+				{
+					data: "nrc",
+					name: "nrc",
+					visible: false
+				},
+				{
+					data: "dui",
+					name: "dui",
+					visible: false
 				},
 				{
 					data: "action",

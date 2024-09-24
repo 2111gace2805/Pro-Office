@@ -10,9 +10,6 @@
               <div class="form-floating">
                     <a class="btn btn-primary btn-sm" href="{{ route('invoices.download_pdf',$invoice->id) }}" target="_blank"><i
                         class="ti-printer"></i> {{ _lang('Imprimir factura') }}</a>
-
-                    <a class="btn btn-secondary btn-sm ml-2 mr-2" href="{{ route('invoices.download_pdf',$invoice->id) }}?ticket=true" target="_blank"><i
-                            class="fa-solid fa-receipt"></i> {{ _lang('Imprimir ticket') }}</a>
                 
                     @if($invoice->status != 'Paid' && $invoice->status != 'Canceled' )
                     <a class="btn btn-success btn-sm ajax-modal" data-title="{{ _lang('Make Payment') }}"

@@ -19,6 +19,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\Log;
+use App\WarehouseClient;
 
 class ContactController extends Controller {
 
@@ -44,6 +45,7 @@ class ContactController extends Controller {
             })
             ->addColumn('action', function ($contact) {
                 return '<form action="' . action('ContactController@destroy', $contact['id']) . '" class="text-center" method="post">'
+                . '<a href="' . action('ContactController@warehouses', $contact['id']) . '" class="btn btn-info btn-sm"><i class="ti-home"></i></a> '
                 . '<a href="' . action('ContactController@show', $contact['id']) . '" class="btn btn-primary btn-sm"><i class="ti-eye"></i></a> '
                 . '<a href="' . action('ContactController@edit', $contact['id']) . '" class="btn btn-warning btn-sm"><i class="ti-pencil-alt"></i></a> '
                 . csrf_field()
@@ -226,28 +228,19 @@ class ContactController extends Controller {
         $contact = Contact::find($id);
 
         $validator = Validator::make($request->all(), [
-            'tpers_id'  => 'required',
-            'company_name'  => 'required',
-            'tradename'     => 'required',
+            //'profile_type'  => 'required|max:20',
+            'tpers_id'      => 'required',
+            // 'company_name'  => 'nullable|max:50',
             'contact_email' => 'required|email|max:100',
             'contact_phone' => 'nullable|max:20',
-            'pais_id'       => 'nullable',
+            //'country'       => 'nullable|max:50',
+            //'city'          => 'nullable|max:50',
+            //'state'         => 'nullable|max:50',
+            'pais_id'       => 'required',
             'munidepa_id'       => 'nullable',
             'depa_id'       => 'nullable',
-            'zip'           => 'nullable|max:20',
-
-            'name'          => 'required_if:client_login,1|max:191', //User Login Attribute
-            'email' => [
-                'required_if:client_login,1',
-                Rule::unique('users')->ignore($contact->user_id),
-            ], //User Login Attribute
-            'password' => 'nullable|max:20|min:6|confirmed', //User Login Attribute
-            'status' => 'required_if:client_login,1', //User Login Attribute
-            'payment_period' => 'nullable|integer'
-        ], [
-            'name.required_if'     => 'Name is required',
-            'email.required_if'    => 'Email is required',
-            'password.required_if' => 'Password is required',
+            'zip'           => 'nullable|max:20', //User Login Attribute
+            'payment_period' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -630,5 +623,122 @@ class ContactController extends Controller {
         else{
             return response()->json(['result' => 'error', 'contacts' => $contacts]);
         }
+    }
+
+    public function warehouses(Request $request, $id_client){
+        return view('backend.accounting.contacts.warehouse.list', compact('id_client'));
+    }
+
+    public function get_table_data_warehouses(Request $request) {
+
+        $client_id = $request->client_id;
+
+        $warehouses = WarehouseClient::where('client_id', $client_id);
+
+        $data = Datatables::eloquent($warehouses)
+
+            ->addColumn('action', function ($warehouses) {
+                return '<form action="' . action('ContactController@destroy_warehouse', $warehouses['id']) . '" class="text-center" method="post">'
+                . '<a href="' . action('ContactController@edit_warehouse', $warehouses['id']) . '" class="btn btn-warning btn-sm ajax-modal"><i class="ti-pencil-alt"></i></a> '
+                . csrf_field()
+                    . '<input name="_method" type="hidden" value="DELETE">'
+                    . '<button class="btn btn-danger btn-sm btn-remove" type="submit"><i class="ti-trash"></i></button>'
+                    . '</form>';
+            })
+            ->setRowId(function ($warehouses) {
+                return "row_" . $warehouses->id;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+
+        return $data;
+    }
+
+    public function create_warehouse(Request $request, $client_id) {
+        return view('backend.accounting.contacts.warehouse.modal.create', compact('client_id'));
+    }
+
+    public function create_warehouse_order(Request $request) {
+        return view('backend.accounting.contacts.warehouse.modal.create_order');
+    }
+
+    public function store_warehouse(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'name'      => 'required|max:255',
+            'client_id' => 'required',
+        ]);
+
+        if( $validator->fails() ){
+            if( $request->ajax() ){
+                return response()->json(['result' => 'error', 'message' => $validator->errors()->all()]);
+            }
+            else{
+                return redirect()->route('contacts.create')
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+        }
+
+        $warehouse              = new WarehouseClient();
+        $warehouse->client_id   = $request->input('client_id');
+        $warehouse->name        = $request->input('name');
+
+        $warehouse->save();
+
+        if( !$request->ajax() ){
+            return redirect()->route('warehouse.list', $warehouse->client_id)->with('success', _lang('New warehouse added sucessfully'));
+        }
+        else{
+            return response()->json(['result' => 'success', 'action' => 'store', 'message' => _lang('New client added sucessfully'), 'data' => $warehouse]);
+        }
+
+    }
+
+    public function destroy_warehouse($id) {
+
+        $warehouse = WarehouseClient::find($id);
+
+        $warehouse->delete();
+
+        return back()->with('success', _lang('Information has been deleted sucessfully'));
+    }
+
+    public function edit_warehouse(Request $request, $warehouse_id) {
+
+        $warehouse = WarehouseClient::find($warehouse_id);
+
+        return view('backend.accounting.contacts.warehouse.modal.edit', compact('warehouse'));
+    }
+
+    public function update_warehouse(Request $request, $id_warehouse) {
+
+        $warehouse = WarehouseClient::find($id_warehouse);
+
+        $validator = Validator::make($request->all(), [
+            'name'      => 'required|max:255',
+            'client_id' => 'required'
+        ]);
+
+        if( $validator->fails() ){
+            if( $request->ajax() ){
+                return response()->json(['result' => 'error', 'message' => $validator->errors()->all()]);
+            }
+            else{
+                return redirect()->route('contacts.edit', $id)
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+        }
+
+        $warehouse->name  = $request->input('name');
+
+        $warehouse->save();
+
+        if (!$request->ajax()) {
+            return redirect()->route('warehouse.list', $warehouse->id)->with('success', _lang('Warehouse information updated sucessfully'));
+        } else {
+            return response()->json(['result' => 'success', 'action' => 'update', 'message' => _lang('Client information updated sucessfully'), 'data' => $warehouse]);
+        }
+
     }
 }

@@ -25,9 +25,9 @@
         @else
             <p>Adjunto encontrará el archivo JSON de la factura.</p>
         @endif
-        <a href="{{ route('download.json', ['invoice' => $invoice, 'download' => 1]) }}">Descargar JSON</a> <!-- Enlace para descargar el JSON -->
+        {{-- <a href="{{ route('download.json', ['invoice' => $invoice, 'download' => 1]) }}">Descargar JSON</a> <!-- Enlace para descargar el JSON -->
         <br>
-        <a href="{{ route('download.pdf', ['invoice' => $invoice, 'download' => 1]) }}">Descargar PDF</a>
+        <a href="{{ route('download.pdf', ['invoice' => $invoice, 'download' => 1]) }}">Descargar PDF</a> --}}
     </div>
 </body>
 

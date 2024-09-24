@@ -139,6 +139,9 @@ class Select2Controller extends Controller
 		$where_2 = 'client_id';
 		$condition_2 = '=';
 
+
+		$q = $request->get('q')??$request->get('term')??'';
+
 		if( $action != '' ){
 			$where_1 = 'status';
 			$condition_1 = '!=';
@@ -146,7 +149,7 @@ class Select2Controller extends Controller
 			$condition_2 = '!=';
 		}
 	
-	    $display_option = "CONCAT($display, ' - ',  $display2, '-', contacts.company_name, ' - $', (subtotal + tax_total)) as text";
+	    $display_option = "CONCAT($display, ' - ',  $display2, '-', contacts.company_name, ' - $', (subtotal - iva_retenido )) as text";
 
 		$where_extra = $request->get('where_extra');
 
@@ -155,7 +158,16 @@ class Select2Controller extends Controller
 				->join('contacts', 'contacts.id', '=', $table . '.client_id')
 				->where($where_1, $condition_1, $where)
 				->where($where_2, $condition_2, $where_extra);
-		
+
+		if (!empty($q)) {
+			$result = $result->where(function($query) use ($display, $display2, $q) {
+				$query->where($display, 'LIKE', '%' . $q . '%')
+						->orWhere($display2, 'LIKE', '%' . $q . '%')
+						->orWhere('contacts.company_name', 'LIKE', '%' . $q . '%')
+						->orWhere(DB::raw("FORMAT(subtotal - iva_retenido, 2)"), 'LIKE', '%' . $q . '%');
+			});
+		}
+				
 		if (isset($request->no_paginate)) {
 			return $result->get();
 		}

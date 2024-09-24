@@ -27,7 +27,7 @@
 					
 					<div class="col-lg-3 mb-2">
                      	<label>{{ _lang('Customer') }}</label>
-						<select class="form-control select2 select-filter" name="client_id">
+						<select class="form-control select2 select-filter" name="client_id" id="client_id">
                             <option value="">{{ _lang('All Customer') }}</option>
 							{{ create_option('contacts','id','company_name','',array('company_id=' => company_id())) }}
                      	</select>
@@ -35,7 +35,7 @@
 					
                     <div class="col-lg-3 mb-2">
                      	<label>{{ _lang('Status') }}</label>
-                     	<select class="form-control select2 select-filter" data-placeholder="{{ _lang('Invoice Status') }}" name="status" multiple="true">
+                     	<select class="form-control select2 select-filter" data-placeholder="{{ _lang('Invoice Status') }}" name="status" name="status" multiple="true">
 							<option value="Unpaid">{{ _lang('Unpaid') }}</option>
 							<option value="Paid">{{ _lang('Paid') }}</option>
 							<option value="Partially_Paid">{{ _lang('Partially Paid') }}</option>
@@ -46,7 +46,18 @@
                     <div class="col-lg-3">
                      	<label>{{ _lang('Date Range') }}</label>
                      	<input type="text" class="form-control select-filter" id="date_range" autocomplete="off" name="date_range">
-                    </div>	
+                    </div>
+
+                    <div class="col-lg-12 mt-4">
+                        <div class="row">
+                            <div class="col-lg-2">
+                                <button class="btn btn-primary" id="btnDownloadJson" onclick="downloadJSON()">Descargar JSON</button>
+                            </div>	
+                            <div class="col-lg-2">
+                                <button class="btn btn-primary" id="btnDownloadJson" onclick="downloadJSON(true)">Descargar PDF</button>
+                            </div>	
+                        </div>
+                    </div>
 	
                 </div>
 
@@ -71,7 +82,7 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="anulacionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="anulacionModal" aria-hidden="true">
+<div class="modal fade" id="anulacionModal" data-bs-backdrop="static" data-bs-keyboard="false"  aria-labelledby="anulacionModal" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -170,7 +181,7 @@
       </div>
     </div>
 </div>
-<div class="modal fade" id="contingenciaModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="contingenciaModal" aria-hidden="true">
+<div class="modal fade" id="contingenciaModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="contingenciaModal" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -464,6 +475,159 @@
             });
         }
 
+    }
+
+    function reenviarCorreo( id_invoice ){
+        Swal.fire({
+            title: "¿Estas seguro?",
+            text: "Se reenviara DTE a cliente.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, reenviar!",
+            cancelButtonText: "Cancelar",
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        })
+        .then((result) => {
+    
+            if( result.isConfirmed ){
+
+                let anular = false;
+                let reenvio = true;
+
+                $.ajax({
+                    url: `/testCorreo/${id_invoice}/${anular}/${reenvio}`,
+                    type: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    beforeSend: function () {
+                        Swal.fire({
+                            title: '<b>Reenviando DTE</b>',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            },
+                        });
+                    },
+                    success: function(response) {
+
+                        Swal.fire({
+                            title: "Realizado!",
+                            text: "¡DTE reenviado correctamente!",
+                            icon: "success",
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            timer: 2000,
+                            showConfirmButton: false,
+                        });
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        Swal.fire({
+                            title: "Error",
+                            text: errorThrown,
+                            icon: "error"
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    function downloadJSON( download_pdf = false ){
+
+        let tipo_factura    = $("#tipodoc_id").val();
+        let numero_factura  = $("#invoice_number").val();
+        let client_id       = $("#client_id").val();
+        let status          = $("#status").val();
+        let rangos          = $("#date_range").val();
+
+        let pdf = ( download_pdf ) ? 1 : 0;
+
+        if( rangos == "" ){
+
+            Swal.fire({
+                title: "Error",
+                text: "Seleccione un rango de fechas",
+                icon: "error"
+            });
+
+            return;
+        }
+
+        let tipo = ( download_pdf ) ? "PDF" : "JSON";
+
+        Swal.fire({
+            title: "¿Estas seguro?",
+            html: `Se descargarán los ${tipo} de las fechas ${rangos}`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, descargar!",
+            cancelButtonText: "Cancelar",
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        })
+        .then((result) => {
+
+            if( result.isConfirmed ){
+
+                $.ajax({
+                    url: "/downloadJsons/",
+                    type: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: {
+                        tipo_factura,
+                        numero_factura,
+                        client_id,
+                        status,
+                        rangos,
+                        pdf
+                    },
+                    beforeSend: function () {
+                        Swal.fire({
+                            title: `<b>Generando archivo zip con ${tipo}...</b>`,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            },
+                        });
+                    },
+                    success: function(response) {
+
+                        if( response.url ){
+                            window.location.href = response.url;
+                        }
+
+                        Swal.fire({
+                            title: "Realizado!",
+                            text: `¡${tipo} generados correctamente!`,
+                            icon: "success",
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            timer: 2000,
+                            showConfirmButton: false,
+                        });
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        let errorMessage = jqXHR.responseJSON && jqXHR.responseJSON.error ? jqXHR.responseJSON.error : 'Ocurrió un error inesperado';
+
+                        Swal.fire({
+                            title: "Error",
+                            text: errorMessage,
+                            icon: "error"
+                        });
+                    }
+                });
+            }
+        })
     }
 </script>
 @endsection

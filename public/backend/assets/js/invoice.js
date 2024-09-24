@@ -24,9 +24,6 @@ var gran_contribuyente = 'no';
     $(document).on('change', '#product,#service,#kit', function () {
         var product_id = $(this).val();
 
-
-        console.log({product_id});
-
         let id = $(this).attr('id');
 
 
@@ -53,7 +50,7 @@ var gran_contribuyente = 'no';
     
                 console.log('entra aqui?');
                 var line = $("#order-table > tbody > #product-" + product_id);
-                var quantity = parseFloat($(line).find(".input-quantity").val());
+                var quantity = parseFloat($(line).find(".input-quantity").val() || 0);
     
                 $(line).find(".input-quantity").val(quantity + 1).trigger('change');
     
@@ -67,7 +64,7 @@ var gran_contribuyente = 'no';
         else{
             if ($("#order-table > tbody > #kit-" + product_id).length > 0) {
                 var line = $("#order-table > tbody > #kit-" + product_id);
-                var quantity = parseFloat($(line).find(".input-quantity").val());
+                var quantity = parseFloat($(line).find(".input-quantity").val() || 0);
     
                 $(line).find(".input-quantity").val(quantity + 1).trigger('change');
     
@@ -132,12 +129,12 @@ var gran_contribuyente = 'no';
 											<td class="description">
                                                 <textarea cols="10" rows="15" name="product_description[]" class="form-control input-description">${item['item_name']} - ${product['product_code']}</textarea>
                                             </td>
-											<td class="text-center quantity" title="Cantidad máxima: ${json['available_quantity']}"><input type="number" name="quantity[]" min="1" class="form-control float-field input-quantity text-center" value="1"></td>
-											<td class="text-right unit-cost" style="width:110px"><input type="text" name="unit_cost[]" class="form-control float-field input-unit-cost text-right" value="${unit_cost.toFixed(2)}"></td>
+											<td class="text-center quantity" title="Cantidad máxima: ${json['available_quantity']}"><input type="text" name="quantity[]" min="1" class="form-control float-field numeric input-quantity text-center" value="1"></td>
+											<td class="text-right unit-cost"  style="width:143px"><input type="text" name="unit_cost[]" class="form-control float-field numeric2 input-unit-cost text-right" value="${unit_cost.toFixed(6)}"></td>
 											<td class="text-right discount d-none"><input type="text" name="discount[]" class="form-control float-field input-discount text-right" value="0.00"></td>
 											<td class="text-right tax" width="11%"><select class="form-control selectpicker input-tax selectIva" name="tax[${item['id']}][]" title="${$lang_select_tax}" multiple="true">${tax_selector}</select></td>
-											<td class="text-right sub-total" style="width:115px"><input type="text" name="sub_total[]" class="form-control input-sub-total text-right" value="${sub_total.toFixed(2)}" readonly></td>
-											<td class="text-center">
+											<td class="text-right sub-total" style="width:143px"><input type="text" name="sub_total[]" class="form-control input-sub-total text-right" value="${sub_total.toFixed(6)}" readonly></td>
+											<td class="text-center" style="width:10px">
 												<button type="button" class="btn btn-danger btn-sm remove-product m-1" title="Remover ítem"><i class='ti-trash'></i></button>
 												<button type="button" class="btn btn-info btn-sm boton-descargo d-none" onclick="modalInfoDescargo(${item['id']})" title="Información de anexo de descargo"><i class='ti-list'></i></button>
                                                 ${getModalDescargo(item['id'])}
@@ -186,6 +183,13 @@ var gran_contribuyente = 'no';
                     $("tbody > tr.items td.unit-cost > input").removeClass("float-field input-unit-cost");
                     $("tbody > tr.items td.unit-cost > input").addClass("all_change_price");
                 }
+
+                $(".numeric").numeric("integer");
+
+                $(".numeric2").numeric({
+                    maxDecimalPlaces: 6,
+                    allowThouSep: false
+                });
             }
         });
 
@@ -195,7 +199,8 @@ var gran_contribuyente = 'no';
         var line = $(this).parent().parent();
 
         var stock = parseFloat($(line).find('.input-product-stock').val());
-        var line_qnty = parseFloat($(line).find('.input-quantity').val());
+        var line_qnty = parseFloat($(line).find('.input-quantity').val() || 0);
+
         if (stock < line_qnty) {
             $.toast({
                 heading: 'Stock máximo alcanzado',
@@ -242,8 +247,8 @@ var gran_contribuyente = 'no';
             // Restaurar el valor anterior
             $(this).val($(this).data('previous-value') || parseFloat( precio_original ).toFixed(2));
 
-            $(line).find('.input-sub-total').val( parseFloat( precio_original ).toFixed(2) );
-            $(line).find('.input-product-price').val( parseFloat( precio_original ).toFixed(2) );
+            $(line).find('.input-sub-total').val( parseFloat( precio_original ).toFixed(6) );
+            $(line).find('.input-product-price').val( parseFloat( precio_original ).toFixed(6) );
             
         }
         else{
@@ -409,7 +414,6 @@ var gran_contribuyente = 'no';
                 else{
                     $("#dvLicitacion").hide('slow');
                 }
-
                 if( selectedContact.exento_iva == 'si' ){
                     $("#chkVentaExenta").prop("checked", true);
                     $('#chkVentaExenta').prop('disabled', true);
@@ -426,8 +430,33 @@ var gran_contribuyente = 'no';
     });
 
     $("#name_invoice").alphanum({
-        allow:    '&,;.:/-',
+        allow:    '&,;.:/-_.,@%&#()*+;:!?/!¡?=$"´´++][}{``^^',
         maxLength: 250
+    });
+
+    $("#nombre_comercial").alphanum({
+        maxLength: 150
+    });
+
+    $("#seller_code").select2({
+        maximumSelectionLength: 2
+    });
+
+    $("#tipodoc_id").on("change", function (){
+
+        let val = $(this).val();
+
+        let dvRetencionRenta = $("#dvRetencionRenta");
+        if( val == "04" || val == "11" ){
+            dvRetencionRenta.addClass("d-none");
+        }
+        else{
+            dvRetencionRenta.removeClass("d-none");
+        }
+    });
+
+    $("#chkRetencionRenta").on("change", function (){
+        update_summary();
     });
 
 })(jQuery);
@@ -440,23 +469,34 @@ function update_summary(changedByUser=false) {
     // esta variable sirve para subtotal sin impuestos para calcular retencion y percepcion de iva
     let product_total_sin_iva = 0;
     let cambio_precio = 0;
+    let retencion_renta = 0;
 
     $("#order-table > tbody > tr").each(function (index, obj) {
-        total_quantity = total_quantity + parseFloat($(this).find(".input-quantity").val());
+        total_quantity = total_quantity + parseFloat($(this).find(".input-quantity").val() || 0);
         total_discount = total_discount + parseFloat($(this).find(".input-discount").val());
         total_tax = total_tax + parseFloat($(this).find(".input-product-tax").val());
-        product_total = product_total + parseFloat($(this).find(".input-sub-total").val());
+        product_total = product_total + parseFloat($(this).find(".input-sub-total").val() || 0);
 
         // esta variable sirve para subtotal sin impuestos para calcular retencion y percepcion de iva
-        product_total_sin_iva += (parseFloat($(this).find(".input-quantity").val())*parseFloat($(this).find(".input-product-price").val())-parseFloat($(this).find(".input-discount").val()));
+        product_total_sin_iva += (parseFloat($(this).find(".input-quantity").val() || 0 )*parseFloat($(this).find(".input-product-price").val())-parseFloat($(this).find(".input-discount").val()));
 
         cambio_precio = $(this).find(".cambio_precio").val();
     });
 
+    console.log({total_quantity});
+
+    let sumatorias_impuestos = product_total;
+
+    if( $('#tipodoc_id').val() == '03' || $('#tipodoc_id').val() == '04' || $('#tipodoc_id').val() == '05' || $('#tipodoc_id').val() == '06' ){
+        let total_tax_fix = total_tax.toFixed(2)
+        sumatorias_impuestos = parseFloat( sumatorias_impuestos )  + parseFloat( total_tax_fix );
+    }
+
     $("#total-qty").html(total_quantity);
     $("#total-discount").html(_currency + ' ' + total_discount.toFixed(2));
+    $("#sumatorias_impuestos").html(_currency + ' ' + sumatorias_impuestos.toFixed(2));
     $("#total-tax").html(_currency + ' ' + total_tax.toFixed(2));
-    $("#total").html(_currency + ' ' + product_total.toFixed(2));
+    $("#total").html(_currency + ' ' + product_total.toFixed(6));
 
 
     $("#product_total").val(product_total.toFixed(2));
@@ -495,6 +535,20 @@ function update_summary(changedByUser=false) {
         if( $('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '04' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
             $("#iva-retenido").html(_currency + ' ' + '0.00');
             $("#iva_retenido").val(0.00);
+        }
+    }
+
+    //RETENCION DE RENTA
+    if( $('#tipodoc_id').val() != "04" || $('#tipodoc_id').val() != "11"  ){
+        if( $("#chkRetencionRenta").is(':checked') ){
+
+            $("#retencion-renta").html(_currency + ' ' + (product_total_sin_iva*(10/100)).toFixed(2));
+            $("#retencion_renta").val((product_total_sin_iva*(10/100)).toFixed(2));
+  
+        }
+        else{
+            $("#retencion-renta").html(_currency + ' ' + '0.00');
+            $("#retencion_renta").val(0.00);
         }
     }
 
@@ -548,11 +602,11 @@ function update_summary(changedByUser=false) {
 
     
     if( $('#tipodoc_id').val() == '03' || $('#tipodoc_id').val() == '04' || $('#tipodoc_id').val() == '05' || $('#tipodoc_id').val() == '06' ){
-        let valueGrandTotal = product_total+parseFloat($("#tax_total").val())-parseFloat($('#iva_retenido').val())+parseFloat($('#iva_percibido').val())+parseFloat($('#isr_retenido').val());
+        let valueGrandTotal = product_total + parseFloat($("#tax_total").val()) - parseFloat($('#iva_retenido').val()) - parseFloat($('#retencion_renta').val()) + parseFloat($('#iva_percibido').val())+parseFloat($('#isr_retenido').val());
         $("#grand_total").val(valueGrandTotal.toFixed(2));
         $("#grand-total").html(_currency + ' ' + valueGrandTotal.toFixed(2));
     }else{
-        let valueGrandTotal = product_total-parseFloat($('#iva_retenido').val())+parseFloat($('#isr_retenido').val());
+        let valueGrandTotal = product_total - parseFloat($('#iva_retenido').val()) - parseFloat($('#retencion_renta').val()) + parseFloat($('#isr_retenido').val());
         $("#grand_total").val(valueGrandTotal.toFixed(2));
         $("#grand-total").html(_currency + ' ' + valueGrandTotal.toFixed(2));
     }
@@ -632,12 +686,15 @@ function tdocrec_idChanged(value){
     switch(valor.toString()){
         case "36":
             $('#num_documento').val(selectedContact.nit);
+            // $('#num_documento_2').val(selectedContact.nit);
         break;
         case "13":
             $('#num_documento').val(selectedContact.dui);
+            // $('#num_documento_2').val(selectedContact.dui);
         break;
         default:
             $('#num_documento').val('');
+            // $('#num_documento_2').val('');
         break;
     }
 }
@@ -732,6 +789,7 @@ function tipodoc_idChanged(value, limpiarCliente = true){
         $('#client_id').trigger('change');
         $('#tpers_id_invoice').val('');
         $('#num_documento').val('');
+        // $('#num_documento_2').val('');
         $('#pais_id_invoice').val('');
         $('#telefono').val('');
         $('#correo').val('');

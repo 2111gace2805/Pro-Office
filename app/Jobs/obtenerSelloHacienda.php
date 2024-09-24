@@ -98,7 +98,7 @@ class obtenerSelloHacienda implements ShouldQueue
                 else if ($response_mh->estado === 'PROCESADO') {
 
                     if( $invoice->correo != '' ){
-                        // $this->sendEmailFactura($invoice->id);
+                        $this->sendEmailFactura($invoice->id);
                     }
 
                 }
@@ -1580,6 +1580,10 @@ class obtenerSelloHacienda implements ShouldQueue
 
             // Enviar el correo electrónico con el archivo adjunto
             $mail = Mail::to($invoice->correo)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control));
+
+            if( $invoice->correo_alterno != '' ){
+                $mail2 = Mail::to($invoice->correo_alterno)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control));
+            }
 
             try {
                 Storage::delete('pdf_invoices/' . $pdf);

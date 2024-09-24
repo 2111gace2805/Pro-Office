@@ -97,8 +97,27 @@ Route::group(['middleware' => ['install']], function () {
 			Route::get('contacts/load','ContactController@cargarClientes')->name('contacts.load');
 			Route::post('contacts/load_excel','ContactController@cargarClientesExcel')->name('contacts.load_excel');
 			Route::post('contacts/verifyClientExist','ContactController@verifyClientExist');
+			
+			Route::post('contacts/get_table_data_warehouses','ContactController@get_table_data_warehouses');
+			Route::post('warehouses/store_warehouse','ContactController@store_warehouse')->name('warehouses.store_warehouse');
+			Route::put('warehouses/{id_warehouse}/update_warehouse','ContactController@update_warehouse')->name('warehouses.update_warehouse');
+			Route::get('warehouses/create_order','ContactController@create_warehouse_order')->name('warehouses.create_order');
+			Route::get('warehouses/{id_client}','ContactController@warehouses')->name('warehouses.list');
+			Route::get('warehouses/{id_client}/create','ContactController@create_warehouse')->name('warehouses.create');
+			Route::get('warehouses/{id_warehouse}/edit','ContactController@edit_warehouse')->name('warehouses.edit');
+			Route::delete('warehouses/{id_client}','ContactController@destroy_warehouse')->name('warehouses.destroy');
+
+			Route::get('warehouses', function() {
+				return redirect()->route('contacts.index');
+			});
+
 			Route::resource('contacts','ContactController');
 			Route::get('contacts/get_contact/{id}', [ContactController::class, 'get_contact']);
+
+
+			//SALES INSTITUCION CONTROLLER
+			Route::get('institutions/get_table_data','SaleInstitutionController@get_table_data');
+			Route::resource('institutions', SaleInstitutionController::class);
 
 			//Account Controller
 			Route::resource('accounts','AccountController');
@@ -139,6 +158,8 @@ Route::group(['middleware' => ['install']], function () {
 			Route::get('products/load','ProductController@cargarProductos')->name('products.load');
 			Route::post('products/load_excel','ProductController@cargarProductosExcel')->name('products.load_excel');
 			Route::post('products/get_table_data','ProductController@get_table_data');
+			Route::get('products/createService/','ProductController@createService')->name('products.createService');
+			Route::post('products/storeService/','ProductController@storeService')->name('products.storeService');
 			Route::resource('products','ProductController');
 
 			//Product Controller
@@ -343,7 +364,9 @@ Route::get('/test', [InvoiceController::class, 'sendMessage']);
 Route::get('download/json/{invoice}', 'InvoiceController@downloadJson')->name('download.json');
 Route::get('/download-pdf/{invoice}', 'InvoiceController@downloadPdf')->name('download.pdf');
 
-Route::get('/testCorreo/{id}', [InvoiceController::class, 'sendEmailFactura']);
+Route::get('/testCorreo/{id}/{anulacion?}/{reenvio?}', [InvoiceController::class, 'sendEmailFactura']);
 Route::get('/testAnular/{id}', [InvoiceController::class, 'anularInvoiceMH']);
 Route::POST('/contingenciaInvoiceMH/{id}', [InvoiceController::class, 'contingenciaInvoiceMH']);
 Route::get('/enviarPruebas/{id}', [InvoiceController::class, 'enviarPruebas']);
+Route::get('/downloadJsons/', [InvoiceController::class, 'downloadJsons']);
+Route::get('/download-zip-json/{fileName}', [InvoiceController::class, 'descargarZip']);

@@ -27,7 +27,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        {{-- <div class="col-md-4">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Invoice Number') }}</label>
                                 <input type="text" class="form-control" name="invoice_number" id="invoice_number"
@@ -35,7 +35,7 @@
                                 <input type="hidden" name="invoice_starting_number" id="invoice_starting_number" 
                                     value="{{ old('invoice_number') }}">
                             </div>
-                        </div>
+                        </div> --}}
 
                         <div class="col-md-4">
                             <div class="form-group">
@@ -89,7 +89,7 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Tipo de condición') }}</label>
-                                <select class="form-control" name="conop_id" id="conop_id" required>
+                                <select class="form-control" name="conop_id" id="conop_id" required onchange="setPlazo(this);">
                                     <option value="">{{ _lang('Select one') }}</option>
                                     {{ create_option("condicion_operacion", "conop_id", "conop_nombre", old('conop_id', '1')) }}
                                 </select>
@@ -139,62 +139,66 @@
                         <div class="col-12 col-md-4">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Nombre comercial') }}</label>
-                                <input type="text" class="form-control" name="nombre_comercial" id="nombre_comercial"
-                                value="{{ old('nombre_comercial') }}" readonly>
+                                <input type="text" class="form-control" name="nombre_comercial" id="nombre_comercial" readonly
+                                value="{{ old('nombre_comercial') }}">
                             </div>
                         </div>
                         <div class="col-12 col-md-4">
-                                <div class="form-group">
-                                    <label class="control-label">{{ _lang('Tipo de persona') }}</label>
-                                    <select readonly="true" class="form-control" name="tpers_id" id="tpers_id_invoice" style="pointer-events: none;">
+                            <div class="form-group">
+                                <label class="control-label">{{ _lang('Tipo de documento') }}</label>
+                                <select class="form-control" name="tdocrec_id" id="tdocrec_id" style="pointer-events: none;">
+                                <option value="">{{ _lang('Select One') }}</option>
+                                {{ create_option("tipo_doc_ident_receptor", "tdocrec_id", "tdocrec_nombre", old('tdocrec_id')) }}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-group">
+                                <label class="control-label">{{ _lang('Numero de documento') }}</label>
+                                <input type="text" class="form-control" name="num_documento" id="num_documento"
+                                value="{{ old('num_documento') }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-group">
+                                <label class="control-label">{{ _lang('Correo') }}</label>
+                                <input type="text" class="form-control" name="correo" id="correo"
+                                value="{{ old('correo') }}" required>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-group">
+                                <label class="control-label">{{ _lang('Correo alterno ( opcional )') }}</label>
+                                <input type="text" class="form-control" name="correo_alterno" id="correo_alterno"
+                                value="{{ old('correo') }}">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-group">
+                                <label class="control-label">{{ _lang('Forma de pago') }}</label>
+                                <select class="form-control select-filter" name="forp_id" id="forp_id">
                                     <option value="">{{ _lang('Select One') }}</option>
-                                    {{ create_option("tipo_persona", "tpers_id", "tpers_nombre", old('tpers_id')) }}
-                                    </select>
-                                </div>
+                                    {{ create_option("forma_pago", "forp_id", "forp_nombre", old('forp_id', '01'), ['forp_status='=> 'Active']) }}
+                                </select>
                             </div>
-
-                            <div class="col-12 col-md-4">
-                                <div class="form-group">
-                                    <label class="control-label">{{ _lang('Tipo de documento') }}</label>
-                                    <select class="form-control" name="tdocrec_id" id="tdocrec_id" style="pointer-events: none;">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-group">
+                                <label class="control-label">{{ _lang('Plazo') }}</label>
+                                <select class="form-control" name="plazo_id" id="plazo_id_invoice">
                                     <option value="">{{ _lang('Select One') }}</option>
-                                    {{ create_option("tipo_doc_ident_receptor", "tdocrec_id", "tdocrec_nombre", old('tdocrec_id')) }}
-                                    </select>
-                                </div>
+                                    {{ create_option("plazo", "plazo_id", "plazo_nombre", old('plazo_id')) }}
+                                </select>
                             </div>
-                            <div class="col-12 col-md-4">
-                                <div class="form-group">
-                                    <label class="control-label">{{ _lang('Numero de documento') }}</label>
-                                    <input type="text" class="form-control" name="num_documento" id="num_documento"
-                                    value="{{ old('num_documento') }}" readonly>
-                                </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-group">
+                                <label class="control-label">{{ _lang('Valor del plazo') }}</label>
+                                <input type="text" class="form-control" name="periodo" id="periodo"
+                                value="{{ old('periodo') }}">
                             </div>
-
-                            <div class="col-12 col-md-4">
-                                <div class="form-group">
-                                    <label class="control-label">{{ _lang('Plazo') }}</label>
-                                    <select class="form-control" name="plazo_id" id="plazo_id_invoice">
-                                      <option value="">{{ _lang('Select One') }}</option>
-                                      {{ create_option("plazo", "plazo_id", "plazo_nombre", old('plazo_id')) }}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="form-group">
-                                    <label class="control-label">{{ _lang('Valor del plazo') }}</label>
-                                    <input type="text" class="form-control" name="periodo" id="periodo"
-                                    value="{{ old('periodo') }}">
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="form-group">
-                                    <label class="control-label">{{ _lang('Forma de pago') }}</label>
-                                    <select class="form-control select-filter" name="forp_id" id="forp_id">
-                                        <option value="">{{ _lang('Select One') }}</option>
-                                        {{ create_option("forma_pago", "forp_id", "forp_nombre", old('forp_id', '01'), ['forp_status='=> 'Active']) }}
-                                    </select>
-                                </div>
-                            </div>
+                        </div>
+                            
 
 
                         <p class="pl-3 col-12">
@@ -204,6 +208,15 @@
                         </a>
                         </p>
                         <div class="collapse multi-collapse row" style="width: 100%; padding-left: 15px;" id="clientFields">
+                            <div class="col-12 col-md-4">
+                                <div class="form-group">
+                                        <label class="control-label">{{ _lang('Tipo de persona') }}</label>
+                                        <select readonly="true" class="form-control" name="tpers_id" id="tpers_id_invoice" style="pointer-events: none;">
+                                        <option value="">{{ _lang('Select One') }}</option>
+                                        {{ create_option("tipo_persona", "tpers_id", "tpers_nombre", old('tpers_id')) }}
+                                        </select>
+                                </div>
+                            </div>
                             <div class="col-12 col-md-4">
                                 <div class="form-group">
                                     <label class="control-label">{{ _lang('Pais') }}</label>
@@ -219,13 +232,7 @@
                                     value="{{ old('telefono') }}" readonly>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-4">
-                                <div class="form-group">
-                                    <label class="control-label">{{ _lang('Correo') }}</label>
-                                    <input type="text" class="form-control" name="correo" id="correo"
-                                    value="{{ old('correo') }}" readonly>
-                                </div>
-                            </div>
+                            
                             
 
                             <div class="col-12 col-md-4">
@@ -332,9 +339,8 @@
                         <div class="col-md-6">
                             <div class="form-group select-product-container">
                                 <label class="control-label">{{ _lang('Vendedor') }}</label>
-                                <select class="form-control select2" name="seller_code" id="seller_code">
-                                    <option value="">{{ _lang('Select') }}</option>
-                                    {{ create_option("users", "id", "name", old('id')) }}
+                                <select class="form-control" name="seller_code[]" id="seller_code" multiple>
+                                    {{ create_option("users", "id", "name", old('id'), array("seller_code!="=>""))  }}
                                 </select>
                             </div>
                         </div>
@@ -364,7 +370,7 @@
 
                         <div class="col-md-6">
                             <div class="form-group select-product-container">
-                                <a href="{{ route('services.create') }}" data-reload="false"
+                                <a href="{{ route('products.createService') }}" data-reload="false"
                                     data-title="{{ _lang('Add Service') }}" class="ajax-modal select2-add"><i
                                         class="ti-plus"></i> {{ _lang('Add New') }}</a>
                                 <label class="control-label">{{ _lang('Select Service') }}</label>
@@ -472,6 +478,12 @@
                                                 VENTA EXENTA
                                             </label>
                                         </div>
+                                        <div class="form-check mt-2" id="dvRetencionRenta">
+                                            <input class="form-check-input" type="checkbox" value="1" name="chkRetencionRenta" id="chkRetencionRenta">
+                                            <label class="form-check-label" for="chkRetencionRenta">
+                                                RETENCIÓN RENTA
+                                            </label>
+                                        </div>
                                     </div>
                                     <div class="col-md-10">
                                         <table class="table table-bordered">
@@ -480,6 +492,10 @@
                                                     <th>{{ _lang('Impuesto') }}</th>
                                                     <th class="text-right" id="total-tax">0.00</th>
                                                     <input type="hidden" name="tax_total" id="tax_total" value="0">
+                                                </tr>
+                                                <tr id="tr-subtotal">
+                                                    <th>{{ _lang('Sumatorias con impuestos') }}</th>
+                                                    <th class="text-right" id="sumatorias_impuestos">0.00</th>
                                                 </tr>
                                                 <tr id="tr-iva-retenido">
                                                     <th>{{ _lang('IVA retenido') }}</th>
@@ -490,6 +506,11 @@
                                                     <th>{{ _lang('IVA percibido') }}</th>
                                                     <th class="text-right" id="iva-percibido">0.00</th>
                                                     <input type="hidden" name="iva_percibido" id="iva_percibido" value="0">
+                                                </tr>
+                                                <tr id="tr-retencion-renta">
+                                                    <th>{{ _lang('Retención Renta') }}</th>
+                                                    <th class="text-right" id="retencion-renta">0.00</th>
+                                                    <input type="hidden" name="retencion_renta" id="retencion_renta" value="0">
                                                 </tr>
                                                 <tr id="tr-isr-retenido">
                                                     {{-- <th>{{ _lang('Renta retenida') }}</th> --}}
@@ -546,7 +567,7 @@
 @section('js-script')
 <script src="{{ asset('public/backend/plugins/jquery-alphanum/jquery.alphanum.js') }}"></script>
 <script src="{{ asset('public/backend/plugins/bootstrap-select/js/bootstrap-select.min.js') }}"></script>
-<script src="{{ asset('public/backend/assets/js/invoice.js') }}"></script>
+<script src="{{ asset('public/backend/assets/js/invoice.js') . '?v=' . uniqid() }}"></script>
 
 <script>
     @if ($invoice != null)
@@ -735,5 +756,24 @@
 
     // Establecer el valor del campo de entrada de hora
     // document.getElementById("invoice_time").value = formattedTime;
+
+    function setPlazo( select ){
+
+        let value       = $(select).val();
+        let plazo       = $("#plazo_id_invoice");
+        let plazo_Valor = $("#periodo");
+
+        if( value == 2 ){
+            plazo.attr("required", true);
+            plazo_Valor.attr("required", true);
+        }
+        else{
+            plazo.attr("required", false);
+            plazo_Valor.attr("required", false);
+            
+            plazo.removeClass("parsley-error");
+            plazo_Valor.removeClass("parsley-error");
+        }
+    }
 </script>
 @endsection

@@ -14,6 +14,7 @@
                     {{ csrf_field() }}
                     {{ method_field('PUT') }}
                     {{-- <input name="_method" type="hidden" value="PATCH"> --}}
+                    <input type="hidden" id="order_status" value="{{ $purchase->order_status }}">
 
                     <div class="row">
                         <div class="col-md-4">
@@ -41,7 +42,7 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Order Status') }}</label>
-                                <select class="form-control select2" name="order_status" required>
+                                <select class="form-control select2" name="order_status" id="slOrder_status" required>
                                     <option value="1" {{ $purchase->order_status == '1' ? 'selected' : '' }}>
                                         {{ _lang('Ordered') }}</option>
                                     <option value="2" {{ $purchase->order_status == '2' ? 'selected' : '' }}>
@@ -61,11 +62,9 @@
                                     data-title="{{ _lang('Add Product') }}" class="ajax-modal select2-add"><i
                                         class="ti-plus"></i> {{ _lang('Add New') }}</a>
                                 <label class="control-label">{{ _lang('Select Product') }}</label>
-                                <select class="form-control select2 product" name="product" id="product">
-                                    <option value="" disabled selected>{{ _lang('Select Product') }}</option>
-                                    @foreach ($productos as $item)
-                                        <option value="{{ $item->id }}">{{ $item->category?->nombre }} {{ $item->sub_category?->subc_name }} - {{ $item->product_stock->where('company_id', session('company')->id)->first()->quantity??'' }}</option>
-                                    @endforeach
+                                <select class="form-control select2-ajax" data-value="id" data-display="item_name"
+                                    data-table="items" data-where="2" name="product" id="product" data-items="all">
+                                    <option value="">{{ _lang('Select Product') }}</option>
                                 </select>
                             </div>
                         </div>
@@ -119,13 +118,13 @@
                                                     class="form-control input-description"
                                                     value="{{ $item->description }}"></td>
                                             <td class="text-center quantity"><input type="number" name="quantity[]"
-                                                    min="1" class="form-control input-quantity text-center"
+                                                    min="1" class="form-control input-quantity text-center inputs_tbl"
                                                     value="{{ $item->quantity }}"></td>
                                             <td class="text-right unit-cost"><input type="text" name="unit_cost[]"
-                                                    class="form-control input-unit-cost text-right"
+                                                    class="form-control input-unit-cost text-right inputs_tbl"
                                                     value="{{ $item->unit_cost }}"></td>
                                             <td class="text-right discount"><input type="text" name="discount[]"
-                                                    class="form-control input-discount text-right"
+                                                    class="form-control input-discount text-right inputs_tbl"
                                                     value="{{ $item->discount }}"></td>
                                             <td class="text-right tax">
                                                 <select class="form-control auto-multiple-select selectpicker input-tax"
