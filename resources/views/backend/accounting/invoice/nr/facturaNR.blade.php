@@ -72,7 +72,7 @@
         <table style="width: 100%;">
             <tr>
                 <td class="center" style="width: 25%;">
-                    <img src="{{ get_logo() }}" style="max-height: 100px;" width="100" height="100" alt="Código QR">
+                    <img src="{{ get_logo() }}" style="max-height: 100px;" width="200" height="100" alt="Código QR">
                 </td>
                 <td class="center" style="width: 50%; font-weight: bold;">
                     <div>DOCUMENTO TRIBUTARIO ELECTRÓNICO</div>
