@@ -1,0 +1,186 @@
+body{
+  background: linear-gradient(45deg, #50a3a2 0%, #0fa967 100%);
+  color: #000;
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  position:relative;
+}
+
+body::before{
+	content: "";
+	background: url('../images/tile-bg.png');
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: 100%;
+    width:100%;
+    opacity: .1;
+    transform: translate(-50%, -50%);
+}
+
+.logo{
+	max-width: 150px;
+	border-radius: 15px;
+    margin-bottom: 10px;
+	margin-top:-20px;
+    transform: translateX(-50%);
+    margin-left: 50%;
+    padding: 10px;
+}
+
+.custom-control-label {
+    margin-bottom: 0;
+    margin-top: 1px;
+	-webkit-touch-callout: none;
+    -webkit-user-select: none;
+     -khtml-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none; 
+            user-select: none; 
+}
+ 
+.card-signin {
+  border: 0;
+  border-radius: 5px;
+  background: #FFFFFF;
+}
+
+.card-signin .card-header {
+  font-weight: 300;
+  font-size: 1.5rem;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  background: #FFFFFF;
+}
+
+.login-form-head {
+    text-align: center;
+    background: #ffffff;
+    padding: 30px 15px;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.login-form-head h4 {
+    letter-spacing: 0;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #000;
+    margin: 0;
+}
+
+.card-signin .card-body {
+  padding: 2rem;
+}
+
+.form-signin {
+  font-family: 'Poppins', sans-serif;
+  width: 100%;
+  text-align: center;
+}
+
+.form-signin .btn {
+  font-size: 14px;
+  letter-spacing: .1rem;
+  padding: 12px 20px;
+  transition: all 0.2s;
+}
+
+.form-signin .form-control {
+  padding: 12px 20px;
+  text-align: center;
+  height: auto;
+}
+
+.form-signin .form-control:focus{
+  box-shadow: none;
+  border: 1px solid #007bff;
+} 
+
+/* Sign UP */
+.card-signup {
+  border: 0;
+  border-radius: 5px;
+  background: #FFFFFF;
+}
+
+.card-signup .card-header {
+  font-weight: 300;
+  font-size: 1.5rem;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  background: #FFFFFF;
+}
+
+.card-signup .card-body {
+  padding: 2rem;
+}
+
+.form-signup {
+  font-family: 'Poppins', sans-serif;
+  width: 100%;
+}
+
+.form-signup .btn {
+  font-size: 14px;
+  letter-spacing: .1rem;
+  padding: 12px 20px;
+  transition: all 0.2s;
+}
+
+.form-signup .form-control {
+  padding: 12px 20px;
+  height: auto;
+}
+
+.form-signup .form-control:focus{
+  box-shadow: none;
+  border: 1px solid #007bff;
+} 
+
+select.form-control {
+    padding: 12px 20px;
+    height: auto !important;
+}
+
+.custom-control-label:before {
+    background: #CCCCCC;
+	border-radius: 50% !important;
+}
+
+.custom-control {
+   display: inline-block;
+}
+
+#extend_membership{
+	font-family: 'Poppins', sans-serif;
+}
+
+.btn-register{
+	text-align: center;
+  display: block;
+  color: #000000;
+	font-size: 16px !important;
+}
+
+.btn-register:hover{
+	color: #000000;
+}
+
+.btn-google{
+	background: #DB4437;
+	color: #FFF;
+ }
+ 
+ .btn-google:hover{
+	background: #c0392b;
+	color: #FFF;
+ }
+ 
+ .btn-facebook{
+	 background: #3b5998;
+	 color: #FFF;
+ }
+ 
+ .btn-facebook:hover{
+	 color: #FFF;
+ }

@@ -1,0 +1,43 @@
+<form method="post" class="ajax-submit" autocomplete="off" action="{{ route('cash.store') }}" enctype="multipart/form-data">
+	{{ csrf_field() }}
+	
+	<div class="row">
+		<div class="col-md-12">
+			<div class="form-group">
+				<label class="control-label">Nombre de caja</label>						
+				<input type="text" class="form-control" name="cash_name" value="{{ old('cash_name') }}" required>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="form-group">
+				<label class="control-label">Monto de apertura</label>
+				<input type="text" class="form-control" name="cash_value" id="cash_value" value="{{ old('cash_value') }}" required>
+			</div>
+		</div>
+		<div class="col-12 col-md-6">
+			<div class="form-group">
+				<label class="control-label">Sucursal</label>
+				<select class="form-control" name="company_id" id="company_id" required>
+				  <option value="">{{ _lang('Select One') }}</option>
+				  {{ create_option("companies", "id", "company_name", company_id()) }}
+				</select>
+			</div>
+		</div>
+	</div>
+
+	
+	<div class="col-md-12">
+	    <div class="form-group">
+	        
+		    <button type="submit" class="btn btn-primary btn-lg"><i class="ti-save-alt"></i> {{ _lang('Save Changes') }}</button>
+	    </div>
+	</div>
+</form>
+<script src="{{ asset('public/backend/plugins/jquery-alphanum/jquery.alphanum.js') }}"></script>
+<script>
+	$("#cash_value").numeric({
+		allowMinus   : false,
+		allowThouSep : false,
+		maxDecimalPlaces : 2,
+	});
+</script>

@@ -25,7 +25,7 @@ dist/
 
 # JetBrains IDE
 .idea/
-
+/.htaccess
 # Unit test reports
 TEST*.xml
 
@@ -48,3 +48,40 @@ Thumbs.db
 *.mov
 *.wmv
 
+
+# Laravel specific files/directories
+/node_modules
+/public/storage
+/vendor
+/.idea
+/.env
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+*.htaccess
+# Laravel Mix specific files
+/mix-manifest.json
+/public/hot
+/public/mix
+
+# Laravel backup files
+*.zip
+
+# Laravel log files
+*.log
+
+# Editor/IDE specific files
+.vscode
+*.sublime-project
+*.sublime-workspace
+*.idea/
+*.code-workspace
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Laravel Valet specific files
+.valet
+valet/
