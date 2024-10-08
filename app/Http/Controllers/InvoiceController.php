@@ -3541,7 +3541,9 @@ class InvoiceController extends Controller
 
         $invoice = Invoice::find($id_invoice);
 
-        $json = json_decode($invoice->json_dte);
+        $json = json_decode(json_decode($invoice->json_dte));
+        $json->identificacion->selloRecibido = $invoice->sello_recepcion;
+        $json = json_encode($json);
 
         $json_temp = 'invoice_' . $invoice->id . '.json';
 
