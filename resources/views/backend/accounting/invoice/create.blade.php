@@ -484,7 +484,8 @@
                                                 RETENCIÓN RENTA
                                             </label>
                                         </div>
-                                        <div class="mt-2" id="dvGeneralDiscounts">
+                                        <div class="mt-3" id="dvGeneralDiscounts">
+                                            <label class="control-label">Descuentos</label>
                                             <select class="form-control" name="general_discount_id" id="general_discount_id">
                                                 <option value="">{{_lang('Select One')}}</option>
                                                 @foreach ($generalDiscounts as $generalDiscount)
@@ -631,8 +632,8 @@
             $("#tipodoc_id").attr("style", "pointer-events: none;");
 
             let total = parseFloat( dte.subtotal ) - ( parseFloat( dte.general_discount ) ) + parseFloat( dte.tax_total )-parseFloat( dte.iva_retenido );
-            let notas_creadas_nc = parseFloat( invoiceCCF.total_notas_nc ) - ( parseFloat( invoiceCCF.total_desc_nc ) ) + parseFloat( invoiceCCF.total_taxs_nc );
-            let notas_creadas_nd = parseFloat( invoiceCCF.total_notas_nd ) - ( parseFloat( invoiceCCF.total_desc_nd ) ) + parseFloat( invoiceCCF.total_taxs_nd );
+            let notas_creadas_nc = parseFloat( invoiceCCF.total_notas_nc ) - ( parseFloat( invoiceCCF.total_desc_nc ) ) + parseFloat( invoiceCCF.total_taxs_nc )-parseFloat( invoiceCCF.iva_retenido_nc );
+            let notas_creadas_nd = parseFloat( invoiceCCF.total_notas_nd ) - ( parseFloat( invoiceCCF.total_desc_nd ) ) + parseFloat( invoiceCCF.total_taxs_nd )-parseFloat( invoiceCCF.iva_retenido_nd );
             
             let disponible = parseFloat( total ) - parseFloat( notas_creadas_nc ) + parseFloat( notas_creadas_nd );
 

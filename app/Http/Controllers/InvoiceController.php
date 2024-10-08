@@ -224,8 +224,12 @@ class InvoiceController extends Controller
                 // ->first();
                 ->selectRaw('SUM(CASE WHEN tipodoc_id = "05" THEN subtotal ELSE 0 END) as total_subtotal_nc,
                 SUM(CASE WHEN tipodoc_id = "05" THEN tax_total ELSE 0 END) as total_tax_nc,
+                SUM(CASE WHEN tipodoc_id = "05" THEN general_discount ELSE 0 END) as total_desc_nc,
+                SUM(CASE WHEN tipodoc_id = "05" THEN iva_retenido ELSE 0 END) as iva_retenido_nc,
                 SUM(CASE WHEN tipodoc_id = "06" THEN subtotal ELSE 0 END) as total_subtotal_nd,
-                SUM(CASE WHEN tipodoc_id = "06" THEN tax_total ELSE 0 END) as total_tax_nd')
+                SUM(CASE WHEN tipodoc_id = "06" THEN general_discount ELSE 0 END) as total_desc_nd,
+                SUM(CASE WHEN tipodoc_id = "06" THEN tax_total ELSE 0 END) as total_tax_nd,
+                SUM(CASE WHEN tipodoc_id = "06" THEN iva_retenido ELSE 0 END) as iva_retenido_nd')
                 ->first();
 
                 
@@ -233,6 +237,10 @@ class InvoiceController extends Controller
             $invoiceCCF->total_taxs_nc   = $notasEmitidas->total_tax_nc ?? 0;
             $invoiceCCF->total_notas_nd  = $notasEmitidas->total_subtotal_nd ?? 0;
             $invoiceCCF->total_taxs_nd   = $notasEmitidas->total_tax_nd ?? 0;
+            $invoiceCCF->total_desc_nc   = $notasEmitidas->total_desc_nc ?? 0;
+            $invoiceCCF->total_desc_nd   = $notasEmitidas->total_desc_nd ?? 0;
+            $invoiceCCF->iva_retenido_nc = $notasEmitidas->iva_retenido_nc ?? 0;
+            $invoiceCCF->iva_retenido_nd = $notasEmitidas->iva_retenido_nd ?? 0;
             $invoiceCCF->type            = $request->type;
 
         }
@@ -2725,7 +2733,7 @@ class InvoiceController extends Controller
         $montoTotal = $invoice->grand_total;
 
         $descuentos = $invoice->general_discount;
-        $descuentos = $descuentos / 1.13;
+        $descuentos = $descuentos;
 
         $total_gravadas    = $gravadoSum;
         $total_subtotal    = $total_gravadas - $descuentos;

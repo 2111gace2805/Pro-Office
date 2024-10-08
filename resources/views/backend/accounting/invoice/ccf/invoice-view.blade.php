@@ -356,7 +356,7 @@
                 </td>
                 <td style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;" colspan="2">Sub-Total</td>
                 <td style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;"></td>
-                <td style="border-top: 0px solid #565656; border-right: 2px solid #565656; border-left: 2px solid #565656; border-bottom: 2px solid #565656; border-radius: 5px !important; padding: 0px;" class="text-right pr-1">{{ decimalPlace($gravadoSum+$invoice->tax_total, $currency) }}</td>
+                <td style="border-top: 0px solid #565656; border-right: 2px solid #565656; border-left: 2px solid #565656; border-bottom: 2px solid #565656; border-radius: 5px !important; padding: 0px;" class="text-right pr-1">{{ decimalPlace($gravadoSum-$invoice->general_discount+$invoice->tax_total, $currency) }}</td>
             </tr>
             <tr>
                 <td colspan="3" style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;"

@@ -362,6 +362,14 @@
                
             </tr>
             <tr>
+                <td colspan="2" style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;"
+                    class="">
+                </td>
+                <td style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;" colspan="2" class="pl-1">Descuento general {{$invoice->GeneralDiscount?'('.($invoice->GeneralDiscount->percent).'%)':''}}</td>
+                <td style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;"></td>
+                <td style="border-top: 0px solid #565656; border-right: 2px solid #565656; border-left: 2px solid #565656; border-bottom: 2px solid #565656; border-radius: 5px !important; padding: 0px;" class="text-right p-1">{{ decimalPlace($invoice->general_discount, $currency) }}</td>
+            </tr>
+            <tr>
                 <td colspan="2" style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important;"
                     class="">
                     NOTA: {{ $invoice->note }}

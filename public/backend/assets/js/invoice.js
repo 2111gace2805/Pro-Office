@@ -289,7 +289,8 @@ var gran_contribuyente = 'no';
 
         let isTipodocValid = ['01', '03', '04', '05', '06', '14'].includes(selectedTipodoc);
 
-        taxSelected($(line).find('select.input-tax'), !isTipodocValid);
+        // taxSelected($(line).find('select.input-tax'), !isTipodocValid);
+        taxSelected($(line).find('select.input-tax'), selectedTipodoc=='01'?true:false);
 
     });
 
@@ -583,7 +584,7 @@ function update_summary(changedByUser=false) {
 
     // RETENCION IVA
     if (gran_contribuyente == 'no' && selectedContact != null && selectedContact.gran_contribuyente == 'si') {
-        if (($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06') && product_total_sin_iva > techo_retencion_iva) {
+        if (($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06') && product_total_sin_iva >= techo_retencion_iva) {
             $("#iva-retenido").html((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
             $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
         }else{
@@ -647,7 +648,7 @@ function update_summary(changedByUser=false) {
             if( cambio_precio == 1 ){
                 product_total_sin_iva = product_total_sin_iva / 1.13;
 
-                if( parseFloat( product_total_sin_iva ) > 100 ){
+                if( parseFloat( product_total_sin_iva ) >= 100 ){
                     $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
                     $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
                 }
@@ -663,7 +664,7 @@ function update_summary(changedByUser=false) {
     
     // PERCEPCION IVA
     if (gran_contribuyente == 'si' && selectedContact != null && selectedContact.gran_contribuyente == 'no') {
-        if (($('#tipodoc_id').val() == '03' || $('#tipodoc_id').val()== '04') && product_total_sin_iva > techo_percepcion_iva) {
+        if (($('#tipodoc_id').val() == '03' || $('#tipodoc_id').val()== '04') && product_total_sin_iva >= techo_percepcion_iva) {
             $("#iva-percibido").html(_currency + ' ' + (product_total_sin_iva*(percepcion_iva/100)).toFixed(2));
             $("#iva_percibido").val((product_total_sin_iva*(percepcion_iva/100)).toFixed(2));
         }
