@@ -271,11 +271,18 @@ var gran_contribuyente = 'no';
         let precio  = $(this).val();
         precio = ( precio == "" ) ? 0 : precio;
         let line    = $(this).parent().parent();
-        let total   = ( selectedTipodoc == '03' ) ? precio * 1.13 : precio;
-
-        $(line).find('.input-product-price').val( precio );
+        let total = 0;
+        if (selectedTipodoc == '01') { // 01 = FE
+            total = precio;
+            $(line).find('.input-product-price').val( precio/1.13 );
+        }else{
+            total = precio * 1.13;
+            $(line).find('.input-product-price').val( precio );
+        }
 
         $(line).find('.input-sub-total').val( total );
+
+        // conitnuar aqui en revisar el calcilo de tax en factura consumido rfinal
 
 
         $(line).find('.cambio_precio').val( 1 );
@@ -468,8 +475,16 @@ function update_summary(changedByUser=false) {
     product_total = 0;
     // esta variable sirve para subtotal sin impuestos para calcular retencion y percepcion de iva
     let product_total_sin_iva = 0;
+    let subtotal = 0; // totalGravado menos descuentos
     let cambio_precio = 0;
     let retencion_renta = 0;
+    let discount_g = 0;
+    let discount_g_sin_iva = 0;
+    let general_discount = 0;
+    let generalDiscountValue = parseFloat($('#general_discount_value').val());
+    general_discount = isNaN(generalDiscountValue)?0:generalDiscountValue;
+    let generalDiscountType = $('[name="general_discount_type"]:checked').val()==undefined?'Fixed':$('[name="general_discount_type"]:checked').val();
+    
 
     $("#order-table > tbody > tr").each(function (index, obj) {
         total_quantity = total_quantity + parseFloat($(this).find(".input-quantity").val() || 0);
@@ -483,14 +498,76 @@ function update_summary(changedByUser=false) {
         cambio_precio = $(this).find(".cambio_precio").val();
     });
 
-    console.log({total_quantity});
-
-    let sumatorias_impuestos = product_total;
-
-    if( $('#tipodoc_id').val() == '03' || $('#tipodoc_id').val() == '04' || $('#tipodoc_id').val() == '05' || $('#tipodoc_id').val() == '06' ){
-        let total_tax_fix = total_tax.toFixed(2)
-        sumatorias_impuestos = parseFloat( sumatorias_impuestos )  + parseFloat( total_tax_fix );
+    if( $('#tipodoc_id').val()== '01' ){
+        if( cambio_precio == 1 ){
+            product_total_sin_iva = product_total_sin_iva / 1.13;
+        }
     }
+
+    // console.log({total_quantity});
+
+
+
+    // INICIO DESCUENTOS
+    let tipo_dte    = $('#tipodoc_id').val();
+    let dtes_iva    = ['03', '04', '05', '06'];
+    let dtes_no_iva = ['01', '11', '14'];
+    
+    if( general_discount > 0 ){
+
+        // if( dtes_no_iva.includes(tipo_dte) ){
+        //     discount_g = general_discount *  product_total / 100;
+        // }
+        // else if( dtes_iva.includes(tipo_dte) ){
+        //     product_w_iva       = product_total + total_tax;
+        //     discount_g          = general_discount *  product_w_iva / 100;
+        //     discount_g_sin_iva  = general_discount *  product_total / 100;
+        // }
+
+        // discount_g = general_discount *  product_total / 100;
+        // if(tipo_dte == '01'){
+        //     discount_g = general_discount *  product_total / 100;
+        // }else{
+            discount_g = generalDiscountType=='Percentage'? (general_discount *  product_total_sin_iva / 100):general_discount;
+        //}
+        
+    }
+    else{
+        discount_g = 0;
+    }
+
+    subtotal = product_total - discount_g;
+    product_total_sin_iva = product_total_sin_iva - discount_g;
+    
+    $("#subtotal_2").html(subtotal.toFixed(2));
+    $("#_subtotal_2").val(subtotal.toFixed(2));
+    if(tipo_dte != '01' && total_tax>0){
+        total_tax = subtotal*0.13;
+    }
+
+    if( dtes_no_iva.includes(tipo_dte) ){
+        $("#th_discount_general").html(discount_g.toFixed(2));
+    }
+    else if( dtes_iva.includes(tipo_dte) ){
+        $("#th_discount_general").html(discount_g.toFixed(2));
+    }
+    $("#discount_general").val(discount_g.toFixed(2));
+    // FIN DESCUENTOS
+
+
+
+
+
+
+    let sumatorias_impuestos = subtotal;
+
+    // if( $('#tipodoc_id').val() == '03' || $('#tipodoc_id').val() == '04' || $('#tipodoc_id').val() == '05' || $('#tipodoc_id').val() == '06' ){
+    if( $('#tipodoc_id').val() != '01'){
+        // let total_tax_fix = total_tax.toFixed(2)
+        // sumatorias_impuestos = parseFloat( sumatorias_impuestos )  + parseFloat( total_tax_fix );
+        sumatorias_impuestos = parseFloat( sumatorias_impuestos )  + parseFloat( total_tax );
+    }
+
 
     $("#total-qty").html(total_quantity);
     $("#total-discount").html(_currency + ' ' + total_discount.toFixed(2));
@@ -505,38 +582,41 @@ function update_summary(changedByUser=false) {
     // de agregar descuento global exento o descuento global no sujeto, restar esos descuentos al product_total_sin_iva
 
     // RETENCION IVA
-    if( gran_contribuyente == 'no' && selectedContact != null && selectedContact.gran_contribuyente == 'si' || $("#chkIvaRetenido").is(':checked') ){
-        if( ($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '04') && product_total_sin_iva > techo_retencion_iva ){
-            $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    if (gran_contribuyente == 'no' && selectedContact != null && selectedContact.gran_contribuyente == 'si') {
+        if (($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06') && product_total_sin_iva > techo_retencion_iva) {
+            $("#iva-retenido").html((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
             $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+        }else{
+            $("#iva-retenido").html(0);
+            $("#iva_retenido").val(0);
         }
     }
 
-    if( $("#chkIvaRetenido").is(':checked') ){
-        if( $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
-            $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-            $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-        }
+    // if( $("#chkIvaRetenido").is(':checked') ){
+    //     if( $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
+    //         $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //         $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //     }
 
-        if( $('#tipodoc_id').val()== '01' ){
-            if( cambio_precio == 1 ){
-                product_total_sin_iva = product_total_sin_iva / 1.13;
+    //     if( $('#tipodoc_id').val()== '01' ){
+    //         if( cambio_precio == 1 ){
+    //             product_total_sin_iva = product_total_sin_iva / 1.13;
                 
-                $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-                $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-            }
-            else{
-                $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-                $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-            }
-        }
-    }
-    else{
-        if( $('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '04' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
-            $("#iva-retenido").html(_currency + ' ' + '0.00');
-            $("#iva_retenido").val(0.00);
-        }
-    }
+    //             $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //             $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //         }
+    //         else{
+    //             $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //             $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //         }
+    //     }
+    // }
+    // else{
+    //     if( $('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '04' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
+    //         $("#iva-retenido").html(_currency + ' ' + '0.00');
+    //         $("#iva_retenido").val(0.00);
+    //     }
+    // }
 
     //RETENCION DE RENTA
     if( $('#tipodoc_id').val() != "04" || $('#tipodoc_id').val() != "11"  ){
@@ -605,10 +685,26 @@ function update_summary(changedByUser=false) {
         let valueGrandTotal = product_total + parseFloat($("#tax_total").val()) - parseFloat($('#iva_retenido').val()) - parseFloat($('#retencion_renta').val()) + parseFloat($('#iva_percibido').val())+parseFloat($('#isr_retenido').val());
         $("#grand_total").val(valueGrandTotal.toFixed(2));
         $("#grand-total").html(_currency + ' ' + valueGrandTotal.toFixed(2));
+
+        // inicio descuentos
+        let price_general_discount = valueGrandTotal - discount_g
+        $("#grand-total").html(price_general_discount.toFixed(2));
+        $("#grand_total").val(price_general_discount.toFixed(2));
+        // let total_iva = (product_total + parseFloat($("#tax_total").val())) / 1.13;
+        // total_tax = total_iva * 0.13;
+        // $("#total-tax").html(total_tax.toFixed(2));
+        // $("#tax_total").val(total_tax.toFixed(2));
+        // fin descuentos
     }else{
         let valueGrandTotal = product_total - parseFloat($('#iva_retenido').val()) - parseFloat($('#retencion_renta').val()) + parseFloat($('#isr_retenido').val());
         $("#grand_total").val(valueGrandTotal.toFixed(2));
         $("#grand-total").html(_currency + ' ' + valueGrandTotal.toFixed(2));
+
+        // inicio descuentos
+        let price_general_discount = valueGrandTotal - discount_g;
+        $("#grand-total").html(price_general_discount.toFixed(2));
+        $("#grand_total").val(price_general_discount.toFixed(2));
+        // fin descuentos
     }
     
 }
@@ -1318,3 +1414,32 @@ function saveReturn( event ){
     }
 
 }
+
+$('#general_discount_id').on('change', function(e){
+    let general_discount_id = e.target.value;
+
+    let type = $('#general_discount_id option:selected').data('type');
+    let value = $('#general_discount_id option:selected').data('value');
+    $(`#${type}Option`).prop('checked', true);
+
+    if (general_discount_id === 'other') {
+        $('#dvGeneralDiscountOther').show('slow');
+    }else{
+        $('#dvGeneralDiscountOther').hide('slow');
+    }
+
+    if (general_discount_id == '' || general_discount_id === 'other') {
+        $('#general_discount_value').val(0);
+    }else{
+        $('#general_discount_value').val(value);
+    }
+    $('#general_discount_value').trigger('change');
+});
+$('#general_discount_value').on('change', function(e){
+    update_summary();
+});
+$('[name="general_discount_type"]').on('change', function(e){
+    // var selectedValue = $(this).val();
+    // console.log('Opción seleccionada: ' + selectedValue);
+    update_summary();
+});

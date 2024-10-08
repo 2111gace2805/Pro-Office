@@ -42,6 +42,7 @@ use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use App\Exceptions\UsuarioSinDUIException;
+use App\GeneralDiscount;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class InvoiceController extends Controller
@@ -250,11 +251,13 @@ class InvoiceController extends Controller
             $nota_pedido->datos = $nota;
         }
 
-        if (!$request->ajax()) {
-            return view('backend.accounting.invoice.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido']));
-        } else {
-            return view('backend.accounting.invoice.modal.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido']));
-        }
+        $generalDiscounts = GeneralDiscount::where('status', 'Active')->get();
+
+        // if (!$request->ajax()) {
+            return view('backend.accounting.invoice.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido', 'generalDiscounts']));
+        // } else {
+        //     return view('backend.accounting.invoice.modal.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido']));
+        // }
     }
 
     /**
@@ -306,6 +309,11 @@ class InvoiceController extends Controller
             //     $invoice->grand_total    = $request->product_total + $request->tax_total;
             // }else{
             $invoice->subtotal    = $request->product_total;
+            $invoice->subtotal_2    = $request->_subtotal_2;
+            $invoice->general_discount    = $request->discount_general??0; // valor en dolares del descuento de la venta
+            $invoice->general_discount_type    = $request->general_discount_type;
+            $invoice->general_discount_id    = $request->general_discount_id;
+            $invoice->general_discount_value    = $request->general_discount_value??0; // valor en porcentaje o dolares (caso fijo)
             $invoice->iva_retenido    = $request->iva_retenido;
             $invoice->iva_percibido    = $request->iva_percibido;
             $invoice->isr_retenido    = $request->isr_retenido;
@@ -2131,6 +2139,29 @@ class InvoiceController extends Controller
                 }
             }
         }
+
+        $descuentos = $invoice->general_discount;
+        $descuentos = $descuentos;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal - $invoice->iva_retenido;
+
+        if( $descuentos > 0 ){
+
+            // $calculo_iva            = $total_subtotal * 1.13;
+            // $total_totalIva_items   = $calculo_iva - $total_subtotal;
+            $totalIva               = floatval($invoice->tax_total);
+            $totalTributos          = floatval($invoice->tax_total);
+
+            foreach( $resultadosFormateados as &$value ){
+                if( $value['codigo'] == 20 ){
+                    $value['valor'] = floatval(number_format($totalIva, 2, '.', ''));
+                }
+            }
+            unset($value);
+        }
+
         $dteJson = [
             "identificacion" => [
                 "version" => intval($versionJson),
@@ -2195,9 +2226,10 @@ class InvoiceController extends Controller
                 "descuNoSuj"            => floatval(number_format(0.0, 2, '.', '')), // este campo es diferente al descuento por item no sujeto, aca debe ir un valor que en el 
                 // formulario de creacion de invoice diga "Descuento global a ventas no sujetas"
                 "descuExenta"           => floatval(number_format(0.0, 2, '.', '')),
-                "descuGravada"          => floatval(number_format(0.0, 2, '.', '')),
+                "descuGravada"          => floatval(number_format($descuentos, 2, '.', '')),
                 "porcentajeDescuento"   => floatval(number_format(0.0, 2, '.', '')),
-                "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
+                // "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
+                "totalDescu"            => floatval(number_format($descuentos, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
                 "tributos"              => $resultadosFormateados,
 
 
@@ -2208,14 +2240,17 @@ class InvoiceController extends Controller
                 //     "valor"=> 0.59
                 // }
                 //],
-                "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum - ($descGlobalExento + $descGlobalNoSujeto + $descGlobalGravado), 2, '.', '')), // menos $descGlobalNoSujeto, etc,
+                // "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum - ($descGlobalExento + $descGlobalNoSujeto + $descGlobalGravado), 2, '.', '')), // menos $descGlobalNoSujeto, etc,
+                "subTotal"              => floatval(number_format($total_subtotal, 2, '.', '')), // menos $descGlobalNoSujeto, etc,
                 "ivaPerci1"             => floatval(number_format($invoice->iva_percibido, 2, '.', '')),
                 "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
                 "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
-                "montoTotalOperacion"   => floatval(number_format($subTotal + $totalTributos, 2, '.', '')),
+                // "montoTotalOperacion"   => floatval(number_format($subTotal + $totalTributos, 2, '.', '')),
+                "montoTotalOperacion"   => floatval(number_format($total_subtotal + $totalTributos, 2, '.', '')),
                 "totalNoGravado"        => floatval(number_format(0.0, 2, '.', '')),
-                "totalPagar"            => floatval(number_format($subTotal + $totalTributos - $invoice->iva_retenido - $invoice->retencion_renta, 2, '.', '')),
-                "totalLetras"           => _lang('It is') . ' ' . dollarToText($invoice->grand_total) . ' USD',
+                // "totalPagar"            => floatval(number_format($subTotal + $totalTributos - $invoice->iva_retenido - $invoice->retencion_renta, 2, '.', '')),
+                "totalPagar"            => floatval(number_format($total_totalPagar + $totalTributos - $invoice->retencion_renta, 2, '.', '')),
+                "totalLetras"           => _lang('It is') . ' ' . dollarToText(floatval(number_format($total_totalPagar + $totalTributos - $invoice->retencion_renta, 2, '.', ''))) . ' USD',
                 "saldoFavor"            => floatval(number_format(0.0, 2, '.', '')),
                 "condicionOperacion"    => intval($invoice->conop_id),
                 // "pagos"=> $invoice->conop_id == 1 || $invoice->conop_id == 3?['codigo'=>intval($invoice->forp_id), 'montoPago'=>intval($invoice->grand_total)] : null,
@@ -2403,6 +2438,19 @@ class InvoiceController extends Controller
             ];
         }
 
+        $descuentos = $invoice->general_discount;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal - $invoice->iva_retenido;
+
+        if( $descuentos > 0 ){
+         
+            $calculo_iva            = $total_subtotal / 1.13;
+            $total_totalIva_items   = $total_subtotal - $calculo_iva;
+            $totalIva               = floatval($total_totalIva_items);
+        }
+
         $dteJson = [
             "identificacion" => [
                 "version" => intval($versionJson),
@@ -2462,9 +2510,10 @@ class InvoiceController extends Controller
                 "descuNoSuj"            => 0.0, // este campo es diferente al descuento por item no sujeto, aca debe ir un valor que en el 
                 // formulario de creacion de invoice diga "Descuento global a ventas no sujetas"
                 "descuExenta"           => 0.0,
-                "descuGravada"          => 0.0,
+                "descuGravada"          => floatval(number_format($descuentos, 2, '.', '')),
                 "porcentajeDescuento"   => 0.0,
-                "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
+                // "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
+                "totalDescu"            => floatval(number_format($descuentos, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
                 // "tributos"=> $tributos,
                 "tributos"              => null,
                 // [ // colocar aca los mismo tributos de los items
@@ -2474,15 +2523,16 @@ class InvoiceController extends Controller
                 //     "valor"=> 0.59
                 // }
                 //],
-                "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum - ($descGlobalExento + $descGlobalNoSujeto + $descGlobalGravado), 2, '.', '')), // menos $descGlobalNoSujeto, etc,
+                "subTotal"              => floatval(number_format($total_subtotal, 2, '.', '')), // menos $descGlobalNoSujeto, etc,
                 // "ivaPerci1"=> $invoice->iva_percibido,
                 "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
                 "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
                 // "montoTotalOperacion" => floatval(number_format($invoice->grand_total, 2, '.', '')),
-                "montoTotalOperacion"   => floatval(number_format($subTotal, 2, '.', '')),
+                "montoTotalOperacion"   => floatval(number_format($total_subtotal, 2, '.', '')),
                 "totalNoGravado"        => floatval(number_format(0.0, 2, '.', '')),
-                "totalPagar"            => floatval(number_format($subTotal - floatval($invoice->iva_retenido) - floatval($invoice->retencion_renta), 2, '.', '')),
-                "totalLetras"           => _lang('It is') . ' ' . dollarToText($invoice->grand_total) . ' USD',
+                // "totalPagar"            => floatval(number_format($subTotal - floatval($invoice->iva_retenido) - floatval($invoice->retencion_renta), 2, '.', '')),
+                "totalPagar"            => floatval(number_format($total_totalPagar-floatval($invoice->retencion_renta), 2, '.', '')),
+                "totalLetras"           => _lang('It is') . ' ' . dollarToText(floatval(number_format($total_totalPagar-floatval($invoice->retencion_renta), 2, '.', ''))) . ' USD',
                 "saldoFavor"            => 0.0,
                 "condicionOperacion"    =>  intval($invoice->conop_id),
                 // "pagos"=> $invoice->conop_id == 1 || $invoice->conop_id == 3?['codigo'=>$invoice->forp_id, 'montoPago'=>$invoice->grand_total] : null,
@@ -2674,17 +2724,42 @@ class InvoiceController extends Controller
 
         $montoTotal = $invoice->grand_total;
 
+        $descuentos = $invoice->general_discount;
+        $descuentos = $descuentos / 1.13;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal - $invoice->iva_retenido;
+
+        if( $descuentos > 0 ){
+
+            $calculo_iva            = $total_subtotal * 1.13;
+            $total_totalIva_items   = $calculo_iva - $total_subtotal;
+            $totalIva               = floatval($total_totalIva_items);
+            $totalTributos          = floatval($totalIva);
+
+            foreach( $arrTributos as &$value ){
+                if( $value['codigo'] == 20 ){
+                    $value['valor'] = floatval(number_format($totalIva, 2, '.', ''));
+                }
+            }
+            unset($value);
+        }
+
         $resumen = [
             "totalNoSuj"            => floatval(number_format($noSujetoSum, 2, '.', '')),
             "totalExenta"           => floatval(number_format($exentoSum, 2, '.', '')),
             "totalGravada"          => floatval(number_format($gravadoSum, 2, '.', '')),
-            "subTotalVentas"        => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
+            // "subTotalVentas"        => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
+            "subTotalVentas"        => floatval(number_format($noSujetoSum + $exentoSum + $total_gravadas, 2, '.', '')),
             "descuNoSuj"            => 0.0,
             "descuExenta"           => 0.0,
-            "descuGravada"          => 0.0,
-            "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+            "descuGravada"          => floatval(number_format($descuentos, 2, '.', '')),
+            // "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+            "totalDescu"            => floatval(number_format($descuentos, 2, '.', '')),
             "tributos"              => $arrTributos,
-            "subTotal"              => floatval(number_format($subTotal, 2, '.', '')),
+            // "subTotal"              => floatval(number_format($subTotal, 2, '.', '')),
+            "subTotal"              => floatval(number_format($total_subtotal, 2, '.', '')),
             "ivaPerci1"             => 0,
             "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
             "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
@@ -2827,6 +2902,12 @@ class InvoiceController extends Controller
             "tipoMoneda"        => "USD"
         ];
 
+        $descuentos = $invoice->general_discount;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal;
+
         $dteJson = [
             "identificacion" => $identificacion,
             "emisor" => [
@@ -2871,12 +2952,15 @@ class InvoiceController extends Controller
             "cuerpoDocumento"   => $details,
             "resumen" => [
                 "totalGravada"              => floatval(number_format($gravadoSum, 2, '.', '')),
-                "descuento"                 => floatval(number_format($descuento, 2, '.', '')),
+                // "descuento"                 => floatval(number_format($descuento, 2, '.', '')),
+                "descuento"                 => floatval(number_format($descuentos, 2, '.', '')),
                 "porcentajeDescuento"       => 0.0,
-                "totalDescu"                => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+                // "totalDescu"                => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+                "totalDescu"                => floatval(number_format($descuentos, 2, '.', '')),
                 "seguro"                    => 0,
                 "flete"                     => 0,
-                "montoTotalOperacion"       => floatval(number_format($invoice->grand_total, 2, '.', '')),
+                // "montoTotalOperacion"       => floatval(number_format($invoice->grand_total, 2, '.', '')),
+                "montoTotalOperacion"       => floatval(number_format($total_totalPagar, 2, '.', '')),
                 "totalNoGravado"            => 0,
                 "totalPagar"                => floatval(number_format($invoice->grand_total, 2, '.', '')),
                 "totalLetras"               => _lang('It is') . ' ' . dollarToText($invoice->grand_total) . ' USD',
@@ -3060,6 +3144,28 @@ class InvoiceController extends Controller
 
         $montoTotal = $invoice->grand_total;
 
+        $descuentos = $invoice->general_discount;
+        $descuentos = $descuentos / 1.13;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal - $invoice->iva_retenido;
+
+        if( $descuentos > 0 ){
+
+            $calculo_iva            = $total_subtotal * 1.13;
+            $total_totalIva_items   = $calculo_iva - $total_subtotal;
+            $totalIva               = floatval($total_totalIva_items);
+            $totalTributos          = floatval($totalIva);
+
+            foreach( $arrTributos as &$value ){
+                if( $value['codigo'] == 20 ){
+                    $value['valor'] = floatval(number_format($totalIva, 2, '.', ''));
+                }
+            }
+            unset($value);
+        }
+
         $resumen = [
             "totalNoSuj"            => floatval(number_format($noSujetoSum, 2, '.', '')),
             "totalExenta"           => floatval(number_format($exentoSum, 2, '.', '')),
@@ -3067,11 +3173,13 @@ class InvoiceController extends Controller
             "subTotalVentas"        => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
             "descuNoSuj"            => 0.0,
             "descuExenta"           => 0.0,
-            "descuGravada"          => 0.0,
+            "descuGravada"          => floatval(number_format($descuentos, 2, '.', '')),
             "porcentajeDescuento"   => 0.0,
-            "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+            // "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+            "totalDescu"            => floatval(number_format($descuentos, 2, '.', '')),
             "tributos"              => $arrTributos,
-            "subTotal"              => floatval(number_format($subTotal, 2, '.', '')),
+            // "subTotal"              => floatval(number_format($subTotal, 2, '.', '')),
+            "subTotal"              => floatval(number_format($total_subtotal, 2, '.', '')),
             "montoTotalOperacion"   => floatval(number_format($montoTotal, 2, '.', '')),
             "totalLetras"           => _lang('It is') . ' ' . dollarToText($montoTotal) . ' USD',
         ];
@@ -3253,16 +3361,24 @@ class InvoiceController extends Controller
 
         $montoTotal = $invoice->grand_total;
 
+        $descuentos = $invoice->general_discount;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal;
+
         $resumen = [
             "totalCompra"           => floatval(number_format($montoTotal + $invoice->retencion_renta, 2, '.', '')),
-            "descu"                 => 0.0,
-            "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
-            "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
+            // "descu"                 => 0.0,
+            "descu"                 => floatval(number_format($descuentos, 2, '.', '')),
+            // "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+            "totalDescu"            => floatval(number_format($descuentos, 2, '.', '')),
+            // "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
+            "subTotal"              => floatval(number_format($total_subtotal, 2, '.', '')),
             "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
             "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
             "totalPagar"            => floatval(number_format($montoTotal, 2, '.', '')),
             "totalLetras"           => _lang('It is') . ' ' . dollarToText($montoTotal) . ' USD',
-            "condicionOperacion"    =>  intval($invoice->conop_id),
             "pagos" => [
                 [
                     "codigo"        => $invoice->forp_id,
