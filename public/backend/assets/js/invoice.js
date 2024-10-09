@@ -501,7 +501,7 @@ function update_summary(changedByUser=false) {
 
     if( $('#tipodoc_id').val()== '01' ){
         if( cambio_precio == 1 ){
-            product_total_sin_iva = product_total_sin_iva / 1.13;
+            //product_total_sin_iva = product_total_sin_iva / 1.13;
         }
     }
 
@@ -646,7 +646,7 @@ function update_summary(changedByUser=false) {
         if( $('#tipodoc_id').val()== '01' ){
 
             if( cambio_precio == 1 ){
-                product_total_sin_iva = product_total_sin_iva / 1.13;
+                //product_total_sin_iva = product_total_sin_iva / 1.13;
 
                 if( parseFloat( product_total_sin_iva ) >= 100 ){
                     $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
@@ -654,7 +654,7 @@ function update_summary(changedByUser=false) {
                 }
             }
             else{
-                if( parseFloat( product_total_sin_iva ) > 100 ){
+                if( parseFloat( product_total_sin_iva ) >= 100 ){
                     $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
                     $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
                 }
