@@ -2214,10 +2214,10 @@ class InvoiceController extends Controller
                 "codActividad" => $invoice->client->actie_id,
                 "descActividad" => $invoice->client->descActividad,
                 "nombreComercial" => $invoice->client->tradename,
-                "direccion" => [
+                "direccion" => !isset($invoice->client->munidepa_id) ? null : [ 
                     "departamento" => $invoice->client->depa_id ?? '06',
-                    "municipio" => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '23',
-                    "complemento" => $invoice->complemento ?? ''
+                    "municipio" => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '14',
+                    "complemento" => $invoice->complemento
                 ],
                 // "telefono"=> $invoice->telefono,
                 "telefono" => str_replace(['-', '+'], '', $invoice->telefono),
@@ -2439,9 +2439,9 @@ class InvoiceController extends Controller
 
         $direccion = null;
         if( $invoice->client->depa_id != '' ){
-            $direccion = [
+            $direccion = !isset($invoice->client->munidepa_id) ? null : [
                 "departamento"  => $invoice->client->depa_id ?? '06',
-                "municipio"     => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '23',
+                "municipio"     => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '14',
                 "complemento"   => $invoice->complemento
             ];
         }
@@ -2656,7 +2656,7 @@ class InvoiceController extends Controller
             "codActividad"      => $invoice->client->actie_id,
             "descActividad"     => $invoice->client->descActividad,
             "nombreComercial"   => $invoice->client->tradename,
-            "direccion" => [
+            "direccion" => !isset($invoice->client->munidepa_id) ? null : [
                 "departamento"  => $invoice->client->depa_id ?? '06',
                 "municipio"     => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '23',
                 "complemento"   => $invoice->client->address ?? ''
@@ -2949,7 +2949,7 @@ class InvoiceController extends Controller
                 "nombreComercial"   => $invoice->client->tradename,
                 "codPais"           => $invoice->client->pais_id,
                 "nombrePais"        => $invoice->client->pais->pais_nombre,
-                "complemento"       => $invoice->client->address.', '.$invoice->client->municipio->muni_nombre.', '.$invoice->client->departamento->depa_nombre,
+                "complemento"       => $invoice->client->address.', '.($invoice->client->municipio->muni_nombre ?? '').', '.($invoice->client->departamento->depa_nombre ?? ''),
                 "tipoPersona"       => intval($invoice->client->tpers_id),
                 "descActividad"     => $invoice->client->descActividad,
                 "telefono"          => $invoice->telefono,
@@ -3087,7 +3087,7 @@ class InvoiceController extends Controller
             "codActividad"      => $invoice->client->actie_id,
             "descActividad"     => $invoice->client->descActividad,
             "nombreComercial"   => $invoice->client->tradename,
-            "direccion" => [
+            "direccion" => !isset($invoice->client->munidepa_id) ? null : [
                 "departamento"  => $invoice->client->depa_id ?? '06',
                 "municipio"     => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '23',
                 "complemento"   => $invoice->client->address ?? ''
@@ -3317,7 +3317,7 @@ class InvoiceController extends Controller
             "nombre"            => $invoice->name_invoice,
             "codActividad"      => $invoice->client->actie_id,
             "descActividad"     => $invoice->client->descActividad,
-            "direccion" => [
+            "direccion" => !isset($invoice->client->munidepa_id) ? null : [
                 "departamento"  => $invoice->client->depa_id ?? '06',
                 "municipio"     => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '23',
                 "complemento"   => $invoice->client->address ?? ''
