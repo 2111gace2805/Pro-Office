@@ -2215,9 +2215,9 @@ class InvoiceController extends Controller
                 "descActividad" => $invoice->client->descActividad,
                 "nombreComercial" => $invoice->client->tradename,
                 "direccion" => [
-                    "departamento" => $invoice->client->depa_id,
-                    "municipio" => Municipio::find($invoice->client->munidepa_id)->muni_id,
-                    "complemento" => $invoice->complemento
+                    "departamento" => $invoice->client->depa_id ?? '06',
+                    "municipio" => Municipio::find($invoice->client->munidepa_id)->muni_id ?? '23',
+                    "complemento" => $invoice->complemento ?? ''
                 ],
                 // "telefono"=> $invoice->telefono,
                 "telefono" => str_replace(['-', '+'], '', $invoice->telefono),
@@ -2657,9 +2657,9 @@ class InvoiceController extends Controller
             "descActividad"     => $invoice->client->descActividad,
             "nombreComercial"   => $invoice->client->tradename,
             "direccion" => [
-                "departamento"  => $invoice->client->depa_id,
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id,
-                "complemento"   => $invoice->client->address
+                "departamento"  => $invoice->client->depa_id ?? '06',
+                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id ?? '23',
+                "complemento"   => $invoice->client->address ?? ''
             ],
             "telefono"  => $invoice->client->contact_phone,
             "correo"    => $invoice->client->contact_email
@@ -3088,9 +3088,9 @@ class InvoiceController extends Controller
             "descActividad"     => $invoice->client->descActividad,
             "nombreComercial"   => $invoice->client->tradename,
             "direccion" => [
-                "departamento"  => $invoice->client->depa_id,
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id,
-                "complemento"   => $invoice->client->address
+                "departamento"  => $invoice->client->depa_id ?? '06',
+                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id ?? '23',
+                "complemento"   => $invoice->client->address ?? ''
             ],
             "telefono"          => $invoice->telefono,
             "correo"            => $invoice->correo,
@@ -3318,9 +3318,9 @@ class InvoiceController extends Controller
             "codActividad"      => $invoice->client->actie_id,
             "descActividad"     => $invoice->client->descActividad,
             "direccion" => [
-                "departamento"  => $invoice->client->depa_id,
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id,
-                "complemento"   => $invoice->client->address
+                "departamento"  => $invoice->client->depa_id ?? '06',
+                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id ?? '23',
+                "complemento"   => $invoice->client->address ?? ''
             ],
             "telefono"          => $invoice->telefono,
             "correo"            => $invoice->correo,
