@@ -669,7 +669,7 @@ class InvoiceController extends Controller
             
                                 $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
 
-                                log::info('Se hace devolución de item con ID: ' . $product->product_id);
+                                //log::info('Se hace devolución de item con ID: ' . $product->product_id);
     
                                 update_stock($product->product_id, $total_unidades, '+');
                             }
@@ -677,7 +677,7 @@ class InvoiceController extends Controller
                         }
                         else{
                             $invoiceItem = InvoiceItem::find($p_item->id);
-                            log::info('Se hace devolución de item con ID: ' . $p_item->id);
+                            //log::info('Se hace devolución de item con ID: ' . $p_item->id);
                             update_stock($p_item->item_id, $invoiceItem->quantity, '+');
                         }
                     }
@@ -732,7 +732,7 @@ class InvoiceController extends Controller
             
                                 $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
 
-                                log::info('Se hace devolución de item con ID: ' . $product->product_id);
+                                //log::info('Se hace devolución de item con ID: ' . $product->product_id);
     
                                 update_stock($product->product_id, $total_unidades, '+');
                             }
@@ -740,7 +740,7 @@ class InvoiceController extends Controller
                         }
                         else{
                             $invoiceItem = InvoiceItem::find($p_item->id);
-                            log::info('Se hace devolución de item con ID: ' . $p_item->id);
+                            //log::info('Se hace devolución de item con ID: ' . $p_item->id);
                             update_stock($p_item->item_id, $invoiceItem->quantity, '+');
                         }
                     }
@@ -780,7 +780,7 @@ class InvoiceController extends Controller
     
                 }
     
-                log::info("Lo que envio de store hacia sendInviceToHacienda" . json_encode($response));
+                //log::info("Lo que envio de store hacia sendInviceToHacienda" . json_encode($response));
             }
     
             if (!$request->ajax()) {
@@ -793,7 +793,7 @@ class InvoiceController extends Controller
 
             DB::rollBack();
 
-            Log::error('Error al crear Factura: ' . $th->getMessage());
+            Log::error('Error al crear Factura: ' . $th);
 
             // Imprimir el mensaje de error específico de la base de datos (si hay)
             if ($th instanceof \Illuminate\Database\QueryException && $th->errorInfo) {
@@ -2216,7 +2216,7 @@ class InvoiceController extends Controller
                 "nombreComercial" => $invoice->client->tradename,
                 "direccion" => [
                     "departamento" => $invoice->client->depa_id ?? '06',
-                    "municipio" => Municipio::find($invoice->client->munidepa_id)->muni_id ?? '23',
+                    "municipio" => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '23',
                     "complemento" => $invoice->complemento ?? ''
                 ],
                 // "telefono"=> $invoice->telefono,
@@ -2440,8 +2440,8 @@ class InvoiceController extends Controller
         $direccion = null;
         if( $invoice->client->depa_id != '' ){
             $direccion = [
-                "departamento"  => $invoice->client->depa_id,
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id,
+                "departamento"  => $invoice->client->depa_id ?? '06',
+                "municipio"     => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '23',
                 "complemento"   => $invoice->complemento
             ];
         }
@@ -2658,7 +2658,7 @@ class InvoiceController extends Controller
             "nombreComercial"   => $invoice->client->tradename,
             "direccion" => [
                 "departamento"  => $invoice->client->depa_id ?? '06',
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id ?? '23',
+                "municipio"     => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '23',
                 "complemento"   => $invoice->client->address ?? ''
             ],
             "telefono"  => $invoice->client->contact_phone,
@@ -3089,7 +3089,7 @@ class InvoiceController extends Controller
             "nombreComercial"   => $invoice->client->tradename,
             "direccion" => [
                 "departamento"  => $invoice->client->depa_id ?? '06',
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id ?? '23',
+                "municipio"     => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '23',
                 "complemento"   => $invoice->client->address ?? ''
             ],
             "telefono"          => $invoice->telefono,
@@ -3319,7 +3319,7 @@ class InvoiceController extends Controller
             "descActividad"     => $invoice->client->descActividad,
             "direccion" => [
                 "departamento"  => $invoice->client->depa_id ?? '06',
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id ?? '23',
+                "municipio"     => Municipio::find($invoice->client->munidepa_id ?? 0)->muni_id ?? '23',
                 "complemento"   => $invoice->client->address ?? ''
             ],
             "telefono"          => $invoice->telefono,
