@@ -643,59 +643,61 @@ class InvoiceController extends Controller
                 $response_mh = json_decode(json_encode($response));
     
                 if (!property_exists($response_mh, 'estado')) {
+                    DB::rollBack();
+                    return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
     
-                    log::info('Error en respuesta de pasarela, verificar!');
+                    // log::info('Error en respuesta de pasarela, verificar!');
     
-                    $invoice->status            = 'Canceled';
-                    $invoice->note              = 'Motivo de anulación: Error en respuesta de pasarela';
-                    $invoice->numero_control = null;
-                    $invoice->save();
+                    // $invoice->status            = 'Canceled';
+                    // $invoice->note              = 'Motivo de anulación: Error en respuesta de pasarela';
+                    // $invoice->numero_control = null;
+                    // $invoice->save();
     
-                    log::info('Se inicia proceso de devolución de items');
+                    // log::info('Se inicia proceso de devolución de items');
     
-                    $invoiceItems = InvoiceItem::where("invoice_id", $invoice->id)->get();
-                    foreach ($invoiceItems as $p_item) {
+                    // $invoiceItems = InvoiceItem::where("invoice_id", $invoice->id)->get();
+                    // foreach ($invoiceItems as $p_item) {
 
-                        if( $p_item->kit_id > 0 ){
+                    //     if( $p_item->kit_id > 0 ){
     
-                            $kit = Kit::find( $p_item->kit_id );
+                    //         $kit = Kit::find( $p_item->kit_id );
     
-                            $products = json_decode( json_encode($kit->products) );
+                    //         $products = json_decode( json_encode($kit->products) );
         
-                            foreach( $products as $product ){
+                    //         foreach( $products as $product ){
         
-                                $cantidad_item_kit  = $product->quantity;
-                                $cantidad_kits      = $p_item->quantity;
+                    //             $cantidad_item_kit  = $product->quantity;
+                    //             $cantidad_kits      = $p_item->quantity;
             
-                                $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
+                    //             $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
 
-                                //log::info('Se hace devolución de item con ID: ' . $product->product_id);
+                    //             //log::info('Se hace devolución de item con ID: ' . $product->product_id);
     
-                                update_stock($product->product_id, $total_unidades, '+');
-                            }
+                    //             update_stock($product->product_id, $total_unidades, '+');
+                    //         }
     
-                        }
-                        else{
-                            $invoiceItem = InvoiceItem::find($p_item->id);
-                            //log::info('Se hace devolución de item con ID: ' . $p_item->id);
-                            update_stock($p_item->item_id, $invoiceItem->quantity, '+');
-                        }
-                    }
+                    //     }
+                    //     else{
+                    //         $invoiceItem = InvoiceItem::find($p_item->id);
+                    //         //log::info('Se hace devolución de item con ID: ' . $p_item->id);
+                    //         update_stock($p_item->item_id, $invoiceItem->quantity, '+');
+                    //     }
+                    // }
     
-                    log::info('Se finaliza proceso de devolución de items');
+                    // log::info('Se finaliza proceso de devolución de items');
     
-                    if ($invoice->forp_id == '01') { // 01 efectivo
-                        $cash = get_cash();
-                        $cash->cash_value -= $invoice->grand_total;
-                    }
+                    // if ($invoice->forp_id == '01') { // 01 efectivo
+                    //     $cash = get_cash();
+                    //     $cash->cash_value -= $invoice->grand_total;
+                    // }
     
-                    if ($request->ajax()) {
-                        return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
-                    } else {
-                        return redirect()->route('invoices.create')
-                            ->withErrors(['Sorry, Error Occured !', 'Error en pasarela'])
-                            ->withInput();
-                    }
+                    // if ($request->ajax()) {
+                    //     return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
+                    // } else {
+                    //     return redirect()->route('invoices.create')
+                    //         ->withErrors(['Sorry, Error Occured !', 'Error en pasarela'])
+                    //         ->withInput();
+                    // }
                 }
     
                 $invoice->status_mh         = ($response_mh->estado === 'RECHAZADO') ? 0 : 1;
@@ -705,58 +707,60 @@ class InvoiceController extends Controller
                 $invoice->save();
     
                 if ($response_mh->estado === 'RECHAZADO') {
+                    DB::rollBack();
+                    return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
     
-                    log::info('Error al procesar DTE: ' . json_encode($response));
+                    // log::info('Error al procesar DTE: ' . json_encode($response));
     
-                    $invoice->status    = 'Canceled';
-                    $invoice->note      = 'Motivo de anulación: ' . json_encode($response);
-                    $invoice->numero_control = null;
-                    $invoice->codigo_generacion = null;
-                    $invoice->save();
+                    // $invoice->status    = 'Canceled';
+                    // $invoice->note      = 'Motivo de anulación: ' . json_encode($response);
+                    // $invoice->numero_control = null;
+                    // $invoice->codigo_generacion = null;
+                    // $invoice->save();
     
-                    log::info('Se inicia proceso de devolución de items');
+                    // log::info('Se inicia proceso de devolución de items');
     
-                    $invoiceItems = InvoiceItem::where("invoice_id", $invoice->id)->get();
-                    foreach ($invoiceItems as $p_item) {
+                    // $invoiceItems = InvoiceItem::where("invoice_id", $invoice->id)->get();
+                    // foreach ($invoiceItems as $p_item) {
 
-                        if( $p_item->kit_id > 0 ){
+                    //     if( $p_item->kit_id > 0 ){
     
-                            $kit = Kit::find( $p_item->kit_id );
+                    //         $kit = Kit::find( $p_item->kit_id );
     
-                            $products = json_decode( json_encode($kit->products) );
+                    //         $products = json_decode( json_encode($kit->products) );
         
-                            foreach( $products as $product ){
+                    //         foreach( $products as $product ){
         
-                                $cantidad_item_kit  = $product->quantity;
-                                $cantidad_kits      = $p_item->quantity;
+                    //             $cantidad_item_kit  = $product->quantity;
+                    //             $cantidad_kits      = $p_item->quantity;
             
-                                $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
+                    //             $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
 
-                                //log::info('Se hace devolución de item con ID: ' . $product->product_id);
+                    //             //log::info('Se hace devolución de item con ID: ' . $product->product_id);
     
-                                update_stock($product->product_id, $total_unidades, '+');
-                            }
+                    //             update_stock($product->product_id, $total_unidades, '+');
+                    //         }
     
-                        }
-                        else{
-                            $invoiceItem = InvoiceItem::find($p_item->id);
-                            //log::info('Se hace devolución de item con ID: ' . $p_item->id);
-                            update_stock($p_item->item_id, $invoiceItem->quantity, '+');
-                        }
-                    }
+                    //     }
+                    //     else{
+                    //         $invoiceItem = InvoiceItem::find($p_item->id);
+                    //         //log::info('Se hace devolución de item con ID: ' . $p_item->id);
+                    //         update_stock($p_item->item_id, $invoiceItem->quantity, '+');
+                    //     }
+                    // }
     
-                    log::info('Se finaliza proceso de devolución de items');
+                    // log::info('Se finaliza proceso de devolución de items');
     
-                    if ($invoice->forp_id == '01') { // 01 efectivo
-                        $cash = get_cash();
-                        $cash->cash_value -= $invoice->grand_total;
-                    }
+                    // if ($invoice->forp_id == '01') { // 01 efectivo
+                    //     $cash = get_cash();
+                    //     $cash->cash_value -= $invoice->grand_total;
+                    // }
     
-                    if ($request->ajax()) {
-                        return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
-                    } else {
-                        return redirect()->route('invoices.create', $invoice->id)->with('error', 'Error al procesar DTE');
-                    }
+                    // if ($request->ajax()) {
+                    //     return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
+                    // } else {
+                    //     return redirect()->route('invoices.create', $invoice->id)->with('error', 'Error al procesar DTE');
+                    // }
                 } else if ($response_mh->estado === 'PROCESADO') {
 
                     if( $request->has('id_nota_p') ){
@@ -1468,14 +1472,14 @@ class InvoiceController extends Controller
                 break;
         }
 
-        Log::info('Carga Útil de la Solicitud: ' . json_encode([
-            "nit" => str_replace('-', '', get_option('nit')),
-            "ambiente" => $ambiente,
-            "idEnvio" => 1,
-            "version" => intval($versionJson),
-            "tipoDte" => $invoice->tipodoc_id,
-            'dteJson' => $dteJson
-        ]));
+        // Log::info('Carga Útil de la Solicitud: ' . json_encode([
+        //     "nit" => str_replace('-', '', get_option('nit')),
+        //     "ambiente" => $ambiente,
+        //     "idEnvio" => 1,
+        //     "version" => intval($versionJson),
+        //     "tipoDte" => $invoice->tipodoc_id,
+        //     'dteJson' => $dteJson
+        // ]));
 
         try {
 
@@ -1528,9 +1532,9 @@ class InvoiceController extends Controller
                 Log::info('Se genero el token: Bearer ' . $tokenPasarela->token);
             }
 
-            Log::info(json_encode($tokenPasarela));
+            // Log::info(json_encode($tokenPasarela));
 
-            Log::info('Datos de token enviado: ' . json_encode($tokenPasarela));
+            // Log::info('Datos de token enviado: ' . json_encode($tokenPasarela));
 
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $tokenPasarela->token,
@@ -1549,7 +1553,7 @@ class InvoiceController extends Controller
                 )
                 ->json();
 
-            Log::info('Respuesta API MH: ' . json_encode($response));
+            // Log::info('Respuesta API MH: ' . json_encode($response));
 
             return $response;
         } catch (\Exception $e) {
@@ -4512,7 +4516,7 @@ class InvoiceController extends Controller
 
         }
 
-        log::info("Lo que envio de store hacia sendInviceToHacienda" . json_encode($response));
+        // log::info("Lo que envio de store hacia sendInviceToHacienda" . json_encode($response));
 
         if( !$request->ajax() ){
             return redirect()->route('invoices.show', $invoice->id)->with('success', _lang('Factura Generada Exitosamente ' . $msg));
