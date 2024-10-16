@@ -596,8 +596,6 @@ class InvoiceController extends Controller
                 $cash->cash_value += $request->grand_total;
             }
     
-            DB::commit();
-    
             $msg = '';
             if ($invoice->tipotrans_id == '2') {
     
@@ -643,6 +641,7 @@ class InvoiceController extends Controller
                 $response_mh = json_decode(json_encode($response));
     
                 if (!property_exists($response_mh, 'estado')) {
+                    log::info('Error al procesar DTE en store (propiedad estado no existe en respuesta apihacienda): ' . json_encode($response));
                     DB::rollBack();
                     return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
     
@@ -707,6 +706,7 @@ class InvoiceController extends Controller
                 $invoice->save();
     
                 if ($response_mh->estado === 'RECHAZADO') {
+                    log::info('Error al procesar DTE en store (estado: rechazado): ' . json_encode($response));
                     DB::rollBack();
                     return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
     
@@ -786,6 +786,8 @@ class InvoiceController extends Controller
     
                 //log::info("Lo que envio de store hacia sendInviceToHacienda" . json_encode($response));
             }
+
+            DB::commit();
     
             if (!$request->ajax()) {
                 return redirect()->route('invoices.show', $invoice->id)->with('success', _lang('Factura Generada Exitosamente ' . $msg));
@@ -1878,7 +1880,7 @@ class InvoiceController extends Controller
 
                     if (!property_exists($reenvio_mh, 'estado')) {
 
-                        log::info('Error en respuesta de pasarela, verificar!');
+                        log::info('Error al reenviar DTE en contingenciaInvoiceMH (propiedad estado no existe en respuesta apihacienda): ' . json_encode($response));
 
                         if ($request->ajax()) {
                             return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
@@ -1894,7 +1896,7 @@ class InvoiceController extends Controller
 
                     if ($reenvio_mh->estado === 'RECHAZADO') {
 
-                        log::info('Error al reenviar DTE en contingencia: ' . json_encode($response));
+                        log::info('Error al reenviar DTE en contingenciaInvoiceMH (estado: rechazado): ' . json_encode($response));
 
                         if ($request->ajax()) {
                             return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
@@ -4480,7 +4482,7 @@ class InvoiceController extends Controller
 
         if (!property_exists($response_mh, 'estado')) {
 
-            log::info('Error en respuesta de pasarela, verificar!');
+            log::info('Error al procesar DTE en obtenerSelloHacienda (propiedad estado no existe en respuesta apihacienda): ' . json_encode($response));
 
             if ($request->ajax()) {
                 return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
@@ -4500,7 +4502,7 @@ class InvoiceController extends Controller
 
         if ($response_mh->estado === 'RECHAZADO') {
 
-            log::info('Error al procesar DTE: ' . json_encode($response));
+            log::info('Error al procesar DTE en obtenerSelloHacienda: ' . json_encode($response));
 
             if( $request->ajax() ){
                 return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
