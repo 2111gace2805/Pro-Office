@@ -3393,6 +3393,7 @@ class InvoiceController extends Controller
             "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
             "totalPagar"            => floatval(number_format($montoTotal, 2, '.', '')),
             "totalLetras"           => _lang('It is') . ' ' . dollarToText($montoTotal) . ' USD',
+            "condicionOperacion"    =>  intval($invoice->conop_id),
             "pagos" => [
                 [
                     "codigo"        => $invoice->forp_id,
