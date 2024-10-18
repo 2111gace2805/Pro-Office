@@ -320,7 +320,7 @@ class InvoiceController extends Controller
             $invoice->subtotal_2    = $request->_subtotal_2;
             $invoice->general_discount    = $request->discount_general??0; // valor en dolares del descuento de la venta
             $invoice->general_discount_type    = $request->general_discount_type;
-            $invoice->general_discount_id    = $request->general_discount_id;
+            $invoice->general_discount_id    = $request->general_discount_id != 'other' ? $request->general_discount_id : null;
             $invoice->general_discount_value    = $request->general_discount_value??0; // valor en porcentaje o dolares (caso fijo)
             $invoice->iva_retenido    = $request->iva_retenido;
             $invoice->iva_percibido    = $request->iva_percibido;
