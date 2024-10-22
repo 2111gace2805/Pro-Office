@@ -586,8 +586,12 @@ function update_summary(changedByUser=false) {
 
     // de agregar descuento global exento o descuento global no sujeto, restar esos descuentos al product_total_sin_iva
 
-    if($('venta_licitacion').val()!='1' && gran_contribuyente == 'no' && selectedContact != null && selectedContact.gran_contribuyente == 'si' && product_total_sin_iva >= techo_retencion_iva && changedByUser == false){
-        $('#chkIvaRetenido').prop('checked', true);
+    if (changedByUser == false && $('#venta_licitacion').val()!='1') {
+        if(gran_contribuyente == 'no' && selectedContact != null && selectedContact.gran_contribuyente == 'si' && product_total_sin_iva >= techo_retencion_iva){
+            $('#chkIvaRetenido').prop('checked', true);
+        }else {
+            $('#chkIvaRetenido').prop('checked', false);
+        }   
     }
 
     // RETENCION IVA
@@ -595,8 +599,13 @@ function update_summary(changedByUser=false) {
     if ($("#chkIvaRetenido").is(':checked') && ($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06')) {
         // if (($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06') && product_total_sin_iva >= techo_retencion_iva) {
         // if (($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06')) {
-            $("#iva-retenido").html((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-            $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+            if ($('#tipodoc_id').val() != '01') {
+                $("#iva-retenido").html((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+                $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+            }else{
+                $("#iva-retenido").html(((subtotal/1.13)*(retencion_iva/100)).toFixed(2));
+                $("#iva_retenido").val(((subtotal/1.13)*(retencion_iva/100)).toFixed(2));
+            }
         // }else{
         //     $("#iva-retenido").html(0);
         //     $("#iva_retenido").val(0);
