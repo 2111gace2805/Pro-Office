@@ -17,7 +17,7 @@ var gran_contribuyente = 'no';
 (function ($) {
     "use strict";
 
-    update_summary();
+    //update_summary();
 
     verificarCaja();
 
@@ -469,6 +469,10 @@ var gran_contribuyente = 'no';
 
 })(jQuery);
 
+jQuery(function(){
+    update_summary();
+});
+
 function update_summary(changedByUser=false) {
     total_quantity = 0;
     total_discount = 0;
@@ -582,15 +586,24 @@ function update_summary(changedByUser=false) {
 
     // de agregar descuento global exento o descuento global no sujeto, restar esos descuentos al product_total_sin_iva
 
+    if($('venta_licitacion').val()!='1' && gran_contribuyente == 'no' && selectedContact != null && selectedContact.gran_contribuyente == 'si' && product_total_sin_iva >= techo_retencion_iva && changedByUser == false){
+        $('#chkIvaRetenido').prop('checked', true);
+    }
+
     // RETENCION IVA
-    if (gran_contribuyente == 'no' && selectedContact != null && selectedContact.gran_contribuyente == 'si') {
-        if (($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06') && product_total_sin_iva >= techo_retencion_iva) {
+    // if (gran_contribuyente == 'no' && selectedContact != null && selectedContact.gran_contribuyente == 'si') {
+    if ($("#chkIvaRetenido").is(':checked') && ($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06')) {
+        // if (($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06') && product_total_sin_iva >= techo_retencion_iva) {
+        // if (($('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06')) {
             $("#iva-retenido").html((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
             $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-        }else{
-            $("#iva-retenido").html(0);
-            $("#iva_retenido").val(0);
-        }
+        // }else{
+        //     $("#iva-retenido").html(0);
+        //     $("#iva_retenido").val(0);
+        // }
+    }else{
+        $("#iva-retenido").html(_currency + ' ' + '0.00');
+        $("#iva_retenido").val(0.00);
     }
 
     // if( $("#chkIvaRetenido").is(':checked') ){
@@ -633,34 +646,34 @@ function update_summary(changedByUser=false) {
         }
     }
 
-    if( selectedContact != null && selectedContact.gran_contribuyente == 'si' && !$("#chkIvaRetenido").is(':checked') ){
-        if( $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
+    // if( selectedContact != null && selectedContact.gran_contribuyente == 'si' && !$("#chkIvaRetenido").is(':checked') ){
+    //     if( $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
 
-            if( parseFloat( product_total_sin_iva ) >= 100 ){
-                $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-                $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-            }
+    //         if( parseFloat( product_total_sin_iva ) >= 100 ){
+    //             $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //             $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //         }
 
-        }
+    //     }
 
-        if( $('#tipodoc_id').val()== '01' ){
+    //     if( $('#tipodoc_id').val()== '01' ){
 
-            if( cambio_precio == 1 ){
-                //product_total_sin_iva = product_total_sin_iva / 1.13;
+    //         if( cambio_precio == 1 ){
+    //             //product_total_sin_iva = product_total_sin_iva / 1.13;
 
-                if( parseFloat( product_total_sin_iva ) >= 100 ){
-                    $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-                    $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-                }
-            }
-            else{
-                if( parseFloat( product_total_sin_iva ) >= 100 ){
-                    $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-                    $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-                }
-            }
-        }
-    }
+    //             if( parseFloat( product_total_sin_iva ) >= 100 ){
+    //                 $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //                 $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //             }
+    //         }
+    //         else{
+    //             if( parseFloat( product_total_sin_iva ) >= 100 ){
+    //                 $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //                 $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+    //             }
+    //         }
+    //     }
+    // }
     
     // PERCEPCION IVA
     if (gran_contribuyente == 'si' && selectedContact != null && selectedContact.gran_contribuyente == 'no') {
@@ -712,7 +725,7 @@ function update_summary(changedByUser=false) {
 
 
 $('#chkIvaRetenido').on("change", function() {
-    update_summary();
+    update_summary(true);
 });
 
 $('#venta_licitacion').on("change", function() {
@@ -721,10 +734,14 @@ $('#venta_licitacion').on("change", function() {
     console.log({val});
 
     if( val == 1 ){
-        $('#chkIvaRetenido').attr('checked', true).trigger("change");
+        // $('#chkIvaRetenido').attr('checked', true);
+        $('#chkIvaRetenido').prop('checked', true);
+        update_summary();
     }
     else{
-        $('#chkIvaRetenido').attr('checked', false).trigger("change");
+        // $('#chkIvaRetenido').attr('checked', false);
+        $('#chkIvaRetenido').prop('checked', false);
+        update_summary();
     }
 });
 
@@ -936,6 +953,7 @@ function tipodoc_idChanged(value, limpiarCliente = true){
                 $('#tr-impuesto').addClass('d-none');
                 // $('#tr-iva-percibido').addClass('d-none');
                 $('#tr-iva-retenido').removeClass('d-none');
+                $('#dvIvaRetenido').removeClass('d-none');
                 // $('.boton-descargo').addClass('d-none');
                 $('#regi_id').parent().parent().addClass('d-none');
                 $('#refisc_id').parent().parent().addClass('d-none');
@@ -946,16 +964,18 @@ function tipodoc_idChanged(value, limpiarCliente = true){
                 // $('#tr-iva-percibido').addClass('d-none');
                 $('#tr-impuesto').addClass('d-none');
                 $('#tr-iva-retenido').addClass('d-none');
+                $('#dvIvaRetenido').addClass('d-none');
                 // $('.boton-descargo').removeClass('d-none');
                 $('#regi_id').parent().parent().removeClass('d-none');
                 $('#refisc_id').parent().parent().removeClass('d-none');
                 $('#dividerRecinto').removeClass('d-none');
                 // $('#no_anexo_descargo').parent().parent().removeClass('d-none');
                 break;
-            case '14': // FE
+            case '14': // FSE
                 $('#tr-impuesto').addClass('d-none');
                 // $('#tr-iva-percibido').addClass('d-none');
                 $('#tr-iva-retenido').removeClass('d-none');
+                $('#dvIvaRetenido').removeClass('d-none');
                 // $('.boton-descargo').addClass('d-none');
                 $('#regi_id').parent().parent().addClass('d-none');
                 $('#refisc_id').parent().parent().addClass('d-none');
@@ -968,6 +988,7 @@ function tipodoc_idChanged(value, limpiarCliente = true){
                 // }
                 $('#tr-impuesto').removeClass('d-none');
                 $('#tr-iva-retenido').removeClass('d-none');
+                $('#dvIvaRetenido').removeClass('d-none');
                 // $('.boton-descargo').addClass('d-none');
                 $('#regi_id').parent().parent().addClass('d-none');
                 $('#refisc_id').parent().parent().addClass('d-none');

@@ -466,7 +466,7 @@
 
                                 <div class="row">
                                     <div class="col-12 col-md-4">
-                                        <div class="form-check d-none">
+                                        <div class="form-check" id="dvIvaRetenido">
                                             <input class="form-check-input" type="checkbox" value="" name="chkIvaRetenido" id="chkIvaRetenido">
                                             <label class="form-check-label" for="chkIvaRetenido">
                                                 IVA RETENIDO
