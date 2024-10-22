@@ -442,7 +442,7 @@ class ProductController extends Controller {
 
             $item = Item::find($id);
             $product = Product::where('item_id', $id)->first();
-            Log::info($product);
+            // Log::info($product);
             $product_stock = Stock::where('product_id', $item->id)->where('company_id', company_id())->first();
     
             if( $item->item_type == 'product' ){

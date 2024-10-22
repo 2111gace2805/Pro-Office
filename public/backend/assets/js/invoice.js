@@ -615,31 +615,31 @@ function update_summary(changedByUser=false) {
         $("#iva_retenido").val(0.00);
     }
 
-    // if( $("#chkIvaRetenido").is(':checked') ){
-    //     if( $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
-    //         $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-    //         $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-    //     }
+    if( $("#chkIvaRetenido").is(':checked') ){
+        if( $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
+            $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+            $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+        }
 
-    //     if( $('#tipodoc_id').val()== '01' ){
-    //         if( cambio_precio == 1 ){
-    //             product_total_sin_iva = product_total_sin_iva / 1.13;
+        if( $('#tipodoc_id').val()== '01' ){
+            if( cambio_precio == 1 ){
+                product_total_sin_iva = product_total_sin_iva / 1.13;
                 
-    //             $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-    //             $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-    //         }
-    //         else{
-    //             $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-    //             $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
-    //         }
-    //     }
-    // }
-    // else{
-    //     if( $('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '04' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
-    //         $("#iva-retenido").html(_currency + ' ' + '0.00');
-    //         $("#iva_retenido").val(0.00);
-    //     }
-    // }
+                $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+                $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+            }
+            else{
+                $("#iva-retenido").html(_currency + ' ' + (product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+                $("#iva_retenido").val((product_total_sin_iva*(retencion_iva/100)).toFixed(2));
+            }
+        }
+    }
+    else{
+        if( $('#tipodoc_id').val()== '01' || $('#tipodoc_id').val()== '03' || $('#tipodoc_id').val()== '04' || $('#tipodoc_id').val()== '05' || $('#tipodoc_id').val()== '06' ){
+            $("#iva-retenido").html(_currency + ' ' + '0.00');
+            $("#iva_retenido").val(0.00);
+        }
+    }
 
     //RETENCION DE RENTA
     if( $('#tipodoc_id').val() != "04" || $('#tipodoc_id').val() != "11"  ){
