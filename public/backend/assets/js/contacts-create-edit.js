@@ -28,14 +28,37 @@ $("#tradename").alphanum({
 
 function depa_idChanged(inicio = false){
     if(inicio == false) $('#munidepa_id').val('');
-    $('#munidepa_id').attr('data-where_extra', "depa_id = '"+$('#depa_id').val()+"'");
-    $('#munidepa_id').data('where_extra', "depa_id = '"+$('#depa_id').val()+"'");
+    $('#munidepa_id').attr('data-where_extra', "depa_id = '"+$('#depa_id').val()+"' and muni_status = 'Active'");
+    $('#munidepa_id').data('where_extra', "depa_id = '"+$('#depa_id').val()+"' and muni_status = 'Active'");
     setSelect2Ajax();
+}
+function munidepa_idChanged(inicio = false){
+    if(inicio == false) $('#dist_id').val('');
+    $('#dist_id').attr('data-where_extra', "munidepa_id = '"+$('#munidepa_id').val()+"'");
+    $('#dist_id').data('where_extra', "munidepa_id = '"+$('#munidepa_id').val()+"'");
+    setSelect2Ajax('.districts-select');
 }
 
 $('#depa_id').on('change', e=>depa_idChanged());
+$('#munidepa_id').on('change', e=>munidepa_idChanged());
+$('#dist_id').on('change', function(e){
+    if(!e.target.value) return false;
+    let address = $('[name="address"]').val();
+    let distName = $('#dist_id option:selected').text().toLowerCase().split(' ').map(function(word) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(' ');
+    if(address && !address.endsWith(' '+distName+'.')){
+        
+        if (address.endsWith('.')) {
+            $('[name="address"]').val($('[name="address"]').val()+' '+distName+'.');
+        }else{
+            $('[name="address"]').val($('[name="address"]').val()+'. '+distName+'.');
+        }
+    }
+});
 
 $(()=>depa_idChanged(true));
+$(()=>munidepa_idChanged(true));
 
 //Contacts Create/Edit
 if ($('#client_login').is(':checked') == false) {
@@ -98,10 +121,10 @@ $(document).ready(function() {
 function CamposNatural() {
     $("#company_name").prop("required", false).hide();
     $("#nombreComercial").prop("required", false).hide();
-    $("#acti_economica").prop("required", false).hide();
+    $("#acti_economica").prop("required", false);
     // $("#nit").prop("required", false).hide();
     $("#dui").prop("required", true).show();
-    $("#nrc").prop("required", false).hide();
+    $("#nrc").prop("required", false);
     $("#contribuyente").prop("required", false).hide();
     $("#exento").prop("required", false).hide();
     $("#sujetoIva").prop("required", false).hide();
@@ -117,16 +140,16 @@ function CamposNatural() {
     $("#tradename").prop("required", false);
     $("#actie_id").prop("required", false);
     $("#nit_").prop("required", false);
-    $("#nrc").prop("required", false);
+    // $("#nrc").prop("required", false);
 }
 
 function CamposJuridica() {
     $("#company_name").prop("required", true).show();
     $("#nombreComercial").prop("required", true).show();
-    $("#acti_economica").prop("required", true).show();
+    $("#acti_economica").prop("required", true);
     $("#nit").prop("required", true).show();
     $("#dui").prop("required", false).hide();
-    $("#nrc").prop("required", true).show();
+    $("#nrc").prop("required", true);
     $("#contribuyente").prop("required", true).show();
     $("#exento").prop("required", true).show();
     $("#sujetoIva").prop("required", true).show();

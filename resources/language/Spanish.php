@@ -671,3 +671,5 @@ $language["New warehouse added sucessfully"] = "Nuevo almacén agregado correcta
 $language["Edit Warehouse"] = "Editar almacén";
 $language["Warehouses"] = "Almacenes";
 $language["Warehouse information updated sucessfully"] = "Información de almacén actualizada correctamente";
+$language["District"] = "Distrito";
+$language["Districts"] = "Distritos";
