@@ -807,6 +807,7 @@ function tdocrec_idChanged(value){
     if(selectedContact == null){
         return;
     }
+    $('#num_documento').attr('readonly', true);
     switch(valor.toString()){
         case "36":
             $('#num_documento').val(selectedContact.nit);
@@ -818,6 +819,7 @@ function tdocrec_idChanged(value){
         break;
         default:
             $('#num_documento').val('');
+            $('#num_documento').removeAttr('readonly');
             // $('#num_documento_2').val('');
         break;
     }
@@ -1474,4 +1476,11 @@ $('[name="general_discount_type"]').on('change', function(e){
     // var selectedValue = $(this).val();
     // console.log('Opción seleccionada: ' + selectedValue);
     update_summary();
+});
+
+$('#tipotrans_id').on('change', function(e){
+    if (e.target.value == 2) {
+        $('#postpone_invoice').val(1);
+        $('#postpone_invoice').trigger('change');
+    }
 });

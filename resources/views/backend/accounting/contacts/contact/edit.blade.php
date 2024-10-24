@@ -171,8 +171,19 @@
                                 <label class="control-label">{{ _lang('Municipio') }}</label>
                                 <select class="form-control select2-ajax" data-value="munidepa_id" data-display="muni_nombre" 
                                     data-table="municipios" name="munidepa_id" id="munidepa_id" data-where_extra="depa_id = '-1'" required>
-                                    <option value="">{{ _lang('- Select One -') }}</option>
+                                    <option value="">{{ _lang('Select One') }}</option>
                                     {{ create_option("municipios", "munidepa_id", "muni_nombre", old('munidepa_id', $contact->munidepa_id), ['munidepa_id=' => old('munidepa_id', $contact->munidepa_id)]) }}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="control-label">{{ _lang('District') }}</label>
+                                <select class="form-control select2-ajax districts-select" data-value="dist_id" data-display="dist_name" 
+                                    data-table="districts" name="dist_id" id="dist_id" data-where_extra="munidepa_id = '-1'">
+                                    <option value="">{{ _lang('Select One') }}</option>
+                                    {{ create_option("districts", "dist_id", "dist_name", old('dist_id', $contact->dist_id), ['dist_id=' => old('dist_id', $contact->dist_id)]) }}
                                 </select>
                             </div>
                         </div>
@@ -180,7 +191,8 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Address') }}</label>
-                                <textarea class="form-control" name="address" required>{{ old('address', $contact->address) }}</textarea>
+                                <textarea placeholder="Ej.: Avenida Norte, Barrio El Centro, San Salvador." class="form-control" name="address" required>{{ old('address', $contact->address) }}</textarea>
+                                <small style="font-size: small;color: gray;font-style: italic;">* Según la 'Ley de Ordenamiento y Desarrollo Territorial', para efectos de los DTE, el Distrito deberá ingresarse en la parte final de la dirección.</small>
                             </div>
                         </div>
 

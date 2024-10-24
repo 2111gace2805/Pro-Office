@@ -57,4 +57,8 @@ class Contact extends Model
     {
         return $this->belongsTo('App\Plazo', 'plazo_id');
     }
+
+    public function district(){
+        return $this->belongsTo(District::class, 'dist_id');
+    }
 }

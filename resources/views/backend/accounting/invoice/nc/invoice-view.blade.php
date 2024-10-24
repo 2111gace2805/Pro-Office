@@ -279,7 +279,7 @@
                     <td style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656;"
                         class="text-center ">{{ $invoice->invoice_items[$i]->item->product->product_code }}</td>
                     <td style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656;"
-                        class="">{!! nl2br($invoice->invoice_items[$i]->description) !!}/td>
+                        class="">{!! nl2br($invoice->invoice_items[$i]->description) !!}</td>
                     <td style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656;"
                         class="text-center">{{ $currency }} {{ number_format($invoice->invoice_items[$i]->unit_cost, 6, '.', '') }}</td>
                     @php

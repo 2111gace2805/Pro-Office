@@ -171,7 +171,7 @@
                             $tipoDoc = 'OTRO';
                         }
                     @endphp
-                    <td class="font-weight-bold pl-2">{{ $tipoDoc }}</td>
+                    <td class="font-weight-bold pl-2">{{ $invoice->tipo_documento_receptor->tdocrec_nombre??'' }}</td>
                     <td style="width: 370px">{{$invoice->num_documento }}</td>
                 </tr>
                  <tr>
@@ -184,7 +184,7 @@
                 </tr>
                 <tr>
                     <td class="font-weight-bold pl-2">{{ _lang('Dirección:') }}</td>
-                    <td class="">{{ $invoice->client->address.', '.mb_convert_case( $invoice->client->municipio->muni_nombre, MB_CASE_TITLE,  'UTF-8').', '.$invoice->client->departamento->depa_nombre }}</td>
+                    <td class="">{{ $invoice->client->address.', '.mb_convert_case( ($invoice->client->municipio->muni_nombre??''), MB_CASE_TITLE,  'UTF-8').', '.($invoice->client->departamento->depa_nombre??'') }}</td>
                 </tr>
             </table>
         </div>
@@ -237,7 +237,7 @@
                         <b>{{ number_format($invoice->invoice_items[$i]->quantity, 0, '.', ',') }}</b>
                     </td>
                     <td style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656;"
-                        class=" pb-0">{!! nl2br($invoice->invoice_items[$i]->description) !!}/td>
+                        class=" pb-0">{!! nl2br($invoice->invoice_items[$i]->description) !!}</td>
                     <td style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656;"
                         class="text-center pb-0">{{ $currency }} {{ number_format($invoice->invoice_items[$i]->unit_cost, 6, '.', '') }}</td>
 
@@ -295,7 +295,7 @@
                     Descripción Incoterms: {{ ( $invoice->id_incoterms != '' ) ? $invoice->incoterm->nombre_incoterms : '----' }}
                 </td>
                 <td class="p-1 text-right" style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 2px solid #565656; border-radius: 5px !important;" colspan="3">Rebajas de operaciones afectas:</td>
-                <td style="border-top: 0px solid #565656; border-right: 2px solid #565656; border-left: 2px solid #565656; border-bottom: 2px solid #565656; border-radius: 5px !important;" class="text-right">{{ decimalPlace(0.0, $currency) }}</td>
+                <td style="border-top: 0px solid #565656; border-right: 2px solid #565656; border-left: 2px solid #565656; border-bottom: 2px solid #565656; border-radius: 5px !important;" class="text-right">{{ decimalPlace($invoice->general_discount, $currency) }}</td>
             </tr>
             <tr>
                 <td colspan="2" style="border-top: 0px solid #565656; border-right: 0; border-left: 2px solid #565656; border-bottom: 0; border-radius: 5px !important; padding: 0px;"

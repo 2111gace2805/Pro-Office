@@ -167,6 +167,7 @@ class ContactController extends Controller {
         $contact->group_id      = $request->input('group_id');
         $contact->contact_image = $contact_image;
         // $contact->condition_sales = $request->input('condition_sales');
+        $contact->dist_id   = $request->input('dist_id');
 
         $contact->save();
 
@@ -314,6 +315,7 @@ class ContactController extends Controller {
             $contact->contact_image = $contact_image;
         }
 
+        $contact->dist_id   = $request->input('dist_id');
         $contact->save();
 
         if (!$request->ajax()) {
@@ -331,13 +333,29 @@ class ContactController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function destroy($id) {
-        $contact = Contact::find($id);
-        $user    = User::find($contact->user_id);
-        if ($user) {
-            $user->delete();
+        $request = request();
+        try{
+            $contact = Contact::find($id);
+            $user    = User::find($contact->user_id);
+            if ($user) {
+                $user->delete();
+            }
+            $contact->delete();
+            return back()->with('success', _lang('Information has been deleted sucessfully'));
+        } catch (\Throwable $th) {
+            if ($th->getCode() === '23000') {
+                // Código 23000 se refiere a violación de integridad referencial
+                if (!$request->ajax()) {
+                    return redirect()->back()
+                        ->with('error', 'No se puede eliminar este cliente porque está relacionado con otros registros como facturas, etc.')
+                        ->withInput();
+                }
+                    
+                return response()->json(['result' => 'error', 'action' => null, 'message' => 'No se puede eliminar este cliente porque está relacionado con otros registros como facturas, etc.', 'data'=>null]);
+                
+            }
+            return catchException($th, $request);
         }
-        $contact->delete();
-        return back()->with('success', _lang('Information has been deleted sucessfully'));
     }
 
     public function send_email(Request $request, $id) {

@@ -52,7 +52,7 @@ $('#dist_id').on('change', function(e){
         if (address.endsWith('.')) {
             $('[name="address"]').val($('[name="address"]').val()+' '+distName+'.');
         }else{
-            $('[name="address"]').val($('[name="address"]').val()+'. '+distName+'.');
+            $('[name="address"]').val($('[name="address"]').val()+', '+distName+'.');
         }
     }
 });
@@ -129,7 +129,7 @@ function CamposNatural() {
     $("#exento").prop("required", false).hide();
     $("#sujetoIva").prop("required", false).hide();
     $("#encargado").prop("required", false).hide();
-    $("#group").prop("required", false).hide();
+    $("#group").prop("required", false);
     $("#nombre").prop("required", true).show();
     $("#apellido").prop("required", true).show();
 
@@ -154,7 +154,7 @@ function CamposJuridica() {
     $("#exento").prop("required", true).show();
     $("#sujetoIva").prop("required", true).show();
     $("#encargado").prop("required", true).show();
-    $("#group").prop("required", true).show();
+    $("#group").prop("required", true);
     $("#nombre").prop("required", false).hide();
     $("#apellido").prop("required", false).hide();
 

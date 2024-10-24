@@ -1104,3 +1104,23 @@ if (!function_exists('generateUrl')) {
         return $url;
     }
 }
+
+if (!function_exists('catchException')) {
+    function catchException(\Throwable $th, Request $request, $action = null) {
+        // action can be "store", "update"
+        DB::rollBack();
+        $message = 'ERROR: MESSAGE: '.$th->getMessage().' LINE: '.$th->getLine().' FILE: '.$th->getFile();
+
+        $message = str_replace('\\', '/', $message);
+        $message = str_replace(array("\n", "\r"), '', $message);
+        logger($message);
+        logger('TRACE: '. $th->getTraceAsString());
+        if (!$request->ajax()) {
+            return redirect()->back()
+                ->with('error', env('APP_ENV')=='local'?$message:_lang('Something went wrong. Try again.'))
+                ->withInput();
+        }
+            
+        return response()->json(['result' => 'error', 'action' => $action, 'message' => env('APP_ENV')=='local'?$message:_lang('Something went wrong. Try again.'), 'data'=>null]);
+    }
+}

@@ -996,8 +996,13 @@ class InvoiceController extends Controller
 
             $invoice = Invoice::find($id);
 
-            $response = $this->anularInvoiceMH($invoice->id, $request);
-            $response_mh = json_decode(json_encode($response));
+            if ($invoice->contingencia == 1) {
+                $response = [];
+                $response_mh = (object)['estado'=>'PROCESADO'];
+            }else{
+                $response = $this->anularInvoiceMH($invoice->id, $request);
+                $response_mh = json_decode(json_encode($response));
+            }
 
             if ($response_mh->estado === 'RECHAZADO') {
 
@@ -1055,7 +1060,11 @@ class InvoiceController extends Controller
 
                 DB::commit();
 
-                $this->sendEmailFactura($invoice->id, true);
+                try {
+                    $this->sendEmailFactura($invoice->id, true);
+                } catch (\Throwable $th) {
+                    //throw $th;
+                }
 
                 if ($request->ajax()) {
                     return response()->json(['result' => 'success', 'message' => _lang('Invoice deleted sucessfully'), 'data' => $response]);
