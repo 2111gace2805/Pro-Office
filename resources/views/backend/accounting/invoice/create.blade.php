@@ -163,7 +163,7 @@
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Correo') }}</label>
                                 <input type="text" class="form-control" name="correo" id="correo"
-                                value="{{ old('correo') }}" required>
+                                value="{{ old('correo') }}">
                             </div>
                         </div>
                         <div class="col-12 col-md-4">
