@@ -239,5 +239,5 @@
     </div>
     </div>
 
-<script src="{{ asset('public/backend/assets/js/contacts-create-edit.js') }}"></script>
+<script src="{{ asset('public/backend/assets/js/contacts-create-edit.js') }}?v={{filemtime(public_path('/backend/assets/js/contacts-create-edit.js'))}}"></script>
 </form>

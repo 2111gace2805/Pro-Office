@@ -3168,7 +3168,7 @@ class InvoiceController extends Controller
         $montoTotal = $invoice->grand_total;
 
         $descuentos = $invoice->general_discount;
-        $descuentos = $descuentos / 1.13;
+        $descuentos = $descuentos;
 
         $total_gravadas    = $gravadoSum;
         $total_subtotal    = $total_gravadas - $descuentos;
@@ -3176,10 +3176,23 @@ class InvoiceController extends Controller
 
         if( $descuentos > 0 ){
 
-            $calculo_iva            = $total_subtotal * 1.13;
-            $total_totalIva_items   = $calculo_iva - $total_subtotal;
-            $totalIva               = floatval($total_totalIva_items);
-            $totalTributos          = floatval($totalIva);
+            // $calculo_iva            = $total_subtotal * 1.13;
+            // $total_totalIva_items   = $calculo_iva - $total_subtotal;
+            // $totalIva               = floatval($total_totalIva_items);
+            // $totalTributos          = floatval($totalIva);
+
+            // foreach( $arrTributos as &$value ){
+            //     if( $value['codigo'] == 20 ){
+            //         $value['valor'] = floatval(number_format($totalIva, 2, '.', ''));
+            //     }
+            // }
+            // unset($value);
+            
+
+            // $calculo_iva            = $total_subtotal * 1.13;
+            // $total_totalIva_items   = $calculo_iva - $total_subtotal;
+            $totalIva               = floatval($invoice->tax_total);
+            $totalTributos          = floatval($invoice->tax_total);
 
             foreach( $arrTributos as &$value ){
                 if( $value['codigo'] == 20 ){
