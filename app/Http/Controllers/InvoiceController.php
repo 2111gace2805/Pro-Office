@@ -2232,7 +2232,7 @@ class InvoiceController extends Controller
                 "direccion" => !isset($invoice->client->munidepa_id) ? null : [ 
                     "departamento" => $invoice->client->depa_id ?? '06',
                     "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
-                    "complemento" => $invoice->complemento.', '.ucfirst(strtolower(($invoice->client->district->dist_name??''))).'.'
+                    "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
                 ],
                 // "telefono"=> $invoice->telefono,
                 "telefono" => str_replace(['-', '+'], '', $invoice->telefono),
@@ -2457,7 +2457,7 @@ class InvoiceController extends Controller
             $direccion = !isset($invoice->client->munidepa_id) ? null : [
                 "departamento"  => $invoice->client->depa_id ?? '06',
                 "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
-                "complemento" => $invoice->complemento.', '.ucfirst(strtolower(($invoice->client->district->dist_name??''))).'.'
+                "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
             ];
         }
 
@@ -2674,7 +2674,7 @@ class InvoiceController extends Controller
             "direccion" => !isset($invoice->client->munidepa_id) ? null : [
                 "departamento"  => $invoice->client->depa_id ?? '06',
                 "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
-                "complemento" => $invoice->complemento.', '.ucfirst(strtolower(($invoice->client->district->dist_name??''))).'.'
+                "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
             ],
             "telefono"  => $invoice->client->contact_phone,
             "correo"    => $invoice->client->contact_email
@@ -3105,7 +3105,7 @@ class InvoiceController extends Controller
             "direccion" => !isset($invoice->client->munidepa_id) ? null : [
                 "departamento"  => $invoice->client->depa_id ?? '06',
                 "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
-                "complemento" => $invoice->complemento.', '.ucfirst(strtolower(($invoice->client->district->dist_name??''))).'.'
+                "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
             ],
             "telefono"          => $invoice->telefono,
             "correo"            => $invoice->correo,
@@ -3319,7 +3319,7 @@ class InvoiceController extends Controller
             "direccion" => [
                 "departamento"  => $company->depa_id,
                 "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
-                "complemento" => $invoice->complemento.', '.ucfirst(strtolower(($invoice->client->district->dist_name??''))).'.'
+                "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
             ],
             "telefono"          => $company->cellphone,
             "codEstableMH"      => null,
@@ -3348,7 +3348,7 @@ class InvoiceController extends Controller
             "direccion" => !isset($invoice->client->munidepa_id) ? null : [
                 "departamento"  => $invoice->client->depa_id ?? '06',
                 "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
-                "complemento" => $invoice->complemento.', '.ucfirst(strtolower(($invoice->client->district->dist_name??''))).'.'
+                "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
             ],
             "telefono"          => $invoice->telefono,
             "correo"            => $invoice->correo,
