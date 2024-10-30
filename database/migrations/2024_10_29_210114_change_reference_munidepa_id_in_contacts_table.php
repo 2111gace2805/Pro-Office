@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddDistIdToContactsTable extends Migration
+class ChangeReferenceMunidepaIdInContactsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,8 +14,7 @@ class AddDistIdToContactsTable extends Migration
     public function up()
     {
         Schema::table('contacts', function (Blueprint $table) {
-            $table->bigInteger('dist_id', unsigned: true)->nullable();
-            $table->foreign('dist_id')->references('dist_id')->on('districts')->cascadeOnUpdate();
+            $table->dropForeign('contacts_ibfk_5');
         });
     }
 
@@ -27,8 +26,7 @@ class AddDistIdToContactsTable extends Migration
     public function down()
     {
         Schema::table('contacts', function (Blueprint $table) {
-            $table->dropForeign(['dist_id']);
-            $table->dropColumn('dist_id');
+            $table->foreign('munidepa_id', 'contacts_ibfk_5')->references('munidepa_id')->on('municipios');
         });
     }
 }

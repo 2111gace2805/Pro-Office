@@ -184,7 +184,7 @@
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('District') }}</label>
                                 <select class="form-control select2-ajax districts-select" data-value="dist_id" data-display="dist_name" 
-                                    data-table="districts" name="dist_id" id="dist_id" data-where_extra="munidepa_id = '-1'">
+                                    data-table="districts" name="dist_id" id="dist_id" data-where_extra="munidepa_id = '-1'" required>
                                     <option value="">{{ _lang('- Select One -') }}</option>
                                     {{ create_option("districts", "dist_id", "dist_name", old('dist_id'), ['dist_id=' => old('dist_id')]) }}
                                 </select>
@@ -194,8 +194,8 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Address') }}</label>
-                                <textarea placeholder="Ej.: Avenida Norte, Barrio El Centro, San Salvador." class="form-control" required name="address">{{ old('address') }}</textarea>
-                                <small style="font-size: small;color: gray;font-style: italic;">* Según la 'Ley de Ordenamiento y Desarrollo Territorial', para efectos de los DTE, el Distrito deberá ingresarse en la parte final de la dirección.</small>
+                                <textarea class="form-control" required name="address">{{ old('address') }}</textarea>
+                                {{-- <small style="font-size: small;color: gray;font-style: italic;">* Según la 'Ley de Ordenamiento y Desarrollo Territorial', para efectos de los DTE, el Distrito deberá ingresarse en la parte final de la dirección.</small> --}}
                             </div>
                         </div>
 

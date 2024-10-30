@@ -95,7 +95,7 @@
                             </tr>
                             <tr>
                                 <td>{{ _lang('City') }}</td>
-                                <td>{{ $contact->municipio->muni_nombre??'No establecido' }}</td>
+                                <td>{{ $contact->district->municipio->muni_nombre??'No establecido' }}</td>
                             </tr>
                             <tr>
                                 <td>{{ _lang('State') }}</td>

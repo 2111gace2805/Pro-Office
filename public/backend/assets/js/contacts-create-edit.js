@@ -41,21 +41,21 @@ function munidepa_idChanged(inicio = false){
 
 $('#depa_id').on('change', e=>depa_idChanged());
 $('#munidepa_id').on('change', e=>munidepa_idChanged());
-$('#dist_id').on('change', function(e){
-    if(!e.target.value) return false;
-    let address = $('[name="address"]').val();
-    let distName = $('#dist_id option:selected').text().toLowerCase().split(' ').map(function(word) {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-    }).join(' ');
-    if(address && !address.endsWith(' '+distName+'.')){
+// $('#dist_id').on('change', function(e){
+//     if(!e.target.value) return false;
+//     let address = $('[name="address"]').val();
+//     let distName = $('#dist_id option:selected').text().toLowerCase().split(' ').map(function(word) {
+//         return word.charAt(0).toUpperCase() + word.slice(1);
+//     }).join(' ');
+//     if(address && !address.endsWith(' '+distName+'.')){
         
-        if (address.endsWith('.')) {
-            $('[name="address"]').val($('[name="address"]').val()+' '+distName+'.');
-        }else{
-            $('[name="address"]').val($('[name="address"]').val()+', '+distName+'.');
-        }
-    }
-});
+//         if (address.endsWith('.')) {
+//             $('[name="address"]').val($('[name="address"]').val()+' '+distName+'.');
+//         }else{
+//             $('[name="address"]').val($('[name="address"]').val()+', '+distName+'.');
+//         }
+//     }
+// });
 
 $(()=>depa_idChanged(true));
 $(()=>munidepa_idChanged(true));

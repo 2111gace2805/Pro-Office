@@ -17,5 +17,9 @@ class District extends Model
      * @var string
      */
     protected $primaryKey = 'dist_id';
+
+    public function municipio(){
+        return $this->belongsTo(Municipio::class, 'munidepa_id', 'munidepa_id');
+    }
     
 }
