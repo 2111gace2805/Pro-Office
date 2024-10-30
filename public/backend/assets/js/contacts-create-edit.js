@@ -8,9 +8,15 @@ $('#pais_id').on('change', function(e){
         $('#munidepa_id').trigger('change');
         $('#munidepa_id').attr('required', false);
         $('#munidepa_id').attr('readonly', true);
+        $('#dist_id').val('');
+        $('#dist_id').trigger('change');
+        $('#dist_id').attr('required', false);
+        $('#dist_id').attr('readonly', true);
     }else {
         $('#depa_id').attr('readonly', false);
         $('#munidepa_id').attr('readonly', false);
+        $('#dist_id').attr('readonly', false);
+        $('#dist_id').attr('required', true);
     }
 });
 

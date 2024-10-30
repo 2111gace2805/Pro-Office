@@ -2038,7 +2038,7 @@ class InvoiceController extends Controller
     }
 
 
-    private static function getDteJsonCCF($invoice, $versionJson, $ambiente)
+    public static function getDteJsonCCF($invoice, $versionJson, $ambiente)
     {
         // dd($invoice);
         $company = Company::find($invoice->company_id);
@@ -2312,7 +2312,7 @@ class InvoiceController extends Controller
     } // PROBAR CCF
 
     // FE -> Factura electronica(consumidor final)
-    private static function getDteJsonFE($invoice, $versionJson, $ambiente)
+    public static function getDteJsonFE($invoice, $versionJson, $ambiente)
     {
         $company = Company::find($invoice->company_id);
         $details = [];
@@ -2593,7 +2593,7 @@ class InvoiceController extends Controller
         return $dteJson;
     } // CONTINUAR EN RESUMEN
 
-    private static function getDteJsonNotaDebitoCredito($tipoDte, $invoice, $versionJson, $ambiente)
+    public static function getDteJsonNotaDebitoCredito($tipoDte, $invoice, $versionJson, $ambiente)
     {
 
         $company = Company::find($invoice->company_id);
@@ -2831,7 +2831,7 @@ class InvoiceController extends Controller
         return $dteJson;
     }
 
-    private static function getDteJsonFEX($invoice, $versionJson, $ambiente)
+    public static function getDteJsonFEX($invoice, $versionJson, $ambiente)
     {
         $company = Company::find($invoice->company_id);
         $details = [];
@@ -2964,7 +2964,7 @@ class InvoiceController extends Controller
                 "nombreComercial"   => $invoice->client->tradename,
                 "codPais"           => $invoice->client->pais->pais_code??null,
                 "nombrePais"        => $invoice->client->pais->pais_nombre??null,
-                "complemento"       => $invoice->client->address,
+                "complemento"       => $invoice->client->address.', '.($invoice->client->municipio->muni_nombre??'').', '.($invoice->client->departamento->depa_nombre??''),
                 "tipoPersona"       => intval($invoice->client->tpers_id),
                 "descActividad"     => $invoice->client->descActividad,
                 "telefono"          => $invoice->telefono,
@@ -3009,7 +3009,7 @@ class InvoiceController extends Controller
         return $dteJson;
     }
 
-    private static function getDteJsonNotaRemision($invoice, $versionJson, $ambiente)
+    public static function getDteJsonNotaRemision($invoice, $versionJson, $ambiente)
     {
 
         $company = Company::find($invoice->company_id);
@@ -3256,7 +3256,7 @@ class InvoiceController extends Controller
         return $dteJson;
     }
 
-    private static function getDteJsonSujetoExcluido($invoice, $versionJson, $ambiente)
+    public static function getDteJsonSujetoExcluido($invoice, $versionJson, $ambiente)
     {
 
         $company = Company::find($invoice->company_id);
@@ -3318,8 +3318,8 @@ class InvoiceController extends Controller
             "descActividad"         => get_option('desc_actividad'),
             "direccion" => [
                 "departamento"  => $company->depa_id,
-                "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
-                "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
+                "municipio"     => Municipio::find($company->munidepa_id)->muni_id,
+                "complemento"   => $company->address
             ],
             "telefono"          => $company->cellphone,
             "codEstableMH"      => null,

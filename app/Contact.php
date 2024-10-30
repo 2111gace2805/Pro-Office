@@ -38,7 +38,7 @@ class Contact extends Model
     {
         return $this->belongsTo($this, '_')->withDefault(function($municipio, $contact){
             $contact = $contact;
-            return District::find($contact->munidepa_id)->municipio;
+            return District::find($contact->munidepa_id)->municipio??null;
         });
         // return $this->district->municipio();
     }

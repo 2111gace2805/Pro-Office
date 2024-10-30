@@ -137,7 +137,7 @@ class ContactController extends Controller {
         $contact->contact_email = $request->input('contact_email');
         $contact->contact_phone = $request->input('contact_phone');
         $contact->pais_id       = $request->input('pais_id');
-        $contact->munidepa_id   = $request->input('munidepa_id');
+        $contact->munidepa_id   = $request->input('dist_id');
         $contact->depa_id       = $request->input('depa_id');
         $contact->zip           = $request->input('zip');
         $contact->address       = $request->input('address');
@@ -167,7 +167,7 @@ class ContactController extends Controller {
         $contact->group_id      = $request->input('group_id');
         $contact->contact_image = $contact_image;
         // $contact->condition_sales = $request->input('condition_sales');
-        $contact->dist_id   = $request->input('dist_id');
+        // $contact->dist_id   = $request->input('dist_id');
 
         $contact->save();
 
@@ -283,7 +283,7 @@ class ContactController extends Controller {
         $contact->contact_email = $request->input('contact_email');
         $contact->contact_phone = $request->input('contact_phone');
         $contact->pais_id       = $request->input('pais_id');
-        $contact->munidepa_id       = $request->input('munidepa_id');
+        $contact->munidepa_id       = $request->input('dist_id');
         $contact->depa_id       = $request->input('depa_id');
         $contact->zip           = $request->input('zip');
         $contact->address       = $request->input('address');
@@ -315,7 +315,7 @@ class ContactController extends Controller {
             $contact->contact_image = $contact_image;
         }
 
-        $contact->dist_id   = $request->input('dist_id');
+        // $contact->dist_id   = $request->input('dist_id');
         $contact->save();
 
         if (!$request->ajax()) {
