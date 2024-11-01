@@ -2349,7 +2349,7 @@ class InvoiceController extends Controller
                     ->pluck('trib_id')->toArray() */ null,
                 "psv" => 0.0,
                 "noGravado" => 0.0,
-                "ivaItem" => round($CalculoIvaIem, 2)
+                "ivaItem" => round($CalculoIvaIem, 3)
             ]);
 
             if( $value->cod_dte_rel != '' ){
