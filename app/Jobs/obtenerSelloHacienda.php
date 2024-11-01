@@ -6,6 +6,7 @@ use App\Tax;
 use App\User;
 use DateTime;
 use App\Company;
+use App\Http\Controllers\InvoiceController;
 use App\Invoice;
 use App\Municipio;
 use Carbon\Carbon;
@@ -50,7 +51,7 @@ class obtenerSelloHacienda implements ShouldQueue
     public function handle()
     {
 
-        $invoices = Invoice::where('postpone_invoice', '=', 1)->get();
+        $invoices = Invoice::where('postpone_invoice', '=', 1)->where('contingencia', '!=', 1)->get();
 
         foreach($invoices as $invoice){
 
@@ -135,32 +136,32 @@ class obtenerSelloHacienda implements ShouldQueue
 
     protected function sendInvoiceToHacienda($invoice_id)
     {
-        $invoice = Invoice::find($invoice_id);
+        $invoice = Invoice::with(['client', 'client.district', 'client.district.municipio'])->find($invoice_id);
         $versionJson = $invoice->tipo_documento->version_json;
         $ambiente = env('API_AMBIENTE_MH');
         // $dteJson = self::getDteJsonCCF($invoice, $versionJson, $ambiente);
         $dteJson = '';
         switch ($invoice->tipodoc_id) {
             case '01':
-                $dteJson = self::getDteJsonFE($invoice, $versionJson, $ambiente);
+                $dteJson = InvoiceController::getDteJsonFE($invoice, $versionJson, $ambiente);
                 break;
             case '03':
-                $dteJson = self::getDteJsonCCF($invoice, $versionJson, $ambiente);
+                $dteJson = InvoiceController::getDteJsonCCF($invoice, $versionJson, $ambiente);
                 break;
             case '04':
-                $dteJson = self::getDteJsonNotaRemision($invoice, $versionJson, $ambiente);
+                $dteJson = InvoiceController::getDteJsonNotaRemision($invoice, $versionJson, $ambiente);
                 break;
             case '05':
-                $dteJson = self::getDteJsonNotaDebitoCredito($invoice->tipodoc_id, $invoice, $versionJson, $ambiente);
+                $dteJson = InvoiceController::getDteJsonNotaDebitoCredito($invoice->tipodoc_id, $invoice, $versionJson, $ambiente);
                 break;
             case '06':
-                $dteJson = self::getDteJsonNotaDebitoCredito($invoice->tipodoc_id, $invoice, $versionJson, $ambiente);
+                $dteJson = InvoiceController::getDteJsonNotaDebitoCredito($invoice->tipodoc_id, $invoice, $versionJson, $ambiente);
                 break;
             case '11':
-                $dteJson = self::getDteJsonFEX($invoice, $versionJson, $ambiente);
+                $dteJson = InvoiceController::getDteJsonFEX($invoice, $versionJson, $ambiente);
                 break;
             case '14':
-                $dteJson = self::getDteJsonSujetoExcluido($invoice, $versionJson, $ambiente);
+                $dteJson = InvoiceController::getDteJsonSujetoExcluido($invoice, $versionJson, $ambiente);
                 break;
             default:
                 break;

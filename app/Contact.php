@@ -5,7 +5,8 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\SingleTenant;
 use App\Traits\LogsActivityTrait;
-
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class Contact extends Model
 {
@@ -35,7 +36,11 @@ class Contact extends Model
     
     public function municipio()
     {
-        return $this->belongsTo('App\Municipio', 'munidepa_id');
+        return $this->belongsTo($this, '_')->withDefault(function($municipio, $contact){
+            $contact = $contact;
+            return District::find($contact->munidepa_id)->municipio??null;
+        });
+        // return $this->district->municipio();
     }
     
     public function departamento()
@@ -56,5 +61,9 @@ class Contact extends Model
     public function plazo()
     {
         return $this->belongsTo('App\Plazo', 'plazo_id');
+    }
+
+    public function district(){
+        return $this->belongsTo(District::class, 'munidepa_id');
     }
 }

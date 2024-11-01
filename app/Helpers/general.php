@@ -1023,11 +1023,15 @@ if(!function_exists('generateUUID')){
 }
 
 if(!function_exists('generateNumeroControl')){
+    /**
+     * parametro id de tipo de documento
+     */
     function generateNumeroControl($tipodoc_id) {
+        $company_id = company_id();
         $parte1 = 'DTE';
         $parte2 = $tipodoc_id;
-        $sucursal = (str_pad(company_id(), 4, '0', STR_PAD_LEFT));
-        $puntoVenta = (str_pad(company_id(), 4, '0', STR_PAD_LEFT));
+        $sucursal = (str_pad($company_id, 4, '0', STR_PAD_LEFT));
+        $puntoVenta = (str_pad($company_id, 4, '0', STR_PAD_LEFT));
         $parte3 = $sucursal.$puntoVenta;
         $parte4 = "";
 
@@ -1050,9 +1054,15 @@ if(!function_exists('generateNumeroControl')){
         //     }
         // }
 
-        $contador = BlockDte::where('type_dte', '=', $tipodoc_id)->pluck('correlativo')->first();
+        $year = Invoice::where(['tipodoc_id'=> $tipodoc_id])->selectRaw("YEAR(invoice_date) as year")->orderByRaw("invoice_date desc, invoice_time asc")->first()->year??date('Y');
+        if(date('Y')>$year){
+            $contador = 1;
+            BlockDte::where('type_dte', '=', $tipodoc_id)->update(['correlativo'=>$contador]);
+        }else{
+            $contador = BlockDte::where('type_dte', '=', $tipodoc_id)->pluck('correlativo')->first();
+        }
 
-        $parte4 = str_pad(($contador), 15, '0', STR_PAD_LEFT);
+        $parte4 = date('y').str_pad(($contador), 13, '0', STR_PAD_LEFT);
         
         return $parte1.'-'.$parte2.'-'.$parte3.'-'.$parte4;
     }
@@ -1092,5 +1102,25 @@ if (!function_exists('generateUrl')) {
         $url = "https://admin.factura.gob.sv/consultaPublica?ambiente=$ambiente&codGen=$codigo_generacion&fechaEmi=$fechaEmi";
 
         return $url;
+    }
+}
+
+if (!function_exists('catchException')) {
+    function catchException(\Throwable $th, Request $request, $action = null) {
+        // action can be "store", "update"
+        DB::rollBack();
+        $message = 'ERROR: MESSAGE: '.$th->getMessage().' LINE: '.$th->getLine().' FILE: '.$th->getFile();
+
+        $message = str_replace('\\', '/', $message);
+        $message = str_replace(array("\n", "\r"), '', $message);
+        logger($message);
+        logger('TRACE: '. $th->getTraceAsString());
+        if (!$request->ajax()) {
+            return redirect()->back()
+                ->with('error', env('APP_ENV')=='local'?$message:_lang('Something went wrong. Try again.'))
+                ->withInput();
+        }
+            
+        return response()->json(['result' => 'error', 'action' => $action, 'message' => env('APP_ENV')=='local'?$message:_lang('Something went wrong. Try again.'), 'data'=>null]);
     }
 }

@@ -152,6 +152,10 @@
             <td style="text-align:right"><b>{{ decimalPlace($noSujetoSum, $currency) }}</b></td>
         </tr>
         <tr>
+            <td><b>DESCUENTO</b></td>
+            <td style="text-align:right"><b>{{ decimalPlace($invoice->general_discount, $currency) }}</b></td>
+        </tr>
+        <tr>
             <td><b>IVA RETENIDO</b></td>
             <td style="text-align:right"><b> {{ decimalPlace($invoice->iva_retenido, $currency) }}</b></td>
         </tr>

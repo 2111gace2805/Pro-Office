@@ -108,4 +108,8 @@ class Invoice extends Model
             return '';
         }
     }
+
+    public function general_discount(){
+        return $this->belongsTo(GeneralDiscount::class, 'general_discount_id');
+    }
 }

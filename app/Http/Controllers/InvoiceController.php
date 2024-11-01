@@ -42,6 +42,7 @@ use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use App\Exceptions\UsuarioSinDUIException;
+use App\GeneralDiscount;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class InvoiceController extends Controller
@@ -223,8 +224,12 @@ class InvoiceController extends Controller
                 // ->first();
                 ->selectRaw('SUM(CASE WHEN tipodoc_id = "05" THEN subtotal ELSE 0 END) as total_subtotal_nc,
                 SUM(CASE WHEN tipodoc_id = "05" THEN tax_total ELSE 0 END) as total_tax_nc,
+                SUM(CASE WHEN tipodoc_id = "05" THEN general_discount ELSE 0 END) as total_desc_nc,
+                SUM(CASE WHEN tipodoc_id = "05" THEN iva_retenido ELSE 0 END) as iva_retenido_nc,
                 SUM(CASE WHEN tipodoc_id = "06" THEN subtotal ELSE 0 END) as total_subtotal_nd,
-                SUM(CASE WHEN tipodoc_id = "06" THEN tax_total ELSE 0 END) as total_tax_nd')
+                SUM(CASE WHEN tipodoc_id = "06" THEN general_discount ELSE 0 END) as total_desc_nd,
+                SUM(CASE WHEN tipodoc_id = "06" THEN tax_total ELSE 0 END) as total_tax_nd,
+                SUM(CASE WHEN tipodoc_id = "06" THEN iva_retenido ELSE 0 END) as iva_retenido_nd')
                 ->first();
 
                 
@@ -232,6 +237,10 @@ class InvoiceController extends Controller
             $invoiceCCF->total_taxs_nc   = $notasEmitidas->total_tax_nc ?? 0;
             $invoiceCCF->total_notas_nd  = $notasEmitidas->total_subtotal_nd ?? 0;
             $invoiceCCF->total_taxs_nd   = $notasEmitidas->total_tax_nd ?? 0;
+            $invoiceCCF->total_desc_nc   = $notasEmitidas->total_desc_nc ?? 0;
+            $invoiceCCF->total_desc_nd   = $notasEmitidas->total_desc_nd ?? 0;
+            $invoiceCCF->iva_retenido_nc = $notasEmitidas->iva_retenido_nc ?? 0;
+            $invoiceCCF->iva_retenido_nd = $notasEmitidas->iva_retenido_nd ?? 0;
             $invoiceCCF->type            = $request->type;
 
         }
@@ -250,11 +259,13 @@ class InvoiceController extends Controller
             $nota_pedido->datos = $nota;
         }
 
-        if (!$request->ajax()) {
-            return view('backend.accounting.invoice.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido']));
-        } else {
-            return view('backend.accounting.invoice.modal.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido']));
-        }
+        $generalDiscounts = GeneralDiscount::where('status', 'Active')->get();
+
+        // if (!$request->ajax()) {
+            return view('backend.accounting.invoice.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido', 'generalDiscounts']));
+        // } else {
+        //     return view('backend.accounting.invoice.modal.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido']));
+        // }
     }
 
     /**
@@ -306,6 +317,11 @@ class InvoiceController extends Controller
             //     $invoice->grand_total    = $request->product_total + $request->tax_total;
             // }else{
             $invoice->subtotal    = $request->product_total;
+            $invoice->subtotal_2    = $request->_subtotal_2;
+            $invoice->general_discount    = $request->discount_general??0; // valor en dolares del descuento de la venta
+            $invoice->general_discount_type    = $request->general_discount_type;
+            $invoice->general_discount_id    = $request->general_discount_id != 'other' ? $request->general_discount_id : null;
+            $invoice->general_discount_value    = $request->general_discount_value??0; // valor en porcentaje o dolares (caso fijo)
             $invoice->iva_retenido    = $request->iva_retenido;
             $invoice->iva_percibido    = $request->iva_percibido;
             $invoice->isr_retenido    = $request->isr_retenido;
@@ -580,8 +596,6 @@ class InvoiceController extends Controller
                 $cash->cash_value += $request->grand_total;
             }
     
-            DB::commit();
-    
             $msg = '';
             if ($invoice->tipotrans_id == '2') {
     
@@ -627,59 +641,62 @@ class InvoiceController extends Controller
                 $response_mh = json_decode(json_encode($response));
     
                 if (!property_exists($response_mh, 'estado')) {
+                    log::info('Error al procesar DTE en store (propiedad estado no existe en respuesta apihacienda): ' . json_encode($response));
+                    DB::rollBack();
+                    return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
     
-                    log::info('Error en respuesta de pasarela, verificar!');
+                    // log::info('Error en respuesta de pasarela, verificar!');
     
-                    $invoice->status            = 'Canceled';
-                    $invoice->note              = 'Motivo de anulación: Error en respuesta de pasarela';
-                    $invoice->numero_control = null;
-                    $invoice->save();
+                    // $invoice->status            = 'Canceled';
+                    // $invoice->note              = 'Motivo de anulación: Error en respuesta de pasarela';
+                    // $invoice->numero_control = null;
+                    // $invoice->save();
     
-                    log::info('Se inicia proceso de devolución de items');
+                    // log::info('Se inicia proceso de devolución de items');
     
-                    $invoiceItems = InvoiceItem::where("invoice_id", $invoice->id)->get();
-                    foreach ($invoiceItems as $p_item) {
+                    // $invoiceItems = InvoiceItem::where("invoice_id", $invoice->id)->get();
+                    // foreach ($invoiceItems as $p_item) {
 
-                        if( $p_item->kit_id > 0 ){
+                    //     if( $p_item->kit_id > 0 ){
     
-                            $kit = Kit::find( $p_item->kit_id );
+                    //         $kit = Kit::find( $p_item->kit_id );
     
-                            $products = json_decode( json_encode($kit->products) );
+                    //         $products = json_decode( json_encode($kit->products) );
         
-                            foreach( $products as $product ){
+                    //         foreach( $products as $product ){
         
-                                $cantidad_item_kit  = $product->quantity;
-                                $cantidad_kits      = $p_item->quantity;
+                    //             $cantidad_item_kit  = $product->quantity;
+                    //             $cantidad_kits      = $p_item->quantity;
             
-                                $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
+                    //             $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
 
-                                log::info('Se hace devolución de item con ID: ' . $product->product_id);
+                    //             //log::info('Se hace devolución de item con ID: ' . $product->product_id);
     
-                                update_stock($product->product_id, $total_unidades, '+');
-                            }
+                    //             update_stock($product->product_id, $total_unidades, '+');
+                    //         }
     
-                        }
-                        else{
-                            $invoiceItem = InvoiceItem::find($p_item->id);
-                            log::info('Se hace devolución de item con ID: ' . $p_item->id);
-                            update_stock($p_item->item_id, $invoiceItem->quantity, '+');
-                        }
-                    }
+                    //     }
+                    //     else{
+                    //         $invoiceItem = InvoiceItem::find($p_item->id);
+                    //         //log::info('Se hace devolución de item con ID: ' . $p_item->id);
+                    //         update_stock($p_item->item_id, $invoiceItem->quantity, '+');
+                    //     }
+                    // }
     
-                    log::info('Se finaliza proceso de devolución de items');
+                    // log::info('Se finaliza proceso de devolución de items');
     
-                    if ($invoice->forp_id == '01') { // 01 efectivo
-                        $cash = get_cash();
-                        $cash->cash_value -= $invoice->grand_total;
-                    }
+                    // if ($invoice->forp_id == '01') { // 01 efectivo
+                    //     $cash = get_cash();
+                    //     $cash->cash_value -= $invoice->grand_total;
+                    // }
     
-                    if ($request->ajax()) {
-                        return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
-                    } else {
-                        return redirect()->route('invoices.create')
-                            ->withErrors(['Sorry, Error Occured !', 'Error en pasarela'])
-                            ->withInput();
-                    }
+                    // if ($request->ajax()) {
+                    //     return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
+                    // } else {
+                    //     return redirect()->route('invoices.create')
+                    //         ->withErrors(['Sorry, Error Occured !', 'Error en pasarela'])
+                    //         ->withInput();
+                    // }
                 }
     
                 $invoice->status_mh         = ($response_mh->estado === 'RECHAZADO') ? 0 : 1;
@@ -689,58 +706,61 @@ class InvoiceController extends Controller
                 $invoice->save();
     
                 if ($response_mh->estado === 'RECHAZADO') {
+                    log::info('Error al procesar DTE en store (estado: rechazado): ' . json_encode($response));
+                    DB::rollBack();
+                    return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
     
-                    log::info('Error al procesar DTE: ' . json_encode($response));
+                    // log::info('Error al procesar DTE: ' . json_encode($response));
     
-                    $invoice->status    = 'Canceled';
-                    $invoice->note      = 'Motivo de anulación: ' . json_encode($response);
-                    $invoice->numero_control = null;
-                    $invoice->codigo_generacion = null;
-                    $invoice->save();
+                    // $invoice->status    = 'Canceled';
+                    // $invoice->note      = 'Motivo de anulación: ' . json_encode($response);
+                    // $invoice->numero_control = null;
+                    // $invoice->codigo_generacion = null;
+                    // $invoice->save();
     
-                    log::info('Se inicia proceso de devolución de items');
+                    // log::info('Se inicia proceso de devolución de items');
     
-                    $invoiceItems = InvoiceItem::where("invoice_id", $invoice->id)->get();
-                    foreach ($invoiceItems as $p_item) {
+                    // $invoiceItems = InvoiceItem::where("invoice_id", $invoice->id)->get();
+                    // foreach ($invoiceItems as $p_item) {
 
-                        if( $p_item->kit_id > 0 ){
+                    //     if( $p_item->kit_id > 0 ){
     
-                            $kit = Kit::find( $p_item->kit_id );
+                    //         $kit = Kit::find( $p_item->kit_id );
     
-                            $products = json_decode( json_encode($kit->products) );
+                    //         $products = json_decode( json_encode($kit->products) );
         
-                            foreach( $products as $product ){
+                    //         foreach( $products as $product ){
         
-                                $cantidad_item_kit  = $product->quantity;
-                                $cantidad_kits      = $p_item->quantity;
+                    //             $cantidad_item_kit  = $product->quantity;
+                    //             $cantidad_kits      = $p_item->quantity;
             
-                                $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
+                    //             $total_unidades     = intval( $cantidad_item_kit ) * intval( $cantidad_kits );
 
-                                log::info('Se hace devolución de item con ID: ' . $product->product_id);
+                    //             //log::info('Se hace devolución de item con ID: ' . $product->product_id);
     
-                                update_stock($product->product_id, $total_unidades, '+');
-                            }
+                    //             update_stock($product->product_id, $total_unidades, '+');
+                    //         }
     
-                        }
-                        else{
-                            $invoiceItem = InvoiceItem::find($p_item->id);
-                            log::info('Se hace devolución de item con ID: ' . $p_item->id);
-                            update_stock($p_item->item_id, $invoiceItem->quantity, '+');
-                        }
-                    }
+                    //     }
+                    //     else{
+                    //         $invoiceItem = InvoiceItem::find($p_item->id);
+                    //         //log::info('Se hace devolución de item con ID: ' . $p_item->id);
+                    //         update_stock($p_item->item_id, $invoiceItem->quantity, '+');
+                    //     }
+                    // }
     
-                    log::info('Se finaliza proceso de devolución de items');
+                    // log::info('Se finaliza proceso de devolución de items');
     
-                    if ($invoice->forp_id == '01') { // 01 efectivo
-                        $cash = get_cash();
-                        $cash->cash_value -= $invoice->grand_total;
-                    }
+                    // if ($invoice->forp_id == '01') { // 01 efectivo
+                    //     $cash = get_cash();
+                    //     $cash->cash_value -= $invoice->grand_total;
+                    // }
     
-                    if ($request->ajax()) {
-                        return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
-                    } else {
-                        return redirect()->route('invoices.create', $invoice->id)->with('error', 'Error al procesar DTE');
-                    }
+                    // if ($request->ajax()) {
+                    //     return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
+                    // } else {
+                    //     return redirect()->route('invoices.create', $invoice->id)->with('error', 'Error al procesar DTE');
+                    // }
                 } else if ($response_mh->estado === 'PROCESADO') {
 
                     if( $request->has('id_nota_p') ){
@@ -764,8 +784,10 @@ class InvoiceController extends Controller
     
                 }
     
-                log::info("Lo que envio de store hacia sendInviceToHacienda" . json_encode($response));
+                //log::info("Lo que envio de store hacia sendInviceToHacienda" . json_encode($response));
             }
+
+            DB::commit();
     
             if (!$request->ajax()) {
                 return redirect()->route('invoices.show', $invoice->id)->with('success', _lang('Factura Generada Exitosamente ' . $msg));
@@ -777,7 +799,7 @@ class InvoiceController extends Controller
 
             DB::rollBack();
 
-            Log::error('Error al crear Factura: ' . $th->getMessage());
+            Log::error('Error al crear Factura: ' . $th);
 
             // Imprimir el mensaje de error específico de la base de datos (si hay)
             if ($th instanceof \Illuminate\Database\QueryException && $th->errorInfo) {
@@ -974,8 +996,13 @@ class InvoiceController extends Controller
 
             $invoice = Invoice::find($id);
 
-            $response = $this->anularInvoiceMH($invoice->id, $request);
-            $response_mh = json_decode(json_encode($response));
+            if ($invoice->contingencia == 1) {
+                $response = [];
+                $response_mh = (object)['estado'=>'PROCESADO'];
+            }else{
+                $response = $this->anularInvoiceMH($invoice->id, $request);
+                $response_mh = json_decode(json_encode($response));
+            }
 
             if ($response_mh->estado === 'RECHAZADO') {
 
@@ -1033,7 +1060,11 @@ class InvoiceController extends Controller
 
                 DB::commit();
 
-                $this->sendEmailFactura($invoice->id, true);
+                try {
+                    $this->sendEmailFactura($invoice->id, true);
+                } catch (\Throwable $th) {
+                    //throw $th;
+                }
 
                 if ($request->ajax()) {
                     return response()->json(['result' => 'success', 'message' => _lang('Invoice deleted sucessfully'), 'data' => $response]);
@@ -1421,7 +1452,7 @@ class InvoiceController extends Controller
 
     public function sendInvoiceToHacienda($invoice_id)
     {
-        $invoice = Invoice::find($invoice_id);
+        $invoice = Invoice::with(['client', 'client.district', 'client.district.municipio'])->find($invoice_id);
         $versionJson = $invoice->tipo_documento->version_json;
         $ambiente = env('API_AMBIENTE_MH');
         // $dteJson = self::getDteJsonCCF($invoice, $versionJson, $ambiente);
@@ -1452,14 +1483,14 @@ class InvoiceController extends Controller
                 break;
         }
 
-        Log::info('Carga Útil de la Solicitud: ' . json_encode([
-            "nit" => str_replace('-', '', get_option('nit')),
-            "ambiente" => $ambiente,
-            "idEnvio" => 1,
-            "version" => intval($versionJson),
-            "tipoDte" => $invoice->tipodoc_id,
-            'dteJson' => $dteJson
-        ]));
+        // Log::info('Carga Útil de la Solicitud: ' . json_encode([
+        //     "nit" => str_replace('-', '', get_option('nit')),
+        //     "ambiente" => $ambiente,
+        //     "idEnvio" => 1,
+        //     "version" => intval($versionJson),
+        //     "tipoDte" => $invoice->tipodoc_id,
+        //     'dteJson' => $dteJson
+        // ]));
 
         try {
 
@@ -1512,9 +1543,9 @@ class InvoiceController extends Controller
                 Log::info('Se genero el token: Bearer ' . $tokenPasarela->token);
             }
 
-            Log::info(json_encode($tokenPasarela));
+            // Log::info(json_encode($tokenPasarela));
 
-            Log::info('Datos de token enviado: ' . json_encode($tokenPasarela));
+            // Log::info('Datos de token enviado: ' . json_encode($tokenPasarela));
 
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $tokenPasarela->token,
@@ -1533,7 +1564,7 @@ class InvoiceController extends Controller
                 )
                 ->json();
 
-            Log::info('Respuesta API MH: ' . json_encode($response));
+            // Log::info('Respuesta API MH: ' . json_encode($response));
 
             return $response;
         } catch (\Exception $e) {
@@ -1858,7 +1889,7 @@ class InvoiceController extends Controller
 
                     if (!property_exists($reenvio_mh, 'estado')) {
 
-                        log::info('Error en respuesta de pasarela, verificar!');
+                        log::info('Error al reenviar DTE en contingenciaInvoiceMH (propiedad estado no existe en respuesta apihacienda): ' . json_encode($response));
 
                         if ($request->ajax()) {
                             return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
@@ -1874,7 +1905,7 @@ class InvoiceController extends Controller
 
                     if ($reenvio_mh->estado === 'RECHAZADO') {
 
-                        log::info('Error al reenviar DTE en contingencia: ' . json_encode($response));
+                        log::info('Error al reenviar DTE en contingenciaInvoiceMH (estado: rechazado): ' . json_encode($response));
 
                         if ($request->ajax()) {
                             return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
@@ -2007,7 +2038,7 @@ class InvoiceController extends Controller
     }
 
 
-    private static function getDteJsonCCF($invoice, $versionJson, $ambiente)
+    public static function getDteJsonCCF($invoice, $versionJson, $ambiente)
     {
         // dd($invoice);
         $company = Company::find($invoice->company_id);
@@ -2131,6 +2162,29 @@ class InvoiceController extends Controller
                 }
             }
         }
+
+        $descuentos = $invoice->general_discount;
+        $descuentos = $descuentos;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal - $invoice->iva_retenido;
+
+        if( $descuentos > 0 ){
+
+            // $calculo_iva            = $total_subtotal * 1.13;
+            // $total_totalIva_items   = $calculo_iva - $total_subtotal;
+            $totalIva               = floatval($invoice->tax_total);
+            $totalTributos          = floatval($invoice->tax_total);
+
+            foreach( $resultadosFormateados as &$value ){
+                if( $value['codigo'] == 20 ){
+                    $value['valor'] = floatval(number_format($totalIva, 2, '.', ''));
+                }
+            }
+            unset($value);
+        }
+
         $dteJson = [
             "identificacion" => [
                 "version" => intval($versionJson),
@@ -2175,10 +2229,10 @@ class InvoiceController extends Controller
                 "codActividad" => $invoice->client->actie_id,
                 "descActividad" => $invoice->client->descActividad,
                 "nombreComercial" => $invoice->client->tradename,
-                "direccion" => [
-                    "departamento" => $invoice->client->depa_id,
-                    "municipio" => Municipio::find($invoice->client->munidepa_id)->muni_id,
-                    "complemento" => $invoice->complemento
+                "direccion" => !isset($invoice->client->munidepa_id) ? null : [ 
+                    "departamento" => $invoice->client->depa_id ?? '06',
+                    "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
+                    "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
                 ],
                 // "telefono"=> $invoice->telefono,
                 "telefono" => str_replace(['-', '+'], '', $invoice->telefono),
@@ -2195,9 +2249,10 @@ class InvoiceController extends Controller
                 "descuNoSuj"            => floatval(number_format(0.0, 2, '.', '')), // este campo es diferente al descuento por item no sujeto, aca debe ir un valor que en el 
                 // formulario de creacion de invoice diga "Descuento global a ventas no sujetas"
                 "descuExenta"           => floatval(number_format(0.0, 2, '.', '')),
-                "descuGravada"          => floatval(number_format(0.0, 2, '.', '')),
+                "descuGravada"          => floatval(number_format($descuentos, 2, '.', '')),
                 "porcentajeDescuento"   => floatval(number_format(0.0, 2, '.', '')),
-                "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
+                // "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
+                "totalDescu"            => floatval(number_format($descuentos, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
                 "tributos"              => $resultadosFormateados,
 
 
@@ -2208,14 +2263,17 @@ class InvoiceController extends Controller
                 //     "valor"=> 0.59
                 // }
                 //],
-                "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum - ($descGlobalExento + $descGlobalNoSujeto + $descGlobalGravado), 2, '.', '')), // menos $descGlobalNoSujeto, etc,
+                // "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum - ($descGlobalExento + $descGlobalNoSujeto + $descGlobalGravado), 2, '.', '')), // menos $descGlobalNoSujeto, etc,
+                "subTotal"              => floatval(number_format($total_subtotal, 2, '.', '')), // menos $descGlobalNoSujeto, etc,
                 "ivaPerci1"             => floatval(number_format($invoice->iva_percibido, 2, '.', '')),
                 "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
                 "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
-                "montoTotalOperacion"   => floatval(number_format($subTotal + $totalTributos, 2, '.', '')),
+                // "montoTotalOperacion"   => floatval(number_format($subTotal + $totalTributos, 2, '.', '')),
+                "montoTotalOperacion"   => floatval(number_format($total_subtotal + $totalTributos, 2, '.', '')),
                 "totalNoGravado"        => floatval(number_format(0.0, 2, '.', '')),
-                "totalPagar"            => floatval(number_format($subTotal + $totalTributos - $invoice->iva_retenido - $invoice->retencion_renta, 2, '.', '')),
-                "totalLetras"           => _lang('It is') . ' ' . dollarToText($invoice->grand_total) . ' USD',
+                // "totalPagar"            => floatval(number_format($subTotal + $totalTributos - $invoice->iva_retenido - $invoice->retencion_renta, 2, '.', '')),
+                "totalPagar"            => floatval(number_format($total_totalPagar + $totalTributos - $invoice->retencion_renta, 2, '.', '')),
+                "totalLetras"           => _lang('It is') . ' ' . dollarToText(floatval(number_format($total_totalPagar + $totalTributos - $invoice->retencion_renta, 2, '.', ''))) . ' USD',
                 "saldoFavor"            => floatval(number_format(0.0, 2, '.', '')),
                 "condicionOperacion"    => intval($invoice->conop_id),
                 // "pagos"=> $invoice->conop_id == 1 || $invoice->conop_id == 3?['codigo'=>intval($invoice->forp_id), 'montoPago'=>intval($invoice->grand_total)] : null,
@@ -2254,7 +2312,7 @@ class InvoiceController extends Controller
     } // PROBAR CCF
 
     // FE -> Factura electronica(consumidor final)
-    private static function getDteJsonFE($invoice, $versionJson, $ambiente)
+    public static function getDteJsonFE($invoice, $versionJson, $ambiente)
     {
         $company = Company::find($invoice->company_id);
         $details = [];
@@ -2396,11 +2454,24 @@ class InvoiceController extends Controller
 
         $direccion = null;
         if( $invoice->client->depa_id != '' ){
-            $direccion = [
-                "departamento"  => $invoice->client->depa_id,
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id,
-                "complemento"   => $invoice->complemento
+            $direccion = !isset($invoice->client->munidepa_id) ? null : [
+                "departamento"  => $invoice->client->depa_id ?? '06',
+                "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
+                "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
             ];
+        }
+
+        $descuentos = $invoice->general_discount;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal - $invoice->iva_retenido;
+
+        if( $descuentos > 0 ){
+         
+            $calculo_iva            = $total_subtotal / 1.13;
+            $total_totalIva_items   = $total_subtotal - $calculo_iva;
+            $totalIva               = floatval($total_totalIva_items);
         }
 
         $dteJson = [
@@ -2462,9 +2533,10 @@ class InvoiceController extends Controller
                 "descuNoSuj"            => 0.0, // este campo es diferente al descuento por item no sujeto, aca debe ir un valor que en el 
                 // formulario de creacion de invoice diga "Descuento global a ventas no sujetas"
                 "descuExenta"           => 0.0,
-                "descuGravada"          => 0.0,
+                "descuGravada"          => floatval(number_format($descuentos, 2, '.', '')),
                 "porcentajeDescuento"   => 0.0,
-                "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
+                // "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
+                "totalDescu"            => floatval(number_format($descuentos, 2, '.', '')), // uso informativo descuentos por item + descuentos globales por tipo de venta ej $descGlobalExento+$descGlobalNoSujeto
                 // "tributos"=> $tributos,
                 "tributos"              => null,
                 // [ // colocar aca los mismo tributos de los items
@@ -2474,15 +2546,16 @@ class InvoiceController extends Controller
                 //     "valor"=> 0.59
                 // }
                 //],
-                "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum - ($descGlobalExento + $descGlobalNoSujeto + $descGlobalGravado), 2, '.', '')), // menos $descGlobalNoSujeto, etc,
+                "subTotal"              => floatval(number_format($total_subtotal, 2, '.', '')), // menos $descGlobalNoSujeto, etc,
                 // "ivaPerci1"=> $invoice->iva_percibido,
                 "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
                 "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
                 // "montoTotalOperacion" => floatval(number_format($invoice->grand_total, 2, '.', '')),
-                "montoTotalOperacion"   => floatval(number_format($subTotal, 2, '.', '')),
+                "montoTotalOperacion"   => floatval(number_format($total_subtotal, 2, '.', '')),
                 "totalNoGravado"        => floatval(number_format(0.0, 2, '.', '')),
-                "totalPagar"            => floatval(number_format($subTotal - floatval($invoice->iva_retenido) - floatval($invoice->retencion_renta), 2, '.', '')),
-                "totalLetras"           => _lang('It is') . ' ' . dollarToText($invoice->grand_total) . ' USD',
+                // "totalPagar"            => floatval(number_format($subTotal - floatval($invoice->iva_retenido) - floatval($invoice->retencion_renta), 2, '.', '')),
+                "totalPagar"            => floatval(number_format($total_totalPagar-floatval($invoice->retencion_renta), 2, '.', '')),
+                "totalLetras"           => _lang('It is') . ' ' . dollarToText(floatval(number_format($total_totalPagar-floatval($invoice->retencion_renta), 2, '.', ''))) . ' USD',
                 "saldoFavor"            => 0.0,
                 "condicionOperacion"    =>  intval($invoice->conop_id),
                 // "pagos"=> $invoice->conop_id == 1 || $invoice->conop_id == 3?['codigo'=>$invoice->forp_id, 'montoPago'=>$invoice->grand_total] : null,
@@ -2520,7 +2593,7 @@ class InvoiceController extends Controller
         return $dteJson;
     } // CONTINUAR EN RESUMEN
 
-    private static function getDteJsonNotaDebitoCredito($tipoDte, $invoice, $versionJson, $ambiente)
+    public static function getDteJsonNotaDebitoCredito($tipoDte, $invoice, $versionJson, $ambiente)
     {
 
         $company = Company::find($invoice->company_id);
@@ -2598,10 +2671,10 @@ class InvoiceController extends Controller
             "codActividad"      => $invoice->client->actie_id,
             "descActividad"     => $invoice->client->descActividad,
             "nombreComercial"   => $invoice->client->tradename,
-            "direccion" => [
-                "departamento"  => $invoice->client->depa_id,
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id,
-                "complemento"   => $invoice->client->address
+            "direccion" => !isset($invoice->client->munidepa_id) ? null : [
+                "departamento"  => $invoice->client->depa_id ?? '06',
+                "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
+                "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
             ],
             "telefono"  => $invoice->client->contact_phone,
             "correo"    => $invoice->client->contact_email
@@ -2674,17 +2747,42 @@ class InvoiceController extends Controller
 
         $montoTotal = $invoice->grand_total;
 
+        $descuentos = $invoice->general_discount;
+        $descuentos = $descuentos;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal - $invoice->iva_retenido;
+
+        if( $descuentos > 0 ){
+
+            $calculo_iva            = $total_subtotal * 1.13;
+            $total_totalIva_items   = $calculo_iva - $total_subtotal;
+            $totalIva               = floatval($total_totalIva_items);
+            $totalTributos          = floatval($totalIva);
+
+            foreach( $arrTributos as &$value ){
+                if( $value['codigo'] == 20 ){
+                    $value['valor'] = floatval(number_format($totalIva, 2, '.', ''));
+                }
+            }
+            unset($value);
+        }
+
         $resumen = [
             "totalNoSuj"            => floatval(number_format($noSujetoSum, 2, '.', '')),
             "totalExenta"           => floatval(number_format($exentoSum, 2, '.', '')),
             "totalGravada"          => floatval(number_format($gravadoSum, 2, '.', '')),
-            "subTotalVentas"        => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
+            // "subTotalVentas"        => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
+            "subTotalVentas"        => floatval(number_format($noSujetoSum + $exentoSum + $total_gravadas, 2, '.', '')),
             "descuNoSuj"            => 0.0,
             "descuExenta"           => 0.0,
-            "descuGravada"          => 0.0,
-            "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+            "descuGravada"          => floatval(number_format($descuentos, 2, '.', '')),
+            // "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+            "totalDescu"            => floatval(number_format($descuentos, 2, '.', '')),
             "tributos"              => $arrTributos,
-            "subTotal"              => floatval(number_format($subTotal, 2, '.', '')),
+            // "subTotal"              => floatval(number_format($subTotal, 2, '.', '')),
+            "subTotal"              => floatval(number_format($total_subtotal, 2, '.', '')),
             "ivaPerci1"             => 0,
             "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
             "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
@@ -2733,7 +2831,7 @@ class InvoiceController extends Controller
         return $dteJson;
     }
 
-    private static function getDteJsonFEX($invoice, $versionJson, $ambiente)
+    public static function getDteJsonFEX($invoice, $versionJson, $ambiente)
     {
         $company = Company::find($invoice->company_id);
         $details = [];
@@ -2827,6 +2925,12 @@ class InvoiceController extends Controller
             "tipoMoneda"        => "USD"
         ];
 
+        $descuentos = $invoice->general_discount;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal;
+
         $dteJson = [
             "identificacion" => $identificacion,
             "emisor" => [
@@ -2858,9 +2962,9 @@ class InvoiceController extends Controller
                 "tipoDocumento"     => $invoice->tdocrec_id,
                 "numDocumento"      => $documento,
                 "nombreComercial"   => $invoice->client->tradename,
-                "codPais"           => $invoice->client->pais_id,
-                "nombrePais"        => $invoice->client->pais->pais_nombre,
-                "complemento"       => $invoice->client->address.', '.$invoice->client->municipio->muni_nombre.', '.$invoice->client->departamento->depa_nombre,
+                "codPais"           => $invoice->client->pais->pais_code??null,
+                "nombrePais"        => $invoice->client->pais->pais_nombre??null,
+                "complemento"       => $invoice->client->address.', '.($invoice->client->municipio->muni_nombre??'').', '.($invoice->client->departamento->depa_nombre??''),
                 "tipoPersona"       => intval($invoice->client->tpers_id),
                 "descActividad"     => $invoice->client->descActividad,
                 "telefono"          => $invoice->telefono,
@@ -2871,12 +2975,15 @@ class InvoiceController extends Controller
             "cuerpoDocumento"   => $details,
             "resumen" => [
                 "totalGravada"              => floatval(number_format($gravadoSum, 2, '.', '')),
-                "descuento"                 => floatval(number_format($descuento, 2, '.', '')),
+                // "descuento"                 => floatval(number_format($descuento, 2, '.', '')),
+                "descuento"                 => floatval(number_format($descuentos, 2, '.', '')),
                 "porcentajeDescuento"       => 0.0,
-                "totalDescu"                => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+                // "totalDescu"                => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+                "totalDescu"                => floatval(number_format($descuentos, 2, '.', '')),
                 "seguro"                    => 0,
                 "flete"                     => 0,
-                "montoTotalOperacion"       => floatval(number_format($invoice->grand_total, 2, '.', '')),
+                // "montoTotalOperacion"       => floatval(number_format($invoice->grand_total, 2, '.', '')),
+                "montoTotalOperacion"       => floatval(number_format($total_totalPagar, 2, '.', '')),
                 "totalNoGravado"            => 0,
                 "totalPagar"                => floatval(number_format($invoice->grand_total, 2, '.', '')),
                 "totalLetras"               => _lang('It is') . ' ' . dollarToText($invoice->grand_total) . ' USD',
@@ -2902,7 +3009,7 @@ class InvoiceController extends Controller
         return $dteJson;
     }
 
-    private static function getDteJsonNotaRemision($invoice, $versionJson, $ambiente)
+    public static function getDteJsonNotaRemision($invoice, $versionJson, $ambiente)
     {
 
         $company = Company::find($invoice->company_id);
@@ -2995,10 +3102,10 @@ class InvoiceController extends Controller
             "codActividad"      => $invoice->client->actie_id,
             "descActividad"     => $invoice->client->descActividad,
             "nombreComercial"   => $invoice->client->tradename,
-            "direccion" => [
-                "departamento"  => $invoice->client->depa_id,
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id,
-                "complemento"   => $invoice->client->address
+            "direccion" => !isset($invoice->client->munidepa_id) ? null : [
+                "departamento"  => $invoice->client->depa_id ?? '06',
+                "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
+                "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
             ],
             "telefono"          => $invoice->telefono,
             "correo"            => $invoice->correo,
@@ -3060,6 +3167,41 @@ class InvoiceController extends Controller
 
         $montoTotal = $invoice->grand_total;
 
+        $descuentos = $invoice->general_discount;
+        $descuentos = $descuentos;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal - $invoice->iva_retenido;
+
+        if( $descuentos > 0 ){
+
+            // $calculo_iva            = $total_subtotal * 1.13;
+            // $total_totalIva_items   = $calculo_iva - $total_subtotal;
+            // $totalIva               = floatval($total_totalIva_items);
+            // $totalTributos          = floatval($totalIva);
+
+            // foreach( $arrTributos as &$value ){
+            //     if( $value['codigo'] == 20 ){
+            //         $value['valor'] = floatval(number_format($totalIva, 2, '.', ''));
+            //     }
+            // }
+            // unset($value);
+            
+
+            // $calculo_iva            = $total_subtotal * 1.13;
+            // $total_totalIva_items   = $calculo_iva - $total_subtotal;
+            $totalIva               = floatval($invoice->tax_total);
+            $totalTributos          = floatval($invoice->tax_total);
+
+            foreach( $arrTributos as &$value ){
+                if( $value['codigo'] == 20 ){
+                    $value['valor'] = floatval(number_format($totalIva, 2, '.', ''));
+                }
+            }
+            unset($value);
+        }
+
         $resumen = [
             "totalNoSuj"            => floatval(number_format($noSujetoSum, 2, '.', '')),
             "totalExenta"           => floatval(number_format($exentoSum, 2, '.', '')),
@@ -3067,11 +3209,13 @@ class InvoiceController extends Controller
             "subTotalVentas"        => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
             "descuNoSuj"            => 0.0,
             "descuExenta"           => 0.0,
-            "descuGravada"          => 0.0,
+            "descuGravada"          => floatval(number_format($descuentos, 2, '.', '')),
             "porcentajeDescuento"   => 0.0,
-            "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+            // "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+            "totalDescu"            => floatval(number_format($descuentos, 2, '.', '')),
             "tributos"              => $arrTributos,
-            "subTotal"              => floatval(number_format($subTotal, 2, '.', '')),
+            // "subTotal"              => floatval(number_format($subTotal, 2, '.', '')),
+            "subTotal"              => floatval(number_format($total_subtotal, 2, '.', '')),
             "montoTotalOperacion"   => floatval(number_format($montoTotal, 2, '.', '')),
             "totalLetras"           => _lang('It is') . ' ' . dollarToText($montoTotal) . ' USD',
         ];
@@ -3112,7 +3256,7 @@ class InvoiceController extends Controller
         return $dteJson;
     }
 
-    private static function getDteJsonSujetoExcluido($invoice, $versionJson, $ambiente)
+    public static function getDteJsonSujetoExcluido($invoice, $versionJson, $ambiente)
     {
 
         $company = Company::find($invoice->company_id);
@@ -3201,10 +3345,10 @@ class InvoiceController extends Controller
             "nombre"            => $invoice->name_invoice,
             "codActividad"      => $invoice->client->actie_id,
             "descActividad"     => $invoice->client->descActividad,
-            "direccion" => [
-                "departamento"  => $invoice->client->depa_id,
-                "municipio"     => Municipio::find($invoice->client->munidepa_id)->muni_id,
-                "complemento"   => $invoice->client->address
+            "direccion" => !isset($invoice->client->munidepa_id) ? null : [
+                "departamento"  => $invoice->client->depa_id ?? '06',
+                "municipio" => $invoice->client->district->municipio->muni_id ?? '23',
+                "complemento" => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
             ],
             "telefono"          => $invoice->telefono,
             "correo"            => $invoice->correo,
@@ -3253,11 +3397,20 @@ class InvoiceController extends Controller
 
         $montoTotal = $invoice->grand_total;
 
+        $descuentos = $invoice->general_discount;
+
+        $total_gravadas    = $gravadoSum;
+        $total_subtotal    = $total_gravadas - $descuentos;
+        $total_totalPagar  = $total_subtotal;
+
         $resumen = [
             "totalCompra"           => floatval(number_format($montoTotal + $invoice->retencion_renta, 2, '.', '')),
-            "descu"                 => 0.0,
-            "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
-            "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
+            // "descu"                 => 0.0,
+            "descu"                 => floatval(number_format($descuentos, 2, '.', '')),
+            // "totalDescu"            => floatval(number_format($descExentoSum + $descGravadoSum + $descNoSujetoSum + $descGlobalExento + $descGlobalGravado + $descGlobalNoSujeto, 2, '.', '')),
+            "totalDescu"            => floatval(number_format($descuentos, 2, '.', '')),
+            // "subTotal"              => floatval(number_format($noSujetoSum + $exentoSum + $gravadoSum, 2, '.', '')),
+            "subTotal"              => floatval(number_format($total_subtotal, 2, '.', '')),
             "ivaRete1"              => floatval(number_format($invoice->iva_retenido, 2, '.', '')),
             "reteRenta"             => floatval(number_format($invoice->retencion_renta, 2, '.', '')),
             "totalPagar"            => floatval(number_format($montoTotal, 2, '.', '')),
@@ -3417,7 +3570,9 @@ class InvoiceController extends Controller
 
         $invoice = Invoice::find($id_invoice);
 
-        $json = json_decode($invoice->json_dte);
+        $json = json_decode(json_decode($invoice->json_dte));
+        $json->identificacion->selloRecibido = $invoice->sello_recepcion;
+        $json = json_encode($json);
 
         $json_temp = 'invoice_' . $invoice->id . '.json';
 
@@ -4350,7 +4505,7 @@ class InvoiceController extends Controller
 
         if (!property_exists($response_mh, 'estado')) {
 
-            log::info('Error en respuesta de pasarela, verificar!');
+            log::info('Error al procesar DTE en obtenerSelloHacienda (propiedad estado no existe en respuesta apihacienda): ' . json_encode($response));
 
             if ($request->ajax()) {
                 return response()->json(['result' => 'error', 'message' => 'Error en respuesta de pasarela']);
@@ -4370,7 +4525,7 @@ class InvoiceController extends Controller
 
         if ($response_mh->estado === 'RECHAZADO') {
 
-            log::info('Error al procesar DTE: ' . json_encode($response));
+            log::info('Error al procesar DTE en obtenerSelloHacienda: ' . json_encode($response));
 
             if( $request->ajax() ){
                 return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang('Error al procesar DTE'), 'data' => $response]);
@@ -4386,7 +4541,7 @@ class InvoiceController extends Controller
 
         }
 
-        log::info("Lo que envio de store hacia sendInviceToHacienda" . json_encode($response));
+        // log::info("Lo que envio de store hacia sendInviceToHacienda" . json_encode($response));
 
         if( !$request->ajax() ){
             return redirect()->route('invoices.show', $invoice->id)->with('success', _lang('Factura Generada Exitosamente ' . $msg));

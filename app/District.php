@@ -7,20 +7,19 @@ use App\Traits\SingleTenant;
 use App\Traits\LogsActivityTrait;
 
 
-class Municipio extends Model
+class District extends Model
 {
-    use SingleTenant;
+    // use SingleTenant;
     use LogsActivityTrait;
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $primaryKey = 'munidepa_id';
-    protected $table = 'municipios';
+    protected $primaryKey = 'dist_id';
 
-    public function district(){
-        return $this->hasMany(District::class, 'dist_id');
+    public function municipio(){
+        return $this->belongsTo(Municipio::class, 'munidepa_id', 'munidepa_id');
     }
     
 }

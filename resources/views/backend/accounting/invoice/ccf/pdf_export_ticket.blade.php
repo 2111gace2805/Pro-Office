@@ -147,6 +147,10 @@
             <td style="text-align:right"><b>{{ decimalPlace($noSujetoSum, $currency) }}</b></td>
         </tr>
         <tr>
+            <td><b>DESCUENTO</b></td>
+            <td style="text-align:right"><b>{{ decimalPlace($invoice->general_discount, $currency) }}</b></td>
+        </tr>
+        <tr>
             <td><b>13 % IVA</b></td>
             <td style="text-align:right"><b>{{decimalPlace($invoice->tax_total,$currency)}}</b></td>
         </tr>

@@ -169,8 +169,8 @@
                             <td style="word-break:break-all; word-wrap:break-word;">{{ $invoice->name_invoice }}</td>
                         </tr>
                         <tr>
-                            <td>{{ _lang('NIT:') }}</td>
-                            <td>{{ $invoice->client->nit }}</td>
+                            <td>{{ $invoice->tipo_documento_receptor->tdocrec_nombre??'' }}</td>
+                            <td>{{ $invoice->num_documento }}</td>
                         </tr>
                         <tr>
                             <td>{{ _lang('Actividad económica:') }}</td>
@@ -182,7 +182,7 @@
                         </tr>
                         <tr>
                             <td>{{ _lang('Dirección:') }}</td>
-                            <td>{{ $invoice->client->address.', '.mb_convert_case( $invoice->client->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->client->departamento->depa_nombre }}.</td>
+                            <td>{{ $invoice->client->address.', '.mb_convert_case( ($invoice->client->municipio->muni_nombre??''), MB_CASE_TITLE, 'UTF-8').', '.($invoice->client->departamento->depa_nombre??'') }}.</td>
                         </tr>
                         @for ($i = 0; $i < 7; $i++)
                                 <tr>
@@ -261,7 +261,7 @@
             <td style="width: 22%;border-left: 2px solid #565656;">Descripción Incoterms:</td>
             <td style="width: 42.5%;">{{ ( $invoice->id_incoterms != '' ) ? $invoice->incoterm->nombre_incoterms : '----' }}</td>
             <td class="right" style="width: 27%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Rebajas de operaciones afectas:</td>
-            <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace(0, $currency) }}</td>
+            <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($invoice->general_discount, $currency) }}</td>
         </tr>
         <tr class="borders" style="border-top:0;">
             <td style="width: 22%;">NOTA:</td>

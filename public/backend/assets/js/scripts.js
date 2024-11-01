@@ -1384,9 +1384,9 @@ function taxSelected(element, afectarPrecio = true){
 
         
     // comentar linea si ya no se vera afectado el precio con el iva
-	if($(line).find('.cambio_precio').val() == 0){
+	// if($(line).find('.cambio_precio').val() == 0){
 		line_unit_cost += price_tax;
-	}
+	//}
     line_unit_cost = parseFloat(line_unit_cost.toFixed(6));
     // comentar linea si ya no se vera afectado el precio con el iva
     $(line).find('.input-unit-cost').val(line_unit_cost.toFixed(6));

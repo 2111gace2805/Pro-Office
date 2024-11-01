@@ -163,7 +163,7 @@
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Correo') }}</label>
                                 <input type="text" class="form-control" name="correo" id="correo"
-                                value="{{ old('correo') }}" required>
+                                value="{{ old('correo') }}">
                             </div>
                         </div>
                         <div class="col-12 col-md-4">
@@ -465,8 +465,8 @@
                                 </table>
 
                                 <div class="row">
-                                    <div class="col-md-2">
-                                        <div class="form-check d-none">
+                                    <div class="col-12 col-md-4">
+                                        <div class="form-check" id="dvIvaRetenido">
                                             <input class="form-check-input" type="checkbox" value="" name="chkIvaRetenido" id="chkIvaRetenido">
                                             <label class="form-check-label" for="chkIvaRetenido">
                                                 IVA RETENIDO
@@ -484,10 +484,41 @@
                                                 RETENCIÓN RENTA
                                             </label>
                                         </div>
+                                        <div class="mt-3" id="dvGeneralDiscounts">
+                                            <label class="control-label">Descuentos</label>
+                                            <select class="form-control" name="general_discount_id" id="general_discount_id">
+                                                <option value="">{{_lang('Select One')}}</option>
+                                                @foreach ($generalDiscounts as $generalDiscount)
+                                                    <option value="{{$generalDiscount->id}}" data-type="{{$generalDiscount->type}}" data-value="{{$generalDiscount->value}}">{{$generalDiscount->name}}</option>
+                                                @endforeach
+                                                <option value="other">Otro</option>
+                                            </select>
+                                            <div class="w-100" style="display: none" id="dvGeneralDiscountOther">
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="general_discount_type" id="PercentageOption" value="Percentage" checked>
+                                                    <label class="form-check-label" for="PercentageOption">Porcentaje</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="general_discount_type" id="FixedOption" value="Fixed">
+                                                    <label class="form-check-label" for="FixedOption">Fijo</label>
+                                                </div>
+                                                <input type="number" step="0.01" class="form-control" name="general_discount_value" id="general_discount_value"/>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-md-10">
+                                    <div class="col-12 col-md-8">
                                         <table class="table table-bordered">
                                             <tfoot class="tfoot active">
+                                                <tr>
+                                                    <th>{{ _lang('Descuento general') }}</th>
+                                                    <th class="text-right">$ <span id="th_discount_general">0.00</span></th>
+                                                    <input type="hidden" name="discount_general" id="discount_general" value="0">
+                                                </tr>
+                                                <tr id="tr-_subtotal_2">
+                                                    <th>{{ _lang('Subtotal') }}</th>
+                                                    <th class="text-right">$ <span id="subtotal_2">0.00</span></th>
+                                                    <input type="hidden" name="_subtotal_2" id="_subtotal_2" value="0">
+                                                </tr>
                                                 <tr id="tr-impuesto">
                                                     <th>{{ _lang('Impuesto') }}</th>
                                                     <th class="text-right" id="total-tax">0.00</th>
@@ -539,7 +570,7 @@
                             </div>
                         </div>
 
-                        <div class="alert alert-warning mx-2 w-100">* Los datos del cliente son obligatorios si el total de la factura es igual o mayor a tres salarios mínimos.</div>
+                        {{-- <div class="alert alert-warning mx-2 w-100">* Los datos del cliente son obligatorios si el total de la factura es igual o mayor a tres salarios mínimos.</div> --}}
 
                         <div class="col-md-12">
                             <div class="form-group">
@@ -600,9 +631,9 @@
             $("#tipodoc_id").val(invoiceCCF.type).trigger("change");
             $("#tipodoc_id").attr("style", "pointer-events: none;");
 
-            let total = parseFloat( dte.subtotal ) + parseFloat( dte.tax_total );
-            let notas_creadas_nc = parseFloat( invoiceCCF.total_notas_nc ) + parseFloat( invoiceCCF.total_taxs_nc );
-            let notas_creadas_nd = parseFloat( invoiceCCF.total_notas_nd ) + parseFloat( invoiceCCF.total_taxs_nd );
+            let total = parseFloat( dte.subtotal ) - ( parseFloat( dte.general_discount ) ) + parseFloat( dte.tax_total )-parseFloat( dte.iva_retenido );
+            let notas_creadas_nc = parseFloat( invoiceCCF.total_notas_nc ) - ( parseFloat( invoiceCCF.total_desc_nc ) ) + parseFloat( invoiceCCF.total_taxs_nc )-parseFloat( invoiceCCF.iva_retenido_nc );
+            let notas_creadas_nd = parseFloat( invoiceCCF.total_notas_nd ) - ( parseFloat( invoiceCCF.total_desc_nd ) ) + parseFloat( invoiceCCF.total_taxs_nd )-parseFloat( invoiceCCF.iva_retenido_nd );
             
             let disponible = parseFloat( total ) - parseFloat( notas_creadas_nc ) + parseFloat( notas_creadas_nd );
 
@@ -610,9 +641,9 @@
             $("#nc_disp_ccf").html("$"+disponible.toFixed(2))
 
 
-            let total_sin_iva = parseFloat( dte.subtotal );
-            let notas_creadas_nc_sin_iva = parseFloat( invoiceCCF.total_notas_nc );
-            let notas_creadas_nd_sin_iva = parseFloat( invoiceCCF.total_notas_nd );
+            let total_sin_iva = parseFloat( dte.subtotal ) - ( parseFloat( dte.general_discount ) );
+            let notas_creadas_nc_sin_iva = parseFloat( invoiceCCF.total_notas_nc ) - ( parseFloat( invoiceCCF.total_desc_nc ) );
+            let notas_creadas_nd_sin_iva = parseFloat( invoiceCCF.total_notas_nd ) - ( parseFloat( invoiceCCF.total_desc_nd ) );
             
             let disponible_sin_iva = parseFloat( total_sin_iva ) - parseFloat( notas_creadas_nc_sin_iva ) + parseFloat( notas_creadas_nd_sin_iva );
 
