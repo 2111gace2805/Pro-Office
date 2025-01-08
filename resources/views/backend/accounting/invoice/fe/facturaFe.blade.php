@@ -282,7 +282,7 @@
                     }
                 @endphp
                 <tr style="page-break-inside: auto !important;">
-                    <td class="item borders center">{{ number_format($invoice->invoice_items[$i]->quantity, 0, '.', ',') }}</td>
+                    <td class="item borders center">{{ number_format($invoice->invoice_items[$i]->quantity, 2, '.', ',') }}</td>
                     {{-- <td class="item borders center">{{ $invoice->invoice_items[$i]->item->product->product_code }}</td> --}}
                     <td class="item borders">{!! nl2br($invoice->invoice_items[$i]->description) !!}</td>
                     <td class="item borders right">{{ $currency }} {{ number_format($invoice->invoice_items[$i]->unit_cost, 6, '.', '') }}</td>

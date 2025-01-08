@@ -23,7 +23,7 @@
             <tbody>
                 <tr>
                     <td>
-                        <h4><b>{{ get_option('company_name') }}</b></h4>
+                        <h4><b>{{ get_option('company_name') }}.</b></h4>
                         {{ get_option('address') }}<br>
                         {{ get_option('email') }}<br>
                         {!! get_option('vat_id') != '' ? _lang('VAT ID').':

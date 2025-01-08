@@ -216,8 +216,8 @@
                         $gravadoSum += $invoice->invoice_items[$i]->sub_total;
                     }
                 @endphp
-                <tr>
-                    <td class="item borders center">{{ $invoice->invoice_items[$i]->quantity }}</td>
+		<tr>
+		    <td class="item borders center">{{ number_format($invoice->invoice_items[$i]->quantity, 2, '.', ',') }}</td>
                     {{-- <td class="item borders center">{{ $invoice->invoice_items[$i]->item->product->product_code }}</td> --}}
                     <td class="item borders">{!! nl2br($invoice->invoice_items[$i]->description) !!}</td>
                     <td class="item borders right">{{ $currency }} {{ number_format($invoice->invoice_items[$i]->unit_cost, 6, '.', '') }}</td>

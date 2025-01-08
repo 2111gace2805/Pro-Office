@@ -292,7 +292,7 @@
                 <tr id="product-{{ $invoice->invoice_items[$i]->item_id }}">
                     <td
                         style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656; width: 70px;" class="text-center pb-0">
-                        <b>{{ number_format($invoice->invoice_items[$i]->quantity, 0, '.', ',') }}</b>
+                        <b>{{ number_format($invoice->invoice_items[$i]->quantity, 2, '.', ',') }}</b>
                     </td>
                     {{-- <td style="border-left: 2px solid #565656; border-right: 0px solid #565656; border-bottom: 0px solid #565656; border-top: 0px solid #565656;"
                         class="text-center ">{{ $invoice->invoice_items[$i]->item->product->product_code }}</td> --}}

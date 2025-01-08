@@ -129,7 +129,7 @@ var gran_contribuyente = 'no';
 											<td class="description">
                                                 <textarea cols="10" rows="15" name="product_description[]" class="form-control input-description">${item['item_name']} - ${product['product_code']}</textarea>
                                             </td>
-											<td class="text-center quantity" title="Cantidad máxima: ${json['available_quantity']}"><input type="text" name="quantity[]" min="1" class="form-control float-field numeric input-quantity text-center" value="1"></td>
+											<td class="text-center quantity" title="Cantidad máxima: ${json['available_quantity']}"><input type="text" name="quantity[]" min="1" class="form-control float-field numeric2 input-quantity text-center" value="1"></td>
 											<td class="text-right unit-cost"  style="width:143px"><input type="text" name="unit_cost[]" class="form-control float-field numeric2 input-unit-cost text-right" value="${unit_cost.toFixed(6)}"></td>
 											<td class="text-right discount d-none"><input type="text" name="discount[]" class="form-control float-field input-discount text-right" value="0.00"></td>
 											<td class="text-right tax" width="11%"><select class="form-control selectpicker input-tax selectIva" name="tax[${item['id']}][]" title="${$lang_select_tax}" multiple="true">${tax_selector}</select></td>

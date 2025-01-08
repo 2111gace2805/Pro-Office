@@ -122,7 +122,7 @@
             }
         @endphp
         <tr>
-            <td >{{ $invoice->invoice_items[$i]->quantity }}</td>
+            <td >{{ $invoice->invoice_items[$i]->quantity }}..</td>
             <td >{{ $invoice->invoice_items[$i]->item->product->product_code }} - {{ $invoice->invoice_items[$i]->description }}</td>
             <td >{{ decimalPlace($invoice->invoice_items[$i]->unit_cost, $currency) }}</td>
             <td>{{ ($exento!=''?$exento:($noSujeto!=''?$noSujeto:$gravado)) }} </td>
