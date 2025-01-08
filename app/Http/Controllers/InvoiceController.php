@@ -3509,6 +3509,9 @@ class InvoiceController extends Controller
 
             $invoice = Invoice::find($id);
 
+		$tipoDocumento = $invoice->tipo_documento; // Asegúrate de que la relación esté definida en el modelo
+	        $tipoDocNombre = $tipoDocumento->tipodoc_nombre ?? 'Documento Electrónico';
+
             // Generar el PDF utilizando la función separada
             $pdf = $this->downloadPdf($id);
 
@@ -3518,8 +3521,12 @@ class InvoiceController extends Controller
 
             Log::info('Se genera el JSON temporal: ' . $jsonFilePath);
 
+
+		 // Preparar el asunto del correo
+        	$subject = $tipoDocNombre;
+
             // Preparar el contenido del correo electrónico
-            $subject = 'Factura Electrónica';
+	    //$subject = 'Factura Electrónica';
 
             if( $anulacion ){
                 $subject = 'Anulación de Factura Electrónica';

@@ -15,15 +15,15 @@
         <h1>{{ $content['subject'] }}</h1>
         <p>{{ $content['body'] }}</p>
         @if( $anulacion )
-            <p>Por este medio enviamos su factura electrónica JSON y PDF, que registra la anulación del DTE realizado en {{ get_option('company_name') }}</p>
+            <p>Por este medio enviamos su documento electrónico en formato PDF Y JSON, que registra la anulación del DTE realizado en {{ get_option('company_name') }}</p>
         @else
-            <p>Por este medio enviamos su factura electrónica JSON y PDF, que registra su compra realizada en {{ get_option('company_name') }}</p>
+            <p>Por este medio enviamos su documento electrónico: {{ $content['subject'] }}, en formato PDF Y JSON. Este documento registra la adquisición de su servicio o compra realizada con {{ get_option('company_name') }}</p>
         @endif
         <p>Los documentos adjuntos cuentan con las especificaciones requeridas por el Ministerio de Hacienda, por lo que tienen el mismo respaldo tributario legal que los documentos físicos.</p>
         @if( $anulacion )
-            <p>Adjunto encontrará el archivo JSON de la factura anulada.</p>
+            <p>Adjunto encontrará el archivo PDF y JSON de la factura anulada.</p>
         @else
-            <p>Adjunto encontrará el archivo JSON de la factura.</p>
+            <p>Adjunto encontrará el archivo PDF y JSON de su DTE.</p>
         @endif
         {{-- <a href="{{ route('download.json', ['invoice' => $invoice, 'download' => 1]) }}">Descargar JSON</a> <!-- Enlace para descargar el JSON -->
         <br>

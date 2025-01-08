@@ -31,8 +31,8 @@
                 <tr>
                     <td style="width:35%">
                         <table>
-                            <td>
-                                <img src="{{ get_logo() }}" class="mh-80">
+			    <td>
+				{!! QrCode::size(150)->generate($url) !!}
                             </td>
                             <td style="padding-left: 5px;">
                                 <h3 style="">{{ get_option('company_name') }}</h3>
@@ -43,9 +43,9 @@
                     <td style="font-weight: bold;width:auto;" class="text-center">
                         <div style="font-size: 14px">DOCUMENTO TRIBUTARIO ELECTRÓNICO</div>
                         <div style="font-size: 14px">COMPROBANTE DE CRÉDITO FISCAL</div>
-                    </td>
-                    <td class="text-right" style="width:30%">
-                        {!! QrCode::size(150)->generate($url) !!}
+	                   </td>
+		    <td class="text-right" style="width:30%">
+			<img src="{{ get_logo() }}" class="mh-80">
                     </td>
                 </tr>
             </tbody>
