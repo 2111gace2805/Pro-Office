@@ -115,7 +115,13 @@
                 <td>{{ $invoice->numero_control }}</td>
                 <td style="padding-left:10px;">Fecha y Hora de Generación:</td>
                 <td>{{ $invoice->created_at->format('d-m-Y H:i:s') }}</td>
-            </tr>
+	    </tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td>&nbps;</td>
+		<td style="padding-left:10px;">Fecha y Hora de Emisión:</td>
+                <td>{{ $invoice->getInvoiceDateTime()->format('d-m-Y H:i:s') }}</td>
+	</tr>
             <tr>
                 <td>Sello de Recepción:</td>
                 <td>{{ $invoice->sello_recepcion }}</td>

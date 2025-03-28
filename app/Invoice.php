@@ -23,6 +23,12 @@ class Invoice extends Model
     {
         return $this->hasMany('App\InvoiceItem',"invoice_id")->orderBy('line');
     }
+	public function getInvoiceDateTime()
+    {
+        return \Carbon\Carbon::parse($this->raw_invoice_date() . ' ' . $this->invoice_time);
+    }
+
+
 
     public function taxes()
     {

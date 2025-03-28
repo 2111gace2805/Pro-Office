@@ -1609,6 +1609,19 @@ class InvoiceController extends Controller
         if ($request->dte_reemplaza != '' && $request->tipo_anulacion != 2) {
             $dte = Invoice::find($request->dte_reemplaza);
             $codigo_dte = $dte->codigo_generacion;
+	}
+
+	 //Número de documento de receptor
+        $num_documento = null;
+        if( $invoice->num_documento != '' ){
+            $num_documento = $invoice->num_documento;
+            $num_documento = str_replace('-', '', $num_documento);
+
+            if ($invoice->tdocrec_id == 13) {
+                $parte1 = substr($num_documento, 0, 8);
+                $parte2 = substr($num_documento, 8);
+                $num_documento = $parte1 . '-' . $parte2;
+            }
         }
 
         $documento = [
@@ -1620,7 +1633,7 @@ class InvoiceController extends Controller
             "montoIva"          => floatval($invoice->tax_total),
             "codigoGeneracionR" => $codigo_dte,
             "tipoDocumento"     => $invoice->tdocrec_id,
-            "numDocumento"      => $invoice->num_documento,
+            "numDocumento"      => $num_documento,
             "nombre"            => $invoice->name_invoice,
             "telefono"          => $invoice->client->contact_phone,
             "correo"            => $invoice->client->contact_email
@@ -3544,7 +3557,7 @@ class InvoiceController extends Controller
             ];
 
             // Enviar el correo electrónico con el archivo adjunto
-            $mail = Mail::to($invoice->correo)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control));
+             $mail = Mail::to($invoice->correo)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control));
 
             if( isset($invoice->correo_alterno) && $invoice->correo_alterno != '' ){
                 $mail2 = Mail::to($invoice->correo_alterno)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control));
@@ -3578,8 +3591,10 @@ class InvoiceController extends Controller
         $invoice = Invoice::find($id_invoice);
 
         $json = json_decode(json_decode($invoice->json_dte));
-        $json->identificacion->selloRecibido = $invoice->sello_recepcion;
-        $json = json_encode($json);
+	//$json->identificacion->selloRecibido = $invoice->sello_recepcion;
+	$json->selloRecibido = $invoice->sello_recepcion;
+	unset($json->identificacion->selloRecibido); //Nueva linea
+	$json = json_encode($json);
 
         $json_temp = 'invoice_' . $invoice->id . '.json';
 

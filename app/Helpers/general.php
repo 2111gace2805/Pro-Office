@@ -1096,7 +1096,8 @@ if (!function_exists('generateUrl')) {
     {
         $ambiente = env('API_AMBIENTE_MH');
         $codigo_generacion = $invoice->codigo_generacion;
-        $fechaEmi = date('Y-m-d', strtotime($invoice->created_at));
+	//$fechaEmi = date('Y-m-d', strtotime($invoice->created_at));
+	$fechaEmi = $invoice->raw_invoice_date();
 
         // Construye la URL con los parámetros necesarios
         $url = "https://admin.factura.gob.sv/consultaPublica?ambiente=$ambiente&codGen=$codigo_generacion&fechaEmi=$fechaEmi";
