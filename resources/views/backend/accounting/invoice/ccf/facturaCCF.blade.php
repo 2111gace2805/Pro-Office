@@ -107,16 +107,24 @@
             </tr>
             <tr>
                 <td>Número de Control:</td>
-                <td>{{ $invoice->numero_control }}</td>
-                <td style="padding-left:10px;">Fecha y Hora de Generación:</td>
+		<td>{{ $invoice->numero_control }}</td>
+		<td style="padding-left:10px;">Fecha y Hora de Emisión:</td>
+                <td>{{ $invoice->getInvoiceDateTime()->format('d-m-Y H:i:s') }}</td>
+
+            </tr>
+	    <tr>
+		<td>&nbsp;</td>
+                <td>&nbsp;</td>
+		<td style="padding-left:10px;">Fecha y Hora de Generación:</td>
                 <td>{{ $invoice->created_at->format('d-m-Y H:i:s') }}</td>
-            </tr>
-            <tr>
-                <td>Sello de Recepción:</td>
+	    </tr>
+	    <tr>
+		<td>Sello de Recepción:</td>
                 <td>{{ $invoice->sello_recepcion }}</td>
-                <td style="padding-left:10px;">Condición de operación:</td>
+
+		<td style="padding-left:10px;">Condición de operación:</td>
                 <td>{{ $invoice->condicion_operacion->conop_nombre }} {{ ( $invoice->conop_id == 2 && $invoice->plazo?->plazo_nombre != null ) ? $invoice->periodo . ' ' . $invoice->plazo->plazo_nombre : ''  }}</td>
-            </tr>
+	   </tr>
         </table>
     </table>
     <table style="width: 100%;margin:0;">

@@ -89,6 +89,10 @@
                 <tr>
                     <td class="font-weight-bold pl-2">{{ _lang('Tipo de Transmisión:') }}</td>
                     <td style="width: 370px">{{ ucfirst($invoice->transmision) }}</td>
+		</tr>
+		<tr>
+	             <td class="font-weight-bold pl-2">{{ _lang('Fecha y Hora de Emisión:') }}</td>
+                    <td class="">{{ $invoice->getInvoiceDateTime()->format('d-m-Y H:i:s') }}</td>
                 </tr>
                 <tr>
                     <td class="font-weight-bold pl-2">{{ _lang('Fecha y Hora de Generación:') }}</td>

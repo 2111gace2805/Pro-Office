@@ -89,11 +89,16 @@
                 <tr>
                     <td class="font-weight-bold pl-2">{{ _lang('Tipo de Transmisión:') }}</td>
                     <td style="width: 370px">{{ ucfirst($invoice->transmision) }}</td>
+		</tr>
+		<tr>
+                    <td class="font-weight-bold pl-2">{{ _lang('Fecha y Hora de Emisión:') }}</td>
+                    <td class="">{{ $invoice->getInvoiceDateTime()->format('d-m-Y H:i:s') }}</td>
                 </tr>
                 <tr>
                     <td class="font-weight-bold pl-2">{{ _lang('Fecha y Hora de Generación:') }}</td>
                     <td class="">{{ $invoice->created_at->format('d-m-Y H:i:s') }}</td>                    
-                </tr>
+		</tr>
+
                 <tr>
                     <td class="font-weight-bold pl-2">{{ _lang('Condición de operación:') }}</td>
                     <td class="">{{ $invoice->condicion_operacion->conop_nombre }} {{ ( $invoice->conop_id == 2 && $invoice->plazo?->plazo_nombre != null ) ? $invoice->periodo . ' ' . $invoice->plazo->plazo_nombre : ''  }}</td>            
