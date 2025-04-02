@@ -85,3 +85,6 @@ Thumbs.db
 # Laravel Valet specific files
 .valet
 valet/
+
+#Media
+/public/uploads/

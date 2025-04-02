@@ -1775,7 +1775,8 @@ class InvoiceController extends Controller
             "nombreResponsable"     => $request->responsableEstablecimiento,
             "tipoDocResponsable"    => $request->tipoDocRespEstablecimiento,
             "numeroDocResponsable"  => $request->numDocRespEstablecimiento,
-            "tipoEstablecimiento"   => $company->tipoest_id,
+	    "tipoEstablecimiento"   => $company->tipoest_id,
+	    "codPuntoVenta"         => null,
             "codEstableMH"          => null,
             "telefono"              => str_replace(['-', '+'], '', $company->cellphone),
             "correo"                => $company->email
