@@ -29,7 +29,7 @@
             <div class="col-md-12">
                 <div class="form-group">
                     <label class="control-label">{{ _lang('Product Name') }}</label>
-                    <input maxlength="64" type="text" class="form-control" name="item_name" value="{{ old('item_name') }}">
+                    <input maxlength="1000" type="text" class="form-control" name="item_name" value="{{ old('item_name') }}">
                 </div>
             </div>
             <div class="col-md-12">
@@ -47,7 +47,7 @@
         <div class="col-md-12 mt-3">
             <div class="form-group">
                 <label class="control-label text-black">{{ _lang('Description') }}</label>
-                <textarea required maxlength="128" class="form-control" name="description">{{ old('description') }}</textarea>
+                <textarea required maxlength="1000" class="form-control" name="description">{{ old('description') }}</textarea>
             </div>
         </div>
 
