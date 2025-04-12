@@ -88,3 +88,8 @@ valet/
 
 #Media
 /public/uploads/
+
+
+/public/storage/*.json
+/bootstrap/cache/*.php
+/bootstrap/cache/*.json
