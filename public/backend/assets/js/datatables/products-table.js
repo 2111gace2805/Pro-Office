@@ -70,28 +70,28 @@
         {
           extend: "excel",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5],
+            columns: [0, 2, 3, 4, 5, 6],
           },
           title: "Products",
         },
         {
           extend: "copy",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5],
+            columns: [0, 2, 3, 4, 5, 6],
           },
           title: "Products",
         },
         {
           extend: "pdf",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5],
+            columns: [0, 2, 3, 4, 5, 6],
           },
           title: "Products",
         },
         {
           extend: "print",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5],
+            columns: [0, 2, 3, 4, 5, 6],
           },
           title: "Products",
           customize: function (win) {
