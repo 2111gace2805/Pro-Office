@@ -89,13 +89,6 @@ valet/
 #Media
 /public/uploads/
 
-<<<<<<< Updated upstream
-
 /public/storage/*.json
 /bootstrap/cache/*.php
 /bootstrap/cache/*.json
-=======
-/bootstrap/cache/*.php
-/bootstrap/cache/*.json
-/public/storage/*.json
->>>>>>> Stashed changes

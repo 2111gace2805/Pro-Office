@@ -52,7 +52,7 @@
             text-align: right;
         }
         .borders {
-            border: 2px solid #565656;
+            border: 1px solid #565656;
         }
         .watermark {
             position: fixed;
@@ -81,7 +81,7 @@
 		</td>
                 <td class="center" style="width: 50%; font-weight: bold;">
                     <div>DOCUMENTO TRIBUTARIO ELECTRÓNICO</div>
-                    <div>FACTURA</div>
+                    <div>FACTURA-</div>
                     <br>
                     <div>{{ get_option('company_name') }}</div>
                     <div>{{ strtoupper(get_option('business_line')) }}</div>
@@ -132,97 +132,55 @@
         </table>
         
     </table>
-    <table style="width: 100%;margin:0;">
-        <tr>
-            <td style="width: 50%;">
-                <p style="font-weight: bold; text-align: center; margin:0;">EMISOR</p>
-                <div style="border: 2px solid #565656; border-radius: 10px;">
-                    <table style="width: 100%;">
-                        <tr>
-                            <td style="width: 45%;">{{ _lang('Nombre o razón social:') }}</td>
-                            <td>{{ get_option('tradename') }}</td>
-                        </tr>
-                        <tr>
-                            <td>{{ _lang('NIT:') }}</td>
-                            <td>{{ get_option('nit') }}</td>
-                        </tr>
-                        <tr>
-                            <td>{{ _lang('NRC:') }}</td>
-                            <td>{{ get_option('nrc') }}</td>
-                        </tr>
-                        <tr>
-                            <td>{{ _lang('Actividad económica:') }}</td>
-                            <td>{{ get_option('desc_actividad') }}</td>
-                        </tr>
-                        <tr>
-                            <td>{{ _lang('Dirección:') }}</td>
-                            <td>{{ $invoice->company->address.', '.mb_convert_case( $invoice->company->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->company->departamento->depa_nombre }}</td>
-                        </tr>
-                        <tr>
-                            <td>{{ _lang('Número de teléfono:') }}</td>
-                            <td>{{ $invoice->company->cellphone }}</td>
-                        </tr>
-                        <tr>
-                            <td>{{ _lang('Correo electrónico:') }}</td>
-                            <td>{{ $invoice->company->email }}</td>
-                        </tr>
-                        <tr>
-                            <td>{{ _lang('Tipo de establecimiento:') }}</td>
-                            <td>{{ $invoice->company->tipoEstablecimiento->tipoest_nombre }}</td>
-                        </tr>
-                    </table>
-                </div>
-            </td>
-            <td style="width: 50%;">
-                <p style="font-weight: bold; text-align: center; margin:0;">RECEPTOR</p>
-                <div style="border: 2px solid #565656; border-radius: 10px;min-height:155px;">
-                    <table style="width: 100%;table-layout:fixed;">
-                        <tr>
-                            <td style="width: 45%;">{{ _lang('Nombre o razón social:') }}</td>
-                            <td style="word-break:break-all; word-wrap:break-word;">
-                                {{ $invoice->name_invoice }}                        
-                            </td>
-                        </tr>
-                        @if( $invoice->tdocrec_id != '' )
-                            <tr>
-                                <td>{{ _lang('Tipo de documento:') }}</td>
-                                <td>{{ $tipoDoc }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ _lang('Número de documento:') }}</td>
-                                <td>{{ $invoice->num_documento }}</td>
-                            </tr>
-                        @else
-                            @for ($i = 0; $i < 40; $i++)
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                            @endfor
-                        @endif
-                        @if( isset($invoice->client->municipio->muni_nombre) && $invoice->client->municipio->muni_nombre != '' )
-                            <tr>
-                                <td>{{ _lang('Dirección:') }}</td>
-                                <td>{{ $invoice->client->address.', '.mb_convert_case( $invoice->client->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->client->departamento->depa_nombre }}.</td>
-                            </tr>
-                        @endif
-                        @if( $invoice->client->contact_phone != '' )
-                            <tr>
-                                <td>{{ _lang('Número de teléfono:') }}</td>
-                                <td>{{ $invoice->client->contact_phone }}</td>
-                            </tr>
-                        @endif
-                        @if( $invoice->client->contact_email != '' )
-                            <tr>
-                                <td>{{ _lang('Correo electrónico:') }}</td>
-                                <td>{{ $invoice->client->contact_email }}</td>
-                            </tr>
-                        @endif
-                    </table>
-                </div>
-            </td>
-        </tr>
-    </table>
+    <!-- EMISOR VS RECEPTOR -->
+   <table style="width: 100%; margin: 0;">
+    <tr>
+        <td style="width: 50%; vertical-align: top;">
+            <p style="font-weight: bold; text-align: center; margin: 0;">EMISOR</p>
+            <div style="border: 2px solid #565656; border-radius: 10px; min-height: 170px; padding: 8px;">
+                <table style="width: 100%;">
+                    <tr><td style="width: 35%;">{{ _lang('Nombre o razón social:') }}</td><td>{{ get_option('tradename') }}</td></tr>
+                    <tr><td>{{ _lang('NIT:') }}</td><td>{{ get_option('nit') }}</td></tr>
+                    <tr><td>{{ _lang('NRC:') }}</td><td>{{ get_option('nrc') }}</td></tr>
+                    <tr><td>{{ _lang('Actividad económica:') }}</td><td>{{ get_option('desc_actividad') }}</td></tr>
+                    <tr><td>{{ _lang('Dirección:') }}</td><td>{{ $invoice->company->address.', '.mb_convert_case($invoice->company->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->company->departamento->depa_nombre }}</td></tr>
+                    <tr><td>{{ _lang('Número de teléfono:') }}</td><td>{{ $invoice->company->cellphone }}</td></tr>
+                    <tr><td>{{ _lang('Correo electrónico:') }}</td><td>{{ $invoice->company->email }}</td></tr>
+                    <tr><td>{{ _lang('Tipo de establecimiento:') }}</td><td>{{ $invoice->company->tipoEstablecimiento->tipoest_nombre }}</td></tr>
+                </table>
+            </div>
+        </td>
+
+        <td style="width: 50%; vertical-align: top;">
+            <p style="font-weight: bold; text-align: center; margin: 0;">RECEPTOR</p>
+            <div style="border: 2px solid #565656; border-radius: 10px; min-height: 170px; padding: 8px;">
+                <table style="width: 100%; table-layout: fixed;">
+                    <tr><td style="width: 35%;">{{ _lang('Nombre o razón social:') }}</td><td style="word-break: break-word;">{{ $invoice->name_invoice }}</td></tr>
+
+                    @if( $invoice->tdocrec_id != '' )
+                        <tr><td>{{ _lang('Tipo de documento:') }}</td><td>{{ $tipoDoc }}</td></tr>
+                        <tr><td>{{ _lang('Número de documento:') }}</td><td>{{ $invoice->num_documento }}</td></tr>
+                    @endif
+
+                    @if( isset($invoice->client->municipio->muni_nombre) && $invoice->client->municipio->muni_nombre != '' )
+                        <tr><td>{{ _lang('Dirección:') }}</td><td>{{ $invoice->client->address.', '.mb_convert_case($invoice->client->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->client->departamento->depa_nombre }}.</td></tr>
+                    @endif
+
+                    @if( $invoice->client->contact_phone != '' )
+                        <tr><td>{{ _lang('Número de teléfono:') }}</td><td>{{ $invoice->client->contact_phone }}</td></tr>
+                    @endif
+
+                    @if( $invoice->client->contact_email != '' )
+                        <tr><td>{{ _lang('Correo electrónico:') }}</td><td>{{ $invoice->client->contact_email }}</td></tr>
+                    @endif
+                </table>
+            </div>
+        </td>
+    </tr>
+</table>
+
+
+
     @if( $invoice->id_nr_rel > 0 )
         <p class="center" style="margin:0"><b>DOCUMENTOS RELACIONADOS</b></p>
         <table style="width: 100%;border-collapse: collapse;margin-bottom:10px;">
@@ -258,16 +216,16 @@
             </tbody>
         </table>
     @endif
-    <table style="width: 100%;border-collapse: collapse;">
+<!-- contenido del cuerpo aquí -->
+    <table style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 10px; border: 0px solid #565656; border-radius: 10px; overflow: hidden;">
         <thead>
-            <tr>
-                <th class="borders center" style="width: 6.8%;">Cantidad</th>
-                {{-- <th class="item borders center" style="width: 7.7%;">Código</th> --}}
-                <th class="item borders" style="width: 43%;">Descripción</th>
-                <th class="item borders right" style="width: 8%;">P. Unitario</th>
-                <th class="item borders" style="width: 8%;">Ventas No Sujetas</th>
-                <th class="item borders" style="width: 8%;">Ventas Exentas</th>
-                <th class="item borders" style="width: 8%;">Ventas gravadas</th>
+            <tr style="background-color: black; color: white; ">
+                <th style="padding: 8px; border-top-left-radius: 10px; width: 6.8%;">CANTIDAD</th>
+                <th style="padding: 8px; width: 43%;">DESCRIPCIÓN</th>
+                <th style="padding: 8px; width: 8%;">PRECIO UNITARIO</th>
+                <th style="padding: 8px; width: 8%;">VENTAS NO SUJETAS</th>
+                <th style="padding: 8px; width: 8%;">VENTAS EXENTAS</th>
+                <th style="padding: 8px; border-top-right-radius: 10px; width: 8%;">VENTAS GRAVADAS</th>
             </tr>
         </thead>
         <tbody>
@@ -276,75 +234,102 @@
                     $noSujeto = '';
                     $exento = '';
                     $gravado = '';
-
-                    if($invoice->exento_iva == 'si'){
+        
+                    if ($invoice->exento_iva == 'si') {
                         $exento = decimalPlace($invoice->invoice_items[$i]->sub_total, $currency);
                         $exentoSum += $invoice->invoice_items[$i]->sub_total;
-                    }else if($invoice->nosujeto_iva == 'si'){
+                    } elseif ($invoice->nosujeto_iva == 'si') {
                         $noSujeto = decimalPlace($invoice->invoice_items[$i]->sub_total, $currency);
                         $noSujetoSum += $invoice->invoice_items[$i]->sub_total;
-                    }else{
+                    } else {
                         $gravado = decimalPlace($invoice->invoice_items[$i]->sub_total, $currency);
                         $gravadoSum += $invoice->invoice_items[$i]->sub_total;
                     }
+        
+                    $isLast = ($i == count($invoice->invoice_items) - 1);
                 @endphp
-                <tr style="page-break-inside: auto !important;">
-                    <td class="item borders center">{{ number_format($invoice->invoice_items[$i]->quantity, 2, '.', ',') }}</td>
-                    {{-- <td class="item borders center">{{ $invoice->invoice_items[$i]->item->product->product_code }}</td> --}}
-                    <td class="item borders">{!! nl2br($invoice->invoice_items[$i]->description) !!}</td>
-                    <td class="item borders right">{{ $currency }} {{ number_format($invoice->invoice_items[$i]->unit_cost, 6, '.', '') }}</td>
-                    <td class="item borders {{ $exento == '' ? 'center' : 'right' }}">{{ $noSujeto == '' ? '-' : $noSujeto }}</td>
-                    <td class="item borders {{ $exento == '' ? 'center' : 'right' }}">{{ $exento == '' ? '-' : $exento }}</td>
-                    <td class="item borders right">{{ $gravado == '' ? '-' : $gravado }}</td>
+                <tr>
+                    <td style="text-align: center; padding: 5px; border-left: 1px solid #565656; border-right: 1px solid #565656; {{ $isLast ? 'border-bottom: 1px solid #565656; border-bottom-left-radius: 10px;' : 'border-bottom: 0px solid #565656;' }}">
+                        {{ number_format($invoice->invoice_items[$i]->quantity, 2, '.', ',') }}
+                    </td>
+                    <td style="padding: 5px; border-right: 1px solid #565656; {{ $isLast ? 'border-bottom: 1px solid #565656;' : 'border-bottom: 0px solid #565656;' }}">
+                        {!! nl2br($invoice->invoice_items[$i]->description) !!}
+                    </td>
+                    <td style="text-align: center; padding: 5px; border-right: 1px solid #565656; {{ $isLast ? 'border-bottom: 1px solid #565656;' : 'border-bottom: 0px solid #565656;' }}">
+                        {{ $currency }} {{ number_format($invoice->invoice_items[$i]->unit_cost, 2, '.', '') }}
+                    </td>
+                    <td style="text-align: center; padding: 5px; border-right: 1px solid #565656; {{ $isLast ? 'border-bottom: 1px solid #565656;' : 'border-bottom: 0px solid #565656;' }}">
+                        {{ $noSujeto == '' ? '-' : $noSujeto }}
+                    </td>
+                    <td style="text-align: center; padding: 5px; border-right: 1px solid #565656; {{ $isLast ? 'border-bottom: 1px solid #565656;' : 'border-bottom: 0px solid #565656;' }}">
+                        {{ $exento == '' ? '-' : $exento }}
+                    </td>
+                    <td style="text-align: center; padding: 5px; border-left: 1px solid #565656; border-right: 1px solid #565656; {{ $isLast ? 'border-bottom: 1px solid #565656; border-bottom-right-radius: 10px;' : 'border-bottom: 0px solid #565656;' }}">
+                        {{ $gravado == '' ? '-' : $gravado }}
+                    </td>
                 </tr>
             @endfor
         </tbody>
+        
     </table>
-    <table class="borders" style="width: 100%;border-collapse: collapse;border-top:0;border-bottom:0;">
-        <tr>
-            <td style="width: 60.9%;">{{ _lang('It is') }} {{ dollarToText($invoice->grand_total) }} DÓLARES</td>
-            <td class="center" style="width: 9.8%;border-left: 2px solid #565656;border-bottom: 2px solid #565656;">SUMAS</td>
-            <td class="center" style="width: 9.71%;border-left: 2px solid #565656;border-bottom: 2px solid #565656;">{{ decimalPlace($noSujetoSum, $currency) }}</td>
-            <td class="center" style="width: 9.8%;border-left: 2px solid #565656;border-bottom: 2px solid #565656;">{{ decimalPlace($exentoSum, $currency) }}</td>
-            <td class="right" style="border-left: 2px solid #565656;border-bottom: 2px solid #565656;">{{ decimalPlace($gravadoSum, $currency) }}</td>
-        </tr>
-    </table>
-    <table style="width: 100%; border-collapse: collapse;">
-        <tr style="border-top:0;">
-            <td style="width: 64.4%;border-left: 2px solid #565656;"></td>
-            <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Descuento general</td>
-            <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($invoice->general_discount, $currency) }}</td>
-        </tr>
-        <tr style="border-top:0;">
-            <td style="width: 55.3%;border-left: 2px solid #565656;"></td>
-            <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">(-) IVA Retenido</td>
-            <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($invoice->iva_retenido, $currency) }}</td>
-        </tr>
-        <tr style="border-top:0;">
-            <td style="width: 55.3%;border-left: 2px solid #565656;"></td>
-            <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Retención Renta</td>
-            <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($invoice->retencion_renta, $currency) }}</td>
-        </tr>
-        <tr style="border-top:0;">
-            <td style="width: 55.3%;border-left: 2px solid #565656;"></td>
-            <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Sub-Total</td>
-            <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($gravadoSum - $invoice->general_discount-$invoice->iva_retenido - $invoice->retencion_renta, $currency) }}</td>
-        </tr>
-        <tr style="border-top:0;">
-            <td style="width: 55.3%;border-left: 2px solid #565656;"></td>
-            <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Vtas. No sujetas</td>
-            <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($noSujetoSum, $currency) }}</td>
-        </tr>
-        <tr style="border-top:0;">
-            <td style="width: 55.3%;border-left: 2px solid #565656;"></td>
-            <td class="left" style="width: 26.7%;border-left: 2px solid #565656;border-right: 2px solid #565656;border-bottom: 2px solid #565656;">Vtas. Exentas</td>
-            <td class="right" style="border-bottom: 2px solid #565656;border-right: 2px solid #565656;">{{ decimalPlace($exentoSum, $currency) }}</td>
-        </tr>
-        <tr class="borders" style="border-top:0;">
-            <td style="width: 55.3%;">NOTA: {!! nl2br($invoice->note) !!} </td>
-            <td class="left" style="width: 8.9%;border-left: 2px solid #565656;border-right: 2px solid #565656;">Total</td>
-            <td class="right" style="width:8.9%;">{{ decimalPlace($invoice->grand_total, $currency) }}</td>
-        </tr> 
-    </table>
+
+    
+    
+    
+   <!-- Resumen de Totales --> 
+   <table style="width: 100%;border-collapse: separate; border-spacing: 0; border-top:0;border-bottom:0;">
+    <tr>
+        <td style="border-top-left-radius: 10px; padding-left: 5px; width: 64.4%; border-left: 1px solid #565656; border-top: 1px solid #565656;">{{ _lang('It is') }} {{ dollarToText($invoice->grand_total) }} DÓLARES</td>
+        <td style="padding-left: 5px; width: 6.7%;border-left: 1px solid #565656;border-bottom: 1px solid #565656; border-top: 1px solid #565656;">SUMAS</td>
+        <td class="center" style="width: 9.8%;border-left: 1px solid #565656;border-bottom: 1px solid #565656; border-top: 1px solid #565656;">{{ decimalPlace($noSujetoSum, $currency) }}</td>
+        <td class="center" style="width: 9.8%;border-left: 1px solid #565656;border-bottom: 1px solid #565656; border-top: 1px solid #565656;">{{ decimalPlace($exentoSum, $currency) }}</td>
+        <td class="right"  style="padding-right: 5px; border-top-right-radius: 10px; border-left: 1px solid #565656;border-bottom: 1px solid #565656; border-top: 1px solid #565656;  border-right: 1px solid #565656;">{{ decimalPlace($gravadoSum, $currency) }}</td>
+    </tr>
+</table>
+<table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+    <tr style="border-top:0;">
+        <td style="width: 64.5%;border-left: 1px solid #565656;"></td>
+        <td class="left" style="width: 26.3%;padding-left: 5px; border-left: 1px solid #565656;border-right: 1px solid #565656;">Descuento general</td>
+        <td class="right" style="padding-right: 5px; border-right: 1px solid #565656;">{{ decimalPlace($invoice->general_discount, $currency) }}</td>
+    </tr>
+    <tr style="border-top:0;">
+        <td style="width: 64.4%;border-left: 1px solid #565656;"></td>
+        <td class="left" style="padding-left: 5px; border-left: 1px solid #565656;border-right: 1px solid #565656;">13 % IVA</td>
+        <td class="right" style="padding-right: 5px; border-right: 1px solid #565656;">{{ decimalPlace($invoice->tax_total, $currency) }}</td>
+    </tr>
+    <tr style="border-top:0;">
+        <td style="width: 64.4%;border-left: 1px solid #565656;"></td>
+        <td class="left" style=" padding-left: 5px; border-left: 1px solid #565656;border-right: 1px solid #565656;">Sub-Total</td>
+        <td class="right" style="padding-right: 5px; border-right: 1px solid #565656;">{{ decimalPlace($gravadoSum -( $invoice->general_discount )+$invoice->tax_total, $currency) }}</td>
+    </tr>
+    <tr style="border-top:0;">
+        <td style="width: 64.4%;border-left: 1px solid #565656;"></td>
+        <td class="left" style="padding-left: 5px; border-left: 1px solid #565656;border-right: 1px solid #565656;">(-) IVA Retenido</td>
+        <td class="right" style="padding-right: 5px; border-right: 1px solid #565656;">{{ decimalPlace($invoice->iva_retenido, $currency) }}</td>
+    </tr>
+    <tr style="border-top:0;">
+        <td style="width: 64.4%;border-left: 1px solid #565656;"></td>
+        <td class="left" style="padding-left: 5px; border-left: 1px solid #565656;border-right: 1px solid #565656;">Retención Renta</td>
+        <td class="right" style="padding-right: 5px; border-right: 1px solid #565656;">{{ decimalPlace($invoice->retencion_renta, $currency) }}</td>
+    </tr>
+    <tr style="border-top:0;">
+        <td style="width: 64.4%;border-left: 1px solid #565656;"></td>
+        <td class="left" style="padding-left: 5px; border-left: 1px solid #565656;border-right: 1px solid #565656;">Vtas. No sujetas</td>
+        <td class="right" style="padding-right: 5px; border-right: 1px solid #565656;">{{ decimalPlace($noSujetoSum, $currency) }}</td>
+    </tr>
+    <tr style="border-top:0;">
+        <td style="width: 64.4%;border-left: 1px solid #565656;"></td>
+        <td class="left" style="padding-left: 5px; border-left: 1px solid #565656;border-right: 1px solid #565656;">Vtas. Exentas</td>
+        <td class="right" style=" padding-right: 5px; border-right: 1px solid #565656;">{{ decimalPlace($exentoSum, $currency) }}</td>
+    </tr>
+    <tr style="border-top:0;">
+        <td style="padding-left: 5px; border-bottom-left-radius: 10px; border-left: 1px solid #565656;border-bottom: 1px solid #565656; width: 64.4%; " >NOTA: {!! nl2br($invoice->note) !!} </td>
+        <td class="left" style="padding-left: 5px; border-left: 1px solid #565656;border-bottom: 1px solid #565656; border-right: 1px solid #565656;">Total</td>
+        <td class="right" style="border-bottom-right-radius: 10px; padding-right: 5px; border-bottom: 1px solid #565656; border-right: 1px solid #565656;">{{ decimalPlace($invoice->grand_total, $currency) }}</td>
+    </tr> 
+</table>
+
+
+    
 </body>
 </html>
