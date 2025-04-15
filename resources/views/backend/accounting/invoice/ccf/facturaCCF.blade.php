@@ -131,10 +131,10 @@
         <tr>
             <td style="width: 50%; padding: 5px;">
                 <p style="font-weight: bold; text-align: center;margin:0;">EMISOR</p>
-                <div style="border: 2px solid #565656; border-radius: 10px;">
+                <div style="border: 2px solid #565656; border-radius: 10px; min-height: 170px;">
                     <table style="width: 100%;">
                         <tr>
-                            <td style="width: 45%;">{{ _lang('Nombre o razón social:') }}</td>
+                            <td style="width: 35%;">{{ _lang('Nombre o razón social:') }}</td>
                             <td>{{ get_option('tradename') }}</td>
                         </tr>
                         <tr>
@@ -170,10 +170,10 @@
             </td>
             <td style="width: 50%;">
                 <p style="font-weight: bold; text-align: center;margin:0;">RECEPTOR</p>
-                <div style="border: 2px solid #565656; border-radius: 10px;min-height:155px;">
+                <div style="border: 2px solid #565656; border-radius: 10px;min-height:170px;">
                     <table style="width: 100%;table-layout:fixed;">
                         <tr>
-                            <td style="width: 45%;">{{ _lang('Nombre o razón social:') }}</td>
+                            <td style="width: 35%;">{{ _lang('Nombre o razón social:') }}</td>
                             <td style="word-break:break-all; word-wrap:break-word;">{{ $invoice->name_invoice }}</td>
                         </tr>
                         <tr>
