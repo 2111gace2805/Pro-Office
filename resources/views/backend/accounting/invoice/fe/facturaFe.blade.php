@@ -81,7 +81,7 @@
 		</td>
                 <td class="center" style="width: 50%; font-weight: bold;">
                     <div>DOCUMENTO TRIBUTARIO ELECTRÓNICO</div>
-                    <div>FACTURA-</div>
+                    <div>FACTURA</div>
                     <br>
                     <div>{{ get_option('company_name') }}</div>
                     <div>{{ strtoupper(get_option('business_line')) }}</div>
@@ -143,7 +143,10 @@
                     <tr><td>{{ _lang('NIT:') }}</td><td>{{ get_option('nit') }}</td></tr>
                     <tr><td>{{ _lang('NRC:') }}</td><td>{{ get_option('nrc') }}</td></tr>
                     <tr><td>{{ _lang('Actividad económica:') }}</td><td>{{ get_option('desc_actividad') }}</td></tr>
-                    <tr><td>{{ _lang('Dirección:') }}</td><td>{{ $invoice->company->address.', '.mb_convert_case($invoice->company->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->company->departamento->depa_nombre }}</td></tr>
+                    <tr>
+                        <td>{{ _lang('Dirección:') }}</td>
+                        <td>{{ $invoice->client->address.', '.mb_convert_case($invoice->client->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->client->departamento->depa_nombre }}.</td>
+                    </tr>
                     <tr><td>{{ _lang('Número de teléfono:') }}</td><td>{{ $invoice->company->cellphone }}</td></tr>
                     <tr><td>{{ _lang('Correo electrónico:') }}</td><td>{{ $invoice->company->email }}</td></tr>
                     <tr><td>{{ _lang('Tipo de establecimiento:') }}</td><td>{{ $invoice->company->tipoEstablecimiento->tipoest_nombre }}</td></tr>
@@ -163,7 +166,10 @@
                     @endif
 
                     @if( isset($invoice->client->municipio->muni_nombre) && $invoice->client->municipio->muni_nombre != '' )
-                        <tr><td>{{ _lang('Dirección:') }}</td><td>{{ $invoice->client->address.', '.mb_convert_case($invoice->client->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->client->departamento->depa_nombre }}.</td></tr>
+                        <tr>
+                            <td>{{ _lang('Dirección:') }}</td>
+                            <td>{{ $invoice->client->address.', '.mb_convert_case($invoice->client->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->client->departamento->depa_nombre }}.</td>
+                        </tr>
                     @endif
 
                     @if( $invoice->client->contact_phone != '' )
@@ -279,8 +285,8 @@
    <!-- Resumen de Totales --> 
    <table style="width: 100%;border-collapse: separate; border-spacing: 0; border-top:0;border-bottom:0;">
     <tr>
-        <td style="border-top-left-radius: 10px; padding-left: 5px; width: 64.4%; border-left: 1px solid #565656; border-top: 1px solid #565656;">{{ _lang('It is') }} {{ dollarToText($invoice->grand_total) }} DÓLARES</td>
-        <td style="padding-left: 5px; width: 6.7%;border-left: 1px solid #565656;border-bottom: 1px solid #565656; border-top: 1px solid #565656;">SUMAS</td>
+        <td style="border-top-left-radius: 10px; padding-left: 5px; width: 64.5%; border-left: 1px solid #565656; border-top: 1px solid #565656;">{{ _lang('It is') }} {{ dollarToText($invoice->grand_total) }} DÓLARES</td>
+        <td style="padding-left: 5px; width: 6.6%;border-left: 1px solid #565656;border-bottom: 1px solid #565656; border-top: 1px solid #565656;">SUMAS</td>
         <td class="center" style="width: 9.8%;border-left: 1px solid #565656;border-bottom: 1px solid #565656; border-top: 1px solid #565656;">{{ decimalPlace($noSujetoSum, $currency) }}</td>
         <td class="center" style="width: 9.8%;border-left: 1px solid #565656;border-bottom: 1px solid #565656; border-top: 1px solid #565656;">{{ decimalPlace($exentoSum, $currency) }}</td>
         <td class="right"  style="padding-right: 5px; border-top-right-radius: 10px; border-left: 1px solid #565656;border-bottom: 1px solid #565656; border-top: 1px solid #565656;  border-right: 1px solid #565656;">{{ decimalPlace($gravadoSum, $currency) }}</td>
