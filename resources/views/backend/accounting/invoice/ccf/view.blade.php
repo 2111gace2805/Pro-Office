@@ -14,7 +14,7 @@
                     {{-- <a class="btn btn-primary btn-sm print" href="#" data-print="invoice-view"><i class="ti-printer"></i>
                     {{ _lang('Imprimir pagina') }}</a> --}}
                     <a class="btn btn-primary btn-sm" href="{{ route('invoices.download_pdf', $invoice->id) }}" target="_blank"><i
-                        class="ti-file"></i> {{ _lang('Generar factura') }}</a>
+                        class="ti-file"></i> {{ _lang('Imprimir DTE') }}</a>
                     <a class="btn btn-secondary btn-sm ml-2 mr-2"
                         href="{{ route('invoices.download_pdf', $invoice->id) }}?ticket=true" target="_blank"><i
                             class="fa-solid fa-receipt"></i> {{ _lang('Imprimir ticket') }}</a>

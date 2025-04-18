@@ -14,7 +14,7 @@
                 {{-- <a class="btn btn-primary btn-sm print" href="#" data-print="invoice-view"><i class="ti-printer"></i>
                 {{ _lang('Imprimir pagina') }}</a> --}}
                 <a class="btn btn-primary btn-sm" href="{{ route('invoices.download_pdf', $invoice->id) }}" target="_blank"><i
-                    class="ti-file"></i> {{ _lang('Generar factura') }}</a>y
+                    class="ti-file"></i> {{ _lang('Imprimir DTE') }}</a>y
                 @if ($invoice->status != 'Paid')
                     <a class="btn btn-success btn-sm ajax-modal" data-title="{{ _lang('Make Payment') }}"
                         href="{{ route('invoices.create_payment', $invoice->id) }}"><i class="ti-receipt"></i>
