@@ -298,15 +298,20 @@
         <td class="left" style="width: 26.3%;padding-left: 5px; border-left: 1px solid #565656;border-right: 1px solid #565656;">Descuento general</td>
         <td class="right" style="padding-right: 5px; border-right: 1px solid #565656;">{{ decimalPlace($invoice->general_discount, $currency) }}</td>
     </tr>
+    <!-- 
     <tr style="border-top:0;">
         <td style="width: 64.4%;border-left: 1px solid #565656;"></td>
         <td class="left" style="padding-left: 5px; border-left: 1px solid #565656;border-right: 1px solid #565656;">13 % IVA</td>
         <td class="right" style="padding-right: 5px; border-right: 1px solid #565656;">{{ decimalPlace($invoice->tax_total, $currency) }}</td>
     </tr>
+-->
     <tr style="border-top:0;">
         <td style="width: 64.4%;border-left: 1px solid #565656;"></td>
         <td class="left" style=" padding-left: 5px; border-left: 1px solid #565656;border-right: 1px solid #565656;">Sub-Total</td>
-        <td class="right" style="padding-right: 5px; border-right: 1px solid #565656;">{{ decimalPlace($gravadoSum -( $invoice->general_discount )+$invoice->tax_total, $currency) }}</td>
+        <td class="right" style="padding-right: 5px; border-right: 1px solid #565656;">
+            {{ decimalPlace($gravadoSum - $invoice->general_discount, $currency) }}
+        </td>
+        
     </tr>
     <tr style="border-top:0;">
         <td style="width: 64.4%;border-left: 1px solid #565656;"></td>
