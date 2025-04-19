@@ -74,11 +74,11 @@
 		<td class="center" style="width: 25%;">
 		    <img src="data:image/png;base64,{{ base64_encode($codigoQR) }}" alt="Código QR">
                 </td>
-                <td class="center" style="width: 50%; font-weight: bold;">
-                    <div>--DOCUMENTO TRIBUTARIO ELECTRÓNICO--</div>
+                <td class="center" style="width: 50%; ">
+                    <div>DOCUMENTO TRIBUTARIO ELECTRÓNICO</div>
                     <div>COMPROBANTE DE CRÉDITO FISCAL</div>
                     <br>
-                    <div>{{ get_option('company_name') }}</div>
+                    <div> <p style="font-weight: bold; text-align: center;margin:0;"> {{ get_option('company_name') }}</p></div>
                     <div>{{ strtoupper(get_option('business_line')) }}</div>
                 </td>
 		<td class="center" style="width: 25%;">
@@ -86,52 +86,60 @@
                 </td>
             </tr>
         </table>
-        <table class="info-table" style="margin-left:40px;">
-            <tr>
-                <td style="width: 25%;">Código vendedor:</td>
-                <td>{{ $invoice->seller_code->seller_code ?? '-' }} {{ $invoice->formatted_seller_code2 }}</td>
-                <td style="width: 25%;padding-left:10px;">Correlativo N°:</td>
-                <td>{{ $invoice->invoice_number }}</td>
-            </tr>
-            <tr>
-                <td style="width: 25%;">Sucursal:</td>
-                <td>{{ $invoice->company->company_name }}</td>
-                <td style="padding-left:10px;">Modelo de Facturación:</td>
-                <td>{{ ucfirst($invoice->modelo_facturacion) }}</td>
-            </tr>
-            <tr>
-                <td>Código de Generación:</td>
-                <td>{{ $invoice->codigo_generacion }}</td>
-                <td style="padding-left:10px;">Tipo de Transmisión:</td>
-                <td>{{ ucfirst($invoice->transmision) }}</td>
-            </tr>
-            <tr>
-                <td>Número de Control:</td>
-		<td>{{ $invoice->numero_control }}</td>
-		<td style="padding-left:10px;">Fecha y Hora de Emisión:</td>
-                <td>{{ $invoice->getInvoiceDateTime()->format('d-m-Y H:i:s') }}</td>
-
-            </tr>
-	    <tr>
-		<td>&nbsp;</td>
-                <td>&nbsp;</td>
-		<td style="padding-left:10px;">Fecha y Hora de Generación:</td>
-                <td>{{ $invoice->created_at->format('d-m-Y H:i:s') }}</td>
-	    </tr>
-	    <tr>
-		<td>Sello de Recepción:</td>
-                <td>{{ $invoice->sello_recepcion }}</td>
-
-		<td style="padding-left:10px;">Condición de operación:</td>
-                <td>{{ $invoice->condicion_operacion->conop_nombre }} {{ ( $invoice->conop_id == 2 && $invoice->plazo?->plazo_nombre != null ) ? $invoice->periodo . ' ' . $invoice->plazo->plazo_nombre : ''  }}</td>
-	   </tr>
-        </table>
+        <!-- Encabezado de la Factura -->
+    <table  style="margin-left: 0px; border-collapse: collapse; width: 100%;">
+        <tr>
+            <td style="width: 8.2%; padding-left: 6px;">Código vendedor:</td>
+            <td style="width: 15%; padding-left: 6px;">{{ $invoice->seller_code->seller_code ?? '-' }} {{ $invoice->formatted_seller_code2 }}</td>
+            <td style="width: 3%;">&nbsp;</td>
+            <td style="width: 10%; padding-left: 10px;">Correlativo N°:</td>
+            <td style="width: 15%; padding-left: 6px;">{{ $invoice->invoice_number }}</td>
+        </tr>
+        <tr>
+            <td style="padding-left: 6px;">Sucursal:</td>
+            <td style="padding-left: 6px;">{{ $invoice->company->company_name }}</td>
+            <td>&nbsp;</td>
+            <td style="padding-left: 10px;">Modelo de Facturación:</td>
+            <td style="padding-left: 6px;">{{ ucfirst($invoice->modelo_facturacion) }}</td>
+        </tr>
+        <tr>
+            <td style="background-color: #e0e0e0; padding: 4px 6px; font-weight: bold; border-top-left-radius: 10px;">Código de Generación:</td>
+            <td style="background-color: #e0e0e0; padding: 4px 6px;border-top-right-radius: 10px;">{{ $invoice->codigo_generacion }}</td>
+            <td >&nbsp;</td>
+            <td style="padding-left: 10px;">Tipo de Transmisión:</td>
+            <td style="padding-left: 6px;">{{ ucfirst($invoice->transmision) }}</td>
+        </tr>
+        <tr>
+            <td style="background-color: #e0e0e0; padding: 4px 6px; font-weight: bold;">Número de Control:</td>
+            <td style="background-color: #e0e0e0; padding: 4px 6px;">{{ $invoice->numero_control }}</td>
+            <td>&nbsp;</td>
+            <td style="padding-left: 10px;">Fecha y Hora de Emisión:</td>
+            <td style="padding-left: 6px;"s>{{ $invoice->getInvoiceDateTime()->format('d-m-Y H:i:s') }}</td>
+        </tr>
+        <tr>
+            <td style="background-color: #e0e0e0; padding: 4px 6px; font-weight: bold; border-bottom-left-radius: 10px;">Sello de Recepción:</td>
+            <td style="background-color: #e0e0e0; padding: 4px 6px; border-bottom-right-radius: 10px; ">{{ $invoice->sello_recepcion }}</td>
+            <td >&nbsp;</td>
+            <td style="padding-left: 10px;">Fecha y Hora de Generación:</td>
+            <td style="padding-left: 6px;">{{ $invoice->created_at->format('d-m-Y H:i:s') }}</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td >&nbsp;</td>
+            <td style="padding-left: 10px;">Condición de operación:</td>
+            <td style="padding-left: 6px;">{{ $invoice->condicion_operacion->conop_nombre }} 
+                {{ ( $invoice->conop_id == 2 && $invoice->plazo?->plazo_nombre != null ) ? $invoice->periodo . ' ' . $invoice->plazo->plazo_nombre : ''  }}
+            </td>
+        </tr>
     </table>
+
+
     <table style="width: 100%;margin:0;">
         <tr>
             <td style="width: 50%; padding: 5px;">
                 <p style="font-weight: bold; text-align: center;margin:0;">EMISOR</p>
-                <div style="border: 2px solid #565656; border-radius: 10px; min-height: 170px;">
+                <div style="border: 2px solid #565656; border-radius: 10px; min-height: 170px; ">
                     <table style="width: 100%;">
                         <tr>
                             <td style="width: 35%;">{{ _lang('Nombre o razón social:') }}</td>
