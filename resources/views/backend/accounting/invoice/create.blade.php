@@ -146,7 +146,7 @@
                         <div class="col-12 col-md-4">
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Tipo de documento') }}</label>
-                                <select class="form-control" name="tdocrec_id" id="tdocrec_id" style="pointer-events: none;">
+                                <select class="form-control" name="tdocrec_id" id="tdocrec_id" style="">
                                 <option value="">{{ _lang('Select One') }}</option>
                                 {{ create_option("tipo_doc_ident_receptor", "tdocrec_id", "tdocrec_nombre", old('tdocrec_id')) }}
                                 </select>
@@ -156,7 +156,7 @@
                             <div class="form-group">
                                 <label class="control-label">{{ _lang('Numero de documento') }}</label>
                                 <input type="text" class="form-control" name="num_documento" id="num_documento"
-                                value="{{ old('num_documento') }}" readonly>
+                                value="{{ old('num_documento') }}" readonly required>
                             </div>
                         </div>
                         <div class="col-12 col-md-4">

@@ -19,7 +19,7 @@ var gran_contribuyente = 'no';
 
     //update_summary();
 
-    verificarCaja();
+    //verificarCaja();
 
     $(document).on('change', '#product,#service,#kit', function () {
         var product_id = $(this).val();
@@ -341,13 +341,43 @@ var gran_contribuyente = 'no';
                     $('#actie_id_invoice').trigger('change');
                     $('#desc_actividad').val($('#actie_id_invoice').find(':selected').html());
                 }
-                if($('#tipodoc_id').val() == '03' || $('#tipodoc_id').val() == '04'){ // 03 es CCFE; 04 = NOTA REMISION
+
+                //CAMBIANDO LA LOGICA DE LOS DOCUMENTOS ******************************************
+                const documentosSoloNIT = ['03', '04', '05', '06'];
+                if(documentosSoloNIT.includes($('#tipodoc_id').val())){ // 03 es CCFE; 04 = NOTA REMISION
+                    $('#tdocrec_id').val(36); 
                     $('#num_documento').val(selectedContact.nit);
                     $('#desc_actividad').parent().parent().addClass('d-none');
+                    
                 }else{
                     if (editing == false) {
-                        $('#tdocrec_id').val('');
-                        $('#num_documento').val('');
+                       $('#tdocrec_id').val('');
+                       $('#num_documento').val('');
+                        let nitvalue = (selectedContact.nit || '').replace(/-/g, '');
+                        let duivalue = (selectedContact.dui || '').replace(/-/g, '');
+                       // console.log('DUI:', duivalue, 'length:', duivalue.length);
+                       // console.log('NIT:', nitvalue, 'length:', duivalue.length);
+
+                        if(nitvalue == '00000000000000' && duivalue == '000000000'){
+                            
+                            console.log('TOCA DUI');
+                            $('#tdocrec_id').val(13); 
+                            $('#num_documento').val(selectedContact.dui);
+
+                        } else if (duivalue == '') {
+                            
+                           // console.log('TOCA NIT 1');
+                            $('#tdocrec_id').val(36); 
+                            $('#num_documento').val(selectedContact.nit);
+                            
+                        }                                       
+                        else{
+                            //console.log('TOCA NIT 2');
+                            $('#tdocrec_id').val(36); 
+                            $('#num_documento').val(selectedContact.nit);
+                        }
+                        console.log('dui ', duivalue,  'nit ', nitvalue);
+
                     }
                     $('#actie_id_invoice').val('');
                     
@@ -355,15 +385,17 @@ var gran_contribuyente = 'no';
                     // $('#actie_id_invoice').parent().parent().addClass('d-none');
                     $('#desc_actividad').parent().parent().removeClass('d-none');
                 }
-
-                if (contact.tpers_id == 1) {
-                    $('#tdocrec_id').val(13); 
-                    $('#num_documento').val(selectedContact.dui);
-                } else {
+/*
+                if ($('#tipodoc_id').val() == '03' && contact.tpers_id == 1) {
                     $('#tdocrec_id').val(36); 
                     $('#num_documento').val(selectedContact.nit);
+                } else {
+                    $('#tdocrec_id').val(13); 
+                    $('#num_documento').val(selectedContact.dui);
                 }
 
+                    ************************************************************************************
+*/
                 if( contact.id == 47 ){
                     $('#tdocrec_id').val("");
                     $('#nombre_comercial').attr("readonly", true);
@@ -1049,6 +1081,17 @@ function saveInvoice( event ){
     
                 let csrfToken = document.querySelector('input[name="_token"]').value;
                 let form = document.getElementById('frmInvoices');
+
+                //PROBANDO LLENAR EL DUI 
+                let tipoDte = document.getElementById('tipodoc_id').value;
+                let numDocInput = document.getElementById('num_documento');
+
+                // Asignar DUI por defecto si es consumidor final y viene vacío
+                if (tipoDte === '01' && numDocInput.value.trim() === '') {
+                    numDocInput.value = '00000000-0';
+                }
+
+
                 let data = new FormData(form);
 
                 let selected = $("#tipodoc_id").val();
@@ -1108,7 +1151,7 @@ function saveInvoice( event ){
                         data.append('id_nota_p', id_nota_p);
                     }
                 }
-    
+              
                 $.ajax({
                     url: '/invoices',
                     method: 'POST',
