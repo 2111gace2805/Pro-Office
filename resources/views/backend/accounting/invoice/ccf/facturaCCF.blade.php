@@ -160,8 +160,8 @@
                         <tr>
                             <td>{{ _lang('Dirección:') }}</td>
                             <td>
-                                {{ $invoice->client->address }}<br>
-                                {{ mb_convert_case($invoice->client->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8') }}, {{ $invoice->client->departamento->depa_nombre }}
+                                {{ $invoice->company->address }}<br>
+                                {{ mb_convert_case($invoice->client->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8') }}, {{ $invoice->company->departamento->depa_nombre }}
                             </td>
                         </tr>
                         <tr>

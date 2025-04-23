@@ -152,7 +152,7 @@
                     <tr><td>{{ _lang('Actividad económica:') }}</td><td>{{ get_option('desc_actividad') }}</td></tr>
                     <tr>
                         <td>{{ _lang('Dirección:') }}</td>
-                        <td>{{ $invoice->client->address.', '.mb_convert_case($invoice->client->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->client->departamento->depa_nombre }}.</td>
+                        <td>{{ $invoice->company->address.', '.mb_convert_case($invoice->company->municipio->muni_nombre, MB_CASE_TITLE, 'UTF-8').', '.$invoice->company->departamento->depa_nombre }}.</td>
                     </tr>
                     <tr><td>{{ _lang('Número de teléfono:') }}</td><td>{{ $invoice->company->cellphone }}</td></tr>
                     <tr><td>{{ _lang('Correo electrónico:') }}</td><td>{{ $invoice->company->email }}</td></tr>
