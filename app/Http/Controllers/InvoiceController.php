@@ -3516,70 +3516,76 @@ class InvoiceController extends Controller
     public function sendEmailFactura($id, $anulacion = false, $reenvio = false)
     {
         try {
-
             $anulacion  = filter_var($anulacion, FILTER_VALIDATE_BOOLEAN);
             $reenvio    = filter_var($reenvio, FILTER_VALIDATE_BOOLEAN);
-
-
+                                                                  
             $invoice = Invoice::find($id);
-
-		$tipoDocumento = $invoice->tipo_documento; // Asegúrate de que la relación esté definida en el modelo
-	        $tipoDocNombre = $tipoDocumento->tipodoc_nombre ?? 'Documento Electrónico';
-
+    
+            $tipoDocumento = $invoice->tipo_documento;
+            $tipoDocNombre = $tipoDocumento->tipodoc_nombre ?? 'Documento Electrónico';
+    
             // Generar el PDF utilizando la función separada
             $pdf = $this->downloadPdf($id);
-
-            Log::info('Se genera el PDF temporal: ' . $pdf);
-
+            \Log::info('Se genera el PDF temporal: ' . $pdf);
+    
+            // Generar el JSON
             $jsonFilePath = $this->downloadJson($id);
-
-            Log::info('Se genera el JSON temporal: ' . $jsonFilePath);
-
-
-		 // Preparar el asunto del correo
-        	$subject = $tipoDocNombre;
-
-            // Preparar el contenido del correo electrónico
-	    //$subject = 'Factura Electrónica';
-
-            if( $anulacion ){
+            \Log::info('Se genera el JSON temporal: ' . $jsonFilePath);
+    
+            // Preparar el asunto del correo
+            $subject = $tipoDocNombre;
+            if ($anulacion) {
                 $subject = 'Anulación de Factura Electrónica';
             }
-
-            if( $reenvio ){
+    
+            // En caso de reenvío, actualizar correo desde cliente
+            if ($reenvio) {
                 $client = Contact::find($invoice->client_id);
                 $invoice->correo = $client->contact_email;
                 $invoice->save();
             }
-
+    
+            // Contenido del correo
             $content = [
                 'subject' => $subject,
-                'body' => 'Estimado cliente: ' . $invoice->name_invoice,
+                'body'    => 'Estimado cliente: ' . $invoice->name_invoice,
             ];
-
-            // Enviar el correo electrónico con el archivo adjunto
-             $mail = Mail::to($invoice->correo)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control));
-
-            if( isset($invoice->correo_alterno) && $invoice->correo_alterno != '' ){
-                $mail2 = Mail::to($invoice->correo_alterno)->send(new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control));
+    
+            // Construir lista de destinatarios
+            $destinatarios = [];
+    
+            if (!empty($invoice->correo)) {
+                $destinatarios[] = $invoice->correo;
             }
-
+    
+            if (!empty($invoice->correo_alterno)) {
+                $destinatarios[] = $invoice->correo_alterno;
+            }
+    
+            // Correos adicionales "quemados"
+            //$destinatarios[] = 'ccalzadia@ufg.edu.sv';
+           // $destinatarios[] = 'boris2@gmail.com';
+    
+            // Enviar correo a cada destinatario
+            foreach ($destinatarios as $email) {
+                \Mail::to($email)->send(
+                    new MailMailable($content, $jsonFilePath, $pdf, $id, $anulacion, $invoice->numero_control)
+                );
+            }
+    
+            // Eliminar PDF temporal
             try {
                 Storage::delete('pdf_invoices/' . $pdf);
-                Log::info('Se elimina el PDF temporal: ' . $pdf);
+                \Log::info('Se elimina el PDF temporal: ' . $pdf);
             } catch (\Exception $e) {
-                Log::info('Error al eliminar el PDF temporal: ' . $pdf);
+                \Log::info('Error al eliminar el PDF temporal: ' . $pdf);
             }
-
-            Log::info('Envio por correo de DTE con ID: ' . $id);
-
-            Log::info('Correos a los que se envio el DTE: ' . $invoice->correo. ' '. $invoice->correo_alterno);
-
-            $mail = $mail.($mail2 ?? '');
-
-            return $mail;
+    
+            \Log::info('Envio por correo de DTE con ID: ' . $id);
+            \Log::info('Correos a los que se envio el DTE: ' . implode(', ', $destinatarios));
+    
+            return true;
         } catch (\Exception $e) {
-            // Manejo de errores si el correo electrónico no se pudo enviar
             \Log::error('Error al enviar el correo electrónico: ' . $e->getMessage());
         }
     }
