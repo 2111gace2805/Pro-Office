@@ -55,6 +55,54 @@
         </div>
     </div>
 </div>
+<!-- Monthly Income vs Expense Chart -->
+<div class="row">
+    
+
+    <div class="col-xl-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="header-title">{{ _lang('Financial Account Balance') }}</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>{{ _lang('A/C') }}</th>
+                            <th>{{ _lang('A/C Number') }}</th>
+                            <th class="text-right">{{ _lang('Balance') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(get_financial_balance() as $account)
+                        <tr id="row_{{ $account->id }}">
+                            <td class='account_title'>{{ $account->account_title }}</td>
+                            <td class='account_number'>{{ $account->account_number }}</td>
+                            <td class='opening_balance text-right'>{{ decimalPlace($account->balance, $currency) }}
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="header-title">{{ _lang('Income vs Expense of')." ".date('M, Y') }}</h4>
+            </div>
+            <div class="card-body">
+                <canvas id="dn_income_expense" width="100%" height="40"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- Monthly Income vs Expense Chart end section-->
+
+
 
 <div class="row">
     <div class="col-xl-6">
@@ -139,47 +187,7 @@
 </div>
 
 
-<div class="row">
-    <div class="col-xl-6">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4 class="header-title">{{ _lang('Income vs Expense of')." ".date('M, Y') }}</h4>
-            </div>
-            <div class="card-body">
-                <canvas id="dn_income_expense" width="100%" height="40"></canvas>
-            </div>
-        </div>
-    </div>
 
-    <div class="col-xl-6">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4 class="header-title">{{ _lang('Financial Account Balance') }}</h4>
-            </div>
-            <div class="card-body">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>{{ _lang('A/C') }}</th>
-                            <th>{{ _lang('A/C Number') }}</th>
-                            <th class="text-right">{{ _lang('Balance') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach(get_financial_balance() as $account)
-                        <tr id="row_{{ $account->id }}">
-                            <td class='account_title'>{{ $account->account_title }}</td>
-                            <td class='account_number'>{{ $account->account_number }}</td>
-                            <td class='opening_balance text-right'>{{ decimalPlace($account->balance, $currency) }}
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @section('js-script')
