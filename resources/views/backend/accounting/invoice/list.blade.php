@@ -96,7 +96,7 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <input type="hidden" id="id_invoice">
-                                <label class="control-label">{{ _lang('Tipo de anulación') }}</label>
+                                <label class="control-label">{{ _lang('Tipo de invalidación') }}</label>
                                 <select class="form-control" name="tipo_anulacion" id="tipo_anulacion" required onchange="motivoAnulacion(this);validoDatos(this);">
                                     <option value="">{{ _lang('Select One') }}</option>
                                     {{ create_option("tipo_invalidacion", "id", "tipo_invalidacion_nombre", old('id')) }}
@@ -105,7 +105,7 @@
                         </div>
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label class="control-label">{{ _lang('Motivo de anulación') }}</label>
+                                <label class="control-label">{{ _lang('Motivo de invalidación') }}</label>
                                 <input type="text" class="form-control" name="motivo_anulacion" id="motivo_anulacion" onkeydown="validoDatos(this)" onkeyup="validoDatos(this)" onchange="validoDatos(this)" oninput="validoDatos(this)" required>
                             </div>
                         </div>
@@ -146,7 +146,7 @@
                         </div> --}}
                         <div class="col-md-12">
                             <fieldset>
-                                <legend style="font-size: 1rem;"><b>Solicitante de anulación:</b></legend>
+                                <legend style="font-size: 1rem;"><b>Solicitante de invalidación:</b></legend>
                             </fieldset>
                         </div>
                         <div class="col-md-12">
@@ -176,7 +176,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
-          <button type="button" class="btn btn-danger" onclick="deleteOrder()">Anular</button>
+          <button type="button" class="btn btn-danger" onclick="deleteOrder()">Invalidar</button>
         </div>
       </div>
     </div>
@@ -391,7 +391,7 @@
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
                 cancelButtonColor: "#d33",
-                confirmButtonText: "Sí, anular!",
+                confirmButtonText: "Sí, ¡Invalidar!",
                 cancelButtonText: "Cancelar",
                 allowOutsideClick: false,
                 allowEscapeKey: false

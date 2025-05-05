@@ -142,7 +142,7 @@ class InvoiceController extends Controller
                     . csrf_field()
                     // . '<input name="_method" type="hidden" value="DELETE">'
                     // . ($invoice->status != 'Canceled' && $invoice->contingencia == 0 ? '<button class="button-link" onclick="modalAnulacion(' . $invoice->id . ', \'' . $client_name . '\', \'' . $invoice->tdocrec_id . '\', \'' . $invoice->num_documento . '\');" data-title="¿Anular factura?" data-text="Los productos serán reintegrados al stock." data-confirmtext="Sí, anular" type="submit"><i class="ti-trash"></i> ' . _lang('Anular') . '</button>' : '')
-                    . ($invoice->status != 'Canceled' ? '<button class="button-link" onclick="modalAnulacion(' . $invoice->id . ', \'' . $client_name . '\', \'' . $invoice->tdocrec_id . '\', \'' . $invoice->num_documento . '\');" data-title="¿Anular factura?" data-text="Los productos serán reintegrados al stock." data-confirmtext="Sí, anular" type="submit"><i class="ti-trash"></i> ' . _lang('Anular') . '</button>' : '')
+                    . ($invoice->status != 'Canceled' ? '<button class="button-link" onclick="modalAnulacion(' . $invoice->id . ', \'' . $client_name . '\', \'' . $invoice->tdocrec_id . '\', \'' . $invoice->num_documento . '\');" data-title="¿Anular factura?" data-text="Los productos serán reintegrados al stock." data-confirmtext="Sí, invalidar" type="submit"><i class="ti-trash"></i> ' . _lang('Invalidar') . '</button>' : '')
                     . ($invoice->status != 'Canceled' && $invoice->contingencia == 1 && $invoice->sello_recepcion == '' ? '<button class="button-link" onclick="modalContingencia(' . $invoice->id . ');" ><i class="ti-reload"></i> ' . _lang('Evento contingencia') . '</button>' : '')
                     . ($invoice->status != 'Canceled' ? '<a class="dropdown-item" href="' . action('SalesReturnController@create', ['id' => $invoice->id]) . '"><i class="ti-pencil-alt"></i> ' . _lang('Devolución garantía') . '</a>' : '')
                     // . '</form>'
@@ -1006,17 +1006,17 @@ class InvoiceController extends Controller
 
             if ($response_mh->estado === 'RECHAZADO') {
 
-                log::info('Error al anular DTE: ' . json_encode($response_mh->observaciones));
+                log::info('Error al invalidar DTE: ' . json_encode($response_mh->observaciones));
 
                 if ($request->ajax()) {
-                    return response()->json(['result' => 'errorMH', 'message' => _lang('Error al anular DTE'), 'data' => $response]);
+                    return response()->json(['result' => 'errorMH', 'message' => _lang('Error al invalidar DTE'), 'data' => $response]);
                 } else {
-                    return redirect()->route('invoices.index')->with('error', 'Error al anular DTE');
+                    return redirect()->route('invoices.index')->with('error', 'Error al invalidar DTE');
                 }
             } else {
 
                 $invoice->status = 'Canceled';
-                $invoice->note = $invoice->note . (($invoice->note != null && trim($invoice->note) != '') ? ' | Motivo de anulación' . $request->motivo_anulacion : 'Motivo de anulación: ' . $request->motivo_anulacion);
+                $invoice->note = $invoice->note . (($invoice->note != null && trim($invoice->note) != '') ? ' | Motivo de invalidación' . $request->motivo_anulacion : 'Motivo de invalidación: ' . $request->motivo_anulacion);
                 // $invoice->note = 'Motivo de anulación: '.$request->motivo_anulacion;
                 $invoice->save();
 

@@ -9,7 +9,7 @@ function modalAnulacion( id ){
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
-        confirmButtonText: "Sí, anular!",
+        confirmButtonText: "Sí, ¡Invalidar!",
         cancelButtonText: "Cancelar",
         allowOutsideClick: false,
         allowEscapeKey: false
