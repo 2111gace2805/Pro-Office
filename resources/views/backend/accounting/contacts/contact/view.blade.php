@@ -33,10 +33,12 @@
 
                     <div id="general-info" class="tab-pane active">
                         <table class="table table-bordered">
+                            <!--
                             <tr>
                                 <td colspan="2" class="text-center"><img class="thumb-image-md img-thumbnail"
                                         src="{{ asset('public/uploads/contacts/'.$contact->contact_image) }}"></td>
                             </tr>
+                             -->
                             <tr>
                                 <td>{{ _lang('Profile Type') }}</td>
                                 <td>{{ $contact->tipo_persona->tpers_nombre }}</td>
@@ -60,6 +62,10 @@
                             <tr>
                                 <td>{{ _lang('NRC') }}</td>
                                 <td>{{ $contact->nrc }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ _lang('Actividad Económica') }}</td>
+                                <td>{{ $contact->actividad_economica->actie_nombre ?? 'No especificada' }}</td>
                             </tr>
                             <tr>
                                 <td>{{ _lang('Es gran contribuyente') }}</td>
@@ -90,12 +96,12 @@
                                 <td>{{ $contact->pais->pais_nombre }}</td>
                             </tr>
                             <tr>
-                                <td>{{ _lang('District') }}</td>
-                                <td>{{ $contact->district->dist_name??'No establecido' }}</td>
-                            </tr>
-                            <tr>
                                 <td>{{ _lang('City') }}</td>
                                 <td>{{ $contact->district->municipio->muni_nombre??'No establecido' }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ _lang('District') }}</td>
+                                <td>{{ $contact->district->dist_name??'No establecido' }}</td>
                             </tr>
                             <tr>
                                 <td>{{ _lang('State') }}</td>
