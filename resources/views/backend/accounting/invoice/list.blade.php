@@ -66,6 +66,7 @@
                     <thead>
                         <tr>
                             <th>{{ _lang('Invoice Number') }}</th>
+
                             <th>{{ _lang('Tipo de factura')}}</th>
                             <th>{{ _lang('Client') }}</th>
                             <th>{{ _lang('Invoice Date') }}</th>
@@ -73,6 +74,13 @@
                             <th class="text-right">{{ _lang('Grand Total') }}</th>
                             <th>{{ _lang('Status') }}</th>
                             <th class="text-center">{{ _lang('Action') }}</th>
+                            {{--
+                            <th>{{ _lang('Control Number') }}</th>
+                            <th>{{ _lang('Generation Code') }}</th>
+                            <th>{{ _lang('Sello') }}</th>
+                            <th>{{ _lang('total_tax') }}</th>
+                            <th>{{ _lang('sub_total') }}</th>
+                            --}}
                         </tr>
                     </thead>
                     <tbody>

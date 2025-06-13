@@ -38,20 +38,40 @@
         },
       },
       columns: [
-        { data: "invoice_number", name: "invoice_number" },
-        { data: "tipodoc_nombre", name: "tipodoc_nombre" },
+        { data: "invoice_number", name: "invoice_number" }, //0
+       
+       
+        { data: "tipodoc_nombre", name: "tipodoc_nombre" }, //1
         {
           data: "client.company_name",
           name: "client.company_name",
           defaultContent: "",
-        },
-        { data: "invoice_date", name: "invoice_date" },
+        }, //2
+        { data: "invoice_date", name: "invoice_date" }, //3
         // { data: "due_date", name: "due_date" },
-        { data: "grand_total", name: "grand_total" },
-        { data: "status", name: "status" },
-        { data: "action", name: "action" },
+        { data: "grand_total", name: "grand_total", title:"Total ventas" }, //4
+        { data: "status", name: "status" },//5
+        { data: "action", name: "action" },//6
+        { data: "client.nrc", name: "client.nrc", defaultContent: "",title:"NRC", visible: false },//7
+        //{ data: "numero_control", name: "numero_control", visible: false },
+        { data: "codigo_generacion", name: "codigo_generacion", title:"Código de generación", visible: false }, //8
+        { data: "sello_recepcion", name: "sello_recepcion", title:"Sello de recepción", visible: false },//9
+        { data: "tax_total", name: "tax_total", title:"IVA Debito",  visible: false },//10
+        { data: "iva_retenido", name: "iva_retenido", title:"IVA Retenido",  visible: false },//11
+        { data: "subtotal", name: "subtotal", title:"Sub total", visible: false },//12
+        { data: "numero_control", name: "numero_control", title:"Número de control", visible: false },//13
+        
       ],
-      responsive: true,
+     // responsive: true,
+      responsive: {
+       details: {
+    display: $.fn.dataTable.Responsive.display.none,
+    renderer: function () {
+      return false; // no renderiza nada
+    }
+  }
+    },
+
       bStateSave: true,
       bAutoWidth: false,
       ordering: false,
@@ -91,28 +111,28 @@
         {
           extend: "excel",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5],
+            columns: [1, 3, 13, 2, 7, 12, 10, 4, 11, 9, 8, 5],
           },
-          title: "Invoice",
+          title: "Libro de Ventas",
         },
         {
           extend: "copy",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5],
+            columns: [0, 1, 2, 3, 4, 5, 6],
           },
           title: "Invoice",
         },
         {
           extend: "pdf",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5],
+            columns: [0, 1, 2, 3, 4, 5, 6],
           },
           title: "Invoice",
         },
         {
           extend: "print",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5],
+            columns: [0, 1, 2, 3, 4, 5, 6],
           },
           title: "Invoice",
           customize: function (win) {
