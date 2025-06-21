@@ -72,8 +72,8 @@ var current_row;
 	            var product_row = `<tr id="product-${item['id']}">
 											<td><b>${item['item_name']}</b></td>
 											<td class="description"><input type="text" name="product_description[]" class="form-control input-description inputs_tbl" value="${product['description'] != null ? product['description'] : ''}"></td>
-											<td class="text-center quantity"><input type="number" name="quantity[]" min="1" class="form-control input-quantity text-center inputs_tbl" ${limit} value="1"></td>
-											<td class="text-right unit-cost"><input type="text" name="unit_cost[]" class="form-control input-unit-cost text-right inputs_tbl" ${ readprice ? 'readonly' : '' } value="${unit_cost.toFixed(2)}"></td>`;
+											<td class="text-center quantity"><input type="number" name="quantity[]" min="0.01" step="0.01" class="form-control input-quantity text-center inputs_tbl" ${limit} value="1"></td>
+											<td class="text-right unit-cost"><input type="number" step="0.01" name="unit_cost[]" class="form-control input-unit-cost text-right inputs_tbl" value="${unit_cost.toFixed(2)}"></td>`;
 				if(sell){
 					product_row += `<td class="text-right discount"><input type="text" name="discount[]" class="form-control input-discount text-right inputs_tbl" value="0.00"></td>
 					<td class="text-right tax"><select class="form-control selectpicker input-tax" name="tax[${item['id']}][]" title="${$lang_select_tax}" multiple="true">${tax_selector}</select></td>`;
@@ -106,7 +106,27 @@ var current_row;
 	    });
 
 	});
-	
+$(document).on('keyup change', '.input-quantity, .input-unit-cost, .input-discount', function() {
+    var line = $(this).closest('tr'); // Asegura que se refiere a la fila
+    var line_qnty = parseFloat($(line).find('.input-quantity').val()) || 0;
+    var line_unit_cost = parseFloat($(line).find('.input-unit-cost').val()) || 0;
+    var line_discount = parseFloat($(line).find('.input-discount').val()) || 0;
+
+    var line_total = (line_qnty * line_unit_cost) - line_discount;
+    line_total = line_total < 0 ? 0 : line_total; // evita subtotales negativos
+
+    $(line).find('.input-sub-total').val(line_total.toFixed(2));
+
+    // Recalcular impuestos si hay
+    taxSelected($(line).find('select.input-tax'), false);
+
+    // Actualizar totales generales
+    update_summary();
+});
+
+
+
+	/*
 	$(document).on('keyup change', '.input-quantity, .input-unit-cost, .input-discount', function() {
 	    var line = $(this).parent().parent();
 		// var line_qnty = parseFloat($(line).find('.input-quantity').val());
@@ -136,7 +156,7 @@ var current_row;
 		// update_summary();
 		taxSelected($(line).find('select.input-tax'), false);
 	});
-
+*/
 
 	//Click remove product
 	$(document).on('click', '.remove-product', function() {

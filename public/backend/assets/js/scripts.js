@@ -1354,7 +1354,16 @@ function taxSelected(element, afectarPrecio = true){
         //var line_unit_cost = parseFloat($(line).find('.input-unit-cost').val());
 
         // comentar linea si ya no se vera afectado el precio con el iva
-        var line_unit_cost = parseFloat($(line).find('.input-product-price').val());
+        //var line_unit_cost = parseFloat($(line).find('.input-product-price').val()); POR ORDEN DE COMPRA
+		//var line_unit_cost = parseFloat($(line).find('.input-unit-cost').val()); FALLO ORDEN DE COMPRA
+
+		// Si estamos en orden de compra, usa el campo editable
+		var unit_cost_input = $(line).find('.input-unit-cost');
+		var line_unit_cost = unit_cost_input.length && !isNaN(parseFloat(unit_cost_input.val()))
+    ? parseFloat(unit_cost_input.val())
+    : parseFloat($(line).find('.input-product-price').val());
+
+
 
         //Update TAX
         var price_tax = 0;
@@ -1389,7 +1398,7 @@ function taxSelected(element, afectarPrecio = true){
 	//}
     line_unit_cost = parseFloat(line_unit_cost.toFixed(6));
     // comentar linea si ya no se vera afectado el precio con el iva
-    $(line).find('.input-unit-cost').val(line_unit_cost.toFixed(6));
+    //$(line).find('.input-unit-cost').val(line_unit_cost.toFixed(6));  comentar si se usa orden de compra
 
     line_total = ((line_qnty * line_unit_cost)+fixedTaxAmount) - line_discount;
 
