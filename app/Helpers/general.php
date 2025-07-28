@@ -1028,10 +1028,14 @@ if(!function_exists('generateNumeroControl')){
      */
     function generateNumeroControl($tipodoc_id) {
         $company_id = company_id();
+        $company = Company::find($company_id);
+        $cash = get_cash();
         $parte1 = 'DTE';
         $parte2 = $tipodoc_id;
-        $sucursal = (str_pad($company_id, 4, '0', STR_PAD_LEFT));
-        $puntoVenta = (str_pad($company_id, 4, '0', STR_PAD_LEFT));
+        //$sucursal = (str_pad($company_id, 4, '0', STR_PAD_LEFT));
+        //$puntoVenta = (str_pad($company_id, 4, '0', STR_PAD_LEFT));
+        $sucursal = $company->codigo_sucursal;
+        $puntoVenta = $cash->cash_code ?? 'P001';
         $parte3 = $sucursal.$puntoVenta;
         $parte4 = "";
 
