@@ -73,6 +73,7 @@
                             {{-- <th>{{ _lang('Due Date') }}</th> --}}
                             <th class="text-right">{{ _lang('Grand Total') }}</th>
                             <th>{{ _lang('Status') }}</th>
+                            <th class="text-center">{{ _lang('Downloads') }}</th>
                             <th class="text-center">{{ _lang('Action') }}</th>
                             {{--
                             <th>{{ _lang('Control Number') }}</th>

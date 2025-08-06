@@ -118,21 +118,21 @@
         {
           extend: "copy",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6],
+            columns: [1, 3, 13, 2, 7, 12, 10, 4, 11, 9, 8, 5],
           },
           title: "Invoice",
         },
         {
           extend: "pdf",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6],
+            columns: [1, 3, 13, 2, 7, 12, 10, 4, 11, 9, 8, 5],
           },
           title: "Invoice",
         },
         {
           extend: "print",
           exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6],
+            columns: [1, 3, 13, 2, 7, 12, 10, 4, 11, 9, 8, 5],
           },
           title: "Invoice",
           customize: function (win) {

@@ -357,6 +357,7 @@ $language["Created At"]="Creado en";
 $language["File"]="Archivo";
 $language["Created By"]="Creado por";
 $language["Download"]="Descargar";
+$language["Downloads"]="Descargas";
 $language["General Settings"]="Configuración general";
 $language["System Settings"]="Ajustes del sistema";
 $language["Email Settings"]="Ajustes del correo electrónico";
