@@ -3564,7 +3564,7 @@ class InvoiceController extends Controller
     
             // Correos adicionales "quemados"
             $destinatarios[] = 'administracion@pro-office.com.sv';
-            $destinatarios[] = 'atencionalcliente@pro-office.com.sv';
+            $destinatarios[] = 'servicioalcliente@pro-office.com.sv';
     
             // Enviar correo a cada destinatario
             foreach ($destinatarios as $email) {
