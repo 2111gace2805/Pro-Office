@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use DB;
 use Illuminate\Support\Facades\DB as FacadesDB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class Select2Controller extends Controller
 {
@@ -52,6 +53,8 @@ class Select2Controller extends Controller
 
 		$query = DB::table($table)->when($where_extra != NULL, function($q) use ($where_extra) {
 			return $q->whereRaw($where_extra);
+		})->when(Schema::hasColumn($table, 'deleted_at'), function($q) use ($table) {
+			return $q->whereRaw($table.'.deleted_at is null');
 		});
 		
 		// $query = $query->when($table == 'contacts', function($q) {
@@ -149,7 +152,7 @@ class Select2Controller extends Controller
 			$condition_2 = '!=';
 		}
 	
-	    $display_option = "CONCAT($display, ' - ',  $display2, '-', contacts.company_name, ' - $', (subtotal - iva_retenido )) as text";
+	    $display_option = "CONCAT($display, '-', contacts.company_name, ' - $', (subtotal - iva_retenido )) as text";
 
 		$where_extra = $request->get('where_extra');
 

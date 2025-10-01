@@ -100,7 +100,7 @@ class enviarContingencia implements ShouldQueue
                     "tipoDocResponsable"    => $request->tipoDocRespEstablecimiento,
                     "numeroDocResponsable"  => $request->numDocRespEstablecimiento,
                     "tipoEstablecimiento"   => $company->tipoest_id,
-                    "codEstableMH"          => null,
+                    "codEstableMH"          => $company->codigo_sucursal,
                     "telefono"              => str_replace(['-', '+'], '', $company->cellphone),
                     "correo"                => $company->email
                 ];
@@ -472,6 +472,7 @@ class enviarContingencia implements ShouldQueue
     {
         // dd($invoice);
         $company = Company::find($invoice->company_id);
+        $cash = get_cash();
         $details = [];
         $documentosRelacionados = null;
 
@@ -624,10 +625,10 @@ class enviarContingencia implements ShouldQueue
                 // "telefono"=> $company->cellphone,
                 "telefono" => str_replace(['-', '+'], '', $company->cellphone),
                 "correo" => $company->email,
-                "codEstableMH" => null,
-                "codEstable" => null,
-                "codPuntoVentaMH" => null,
-                "codPuntoVenta" => null
+                "codEstableMH" => $company->codigo_sucursal,
+                "codEstable" => $company->codigo_sucursal,
+                "codPuntoVentaMH" => $cash->cash_code,
+                "codPuntoVenta" => $cash->cash_code
             ],
             "receptor" => [
                 "nit" => str_replace('-', '', $invoice->client->nit),
@@ -718,6 +719,7 @@ class enviarContingencia implements ShouldQueue
     private static function getDteJsonFE($invoice, $versionJson, $ambiente)
     {
         $company = Company::find($invoice->company_id);
+        $cash = get_cash();
         $details = [];
         $documentosRelacionados = null;
 
@@ -895,10 +897,10 @@ class enviarContingencia implements ShouldQueue
                 ],
                 "telefono" => $company->cellphone,
                 "correo" => $company->email,
-                "codEstableMH" => null,
-                "codEstable" => null,
-                "codPuntoVentaMH" => null,
-                "codPuntoVenta" => null
+                "codEstableMH"      => $company->codigo_sucursal,
+                "codEstable"        => $company->codigo_sucursal,
+                "codPuntoVentaMH"   => $cash->cash_code,
+                "codPuntoVenta"     => $cash->cash_code,
             ],
             "receptor" => [
                 "tipoDocumento" => $invoice->tdocrec_id ?? null,
@@ -1197,6 +1199,7 @@ class enviarContingencia implements ShouldQueue
     private static function getDteJsonFEX($invoice, $versionJson, $ambiente)
     {
         $company = Company::find($invoice->company_id);
+        $cash = get_cash();
         $details = [];
 
         $noSujetoSum        = 0;
@@ -1305,10 +1308,10 @@ class enviarContingencia implements ShouldQueue
                 ],
                 "telefono"          => $company->cellphone,
                 "correo"            => $company->email,
-                "codEstableMH"      => null,
-                "codEstable"        => null,
-                "codPuntoVentaMH"   => null,
-                "codPuntoVenta"     => null,
+                "codEstableMH"      => $company->codigo_sucursal,
+                "codEstable"        => $company->codigo_sucursal,
+                "codPuntoVentaMH"   => $cash->cash_code,
+                "codPuntoVenta"     => $cash->cash_code,
                 //TIPO DE ITEM  1 = BIENES; 2 = SERVICIOS; 3 = AMBOS
                 "tipoItemExpor"     => 3,
                 "recintoFiscal"     => ( isset($tributos->refisc_id) && $tributos->refisc_id != '' ) ? $tributos->refisc_id : null,
@@ -1367,6 +1370,7 @@ class enviarContingencia implements ShouldQueue
     {
 
         $company = Company::find($invoice->company_id);
+        $cash = get_cash();
         $details = [];
         $documentosRelacionados = [];
         $documentosRelacionados = collect($documentosRelacionados);
@@ -1432,10 +1436,10 @@ class enviarContingencia implements ShouldQueue
             ],
             "telefono"          => $company->cellphone,
             "correo"            => $company->email,
-            "codEstableMH"      => null,
-            "codEstable"        => null,
-            "codPuntoVentaMH"   => null,
-            "codPuntoVenta"     => null
+            "codEstableMH" => $company->codigo_sucursal,
+            "codEstable" => $company->codigo_sucursal,
+            "codPuntoVentaMH" => $cash->cash_code,
+            "codPuntoVenta" => $cash->cash_code
         ];
 
         //Número de documento de receptor
@@ -1577,6 +1581,7 @@ class enviarContingencia implements ShouldQueue
     {
 
         $company = Company::find($invoice->company_id);
+        $cash = get_cash();
         $details = [];
         $documentosRelacionados = [];
         $documentosRelacionados = collect($documentosRelacionados);
@@ -1639,10 +1644,10 @@ class enviarContingencia implements ShouldQueue
                 "complemento"   => $company->address
             ],
             "telefono"          => $company->cellphone,
-            "codEstableMH"      => null,
-            "codEstable"        => null,
-            "codPuntoVentaMH"   => null,
-            "codPuntoVenta"     => null,
+            "codEstableMH"      => $company->codigo_sucursal,
+            "codEstable"        => $company->codigo_sucursal,
+            "codPuntoVentaMH"   => $cash->cash_code,
+            "codPuntoVenta"     => $cash->cash_code,
             "correo"            => $company->email,
         ];
 

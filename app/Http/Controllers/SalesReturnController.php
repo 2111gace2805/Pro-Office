@@ -600,6 +600,7 @@ class SalesReturnController extends Controller
 
         $invoice        = Invoice::find($invoice_id);
         $company        = Company::find($invoice->company_id);
+        $cash           = get_cash();
         $ambiente       = env('API_AMBIENTE_MH');
         $dteJson        = [];
 
@@ -616,10 +617,10 @@ class SalesReturnController extends Controller
             "nombre"                => get_option('company_name'),
             "tipoEstablecimiento"   => $company->tipoest_id,
             "nomEstablecimiento"    => get_option('tradename'),
-            "codEstableMH"          => null,
-            "codEstable"            => null,
-            "codPuntoVentaMH"       => null,
-            "codPuntoVenta"         => null,
+            "codEstableMH"          => $company->codigo_sucursal,
+            "codEstable"            => $company->codigo_sucursal,
+            "codPuntoVentaMH"       => $cash->cash_code,
+            "codPuntoVenta"         => $cash->cash_code,
             "telefono"              => $company->cellphone,
             "correo"                => $company->email
         ];

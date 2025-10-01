@@ -43,6 +43,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use App\Exceptions\UsuarioSinDUIException;
 use App\GeneralDiscount;
+use App\Services\PasarelaFEService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class InvoiceController extends Controller
@@ -82,6 +83,10 @@ class InvoiceController extends Controller
 
                 if ($request->has('tipodoc_id')) {
                     $query->where('invoices.tipodoc_id', $request->get('tipodoc_id'));
+                }
+
+                if ($request->has('forp_id')) {
+                    $query->where('invoices.forp_id', $request->get('forp_id'));
                 }
 
                 if ($request->has('client_id')) {
@@ -142,7 +147,7 @@ class InvoiceController extends Controller
                     . csrf_field()
                     // . '<input name="_method" type="hidden" value="DELETE">'
                     // . ($invoice->status != 'Canceled' && $invoice->contingencia == 0 ? '<button class="button-link" onclick="modalAnulacion(' . $invoice->id . ', \'' . $client_name . '\', \'' . $invoice->tdocrec_id . '\', \'' . $invoice->num_documento . '\');" data-title="¿Anular factura?" data-text="Los productos serán reintegrados al stock." data-confirmtext="Sí, anular" type="submit"><i class="ti-trash"></i> ' . _lang('Anular') . '</button>' : '')
-                    . ($invoice->status != 'Canceled' ? '<button class="button-link" onclick="modalAnulacion(' . $invoice->id . ', \'' . $client_name . '\', \'' . $invoice->tdocrec_id . '\', \'' . $invoice->num_documento . '\');" data-title="¿Anular factura?" data-text="Los productos serán reintegrados al stock." data-confirmtext="Sí, invalidar" type="submit"><i class="ti-trash"></i> ' . _lang('Invalidar') . '</button>' : '')
+                    . ($invoice->status != 'Canceled' ? '<button class="button-link" onclick="modalAnulacion(' . $invoice->id . ', \'' . $client_name . '\', \'' . $invoice->tdocrec_id . '\', \'' . $invoice->num_documento . '\');" data-title="¿Anular factura?" data-text="Los productos serán reintegrados al stock." data-confirmtext="Sí, anular" type="submit"><i class="ti-trash"></i> ' . _lang('Anular') . '</button>' : '')
                     . ($invoice->status != 'Canceled' && $invoice->contingencia == 1 && $invoice->sello_recepcion == '' ? '<button class="button-link" onclick="modalContingencia(' . $invoice->id . ');" ><i class="ti-reload"></i> ' . _lang('Evento contingencia') . '</button>' : '')
                     . ($invoice->status != 'Canceled' ? '<a class="dropdown-item" href="' . action('SalesReturnController@create', ['id' => $invoice->id]) . '"><i class="ti-pencil-alt"></i> ' . _lang('Devolución garantía') . '</a>' : '')
                     // . '</form>'
@@ -261,8 +266,10 @@ class InvoiceController extends Controller
 
         $generalDiscounts = GeneralDiscount::where('status', 'Active')->get();
 
+        $client = Contact::where('company_name', 'LIKE', '%CLIENTES VARIOS%')->first();
+
         // if (!$request->ajax()) {
-            return view('backend.accounting.invoice.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido', 'generalDiscounts']));
+            return view('backend.accounting.invoice.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido', 'generalDiscounts', 'client']));
         // } else {
         //     return view('backend.accounting.invoice.modal.create', compact(['invoice', 'invoiceCCF', 'invoiceNR', 'type', 'nota_pedido']));
         // }
@@ -470,6 +477,7 @@ class InvoiceController extends Controller
                 $invoiceItem->unit_cost   = $request->unit_cost[$i];
                 $invoiceItem->discount    = $request->discount[$i];
                 $invoiceItem->tax_amount  = $request->product_tax[$i];
+                $invoiceItem->tipodon_id  = $request->tipodon[$i] ?? null;
                 $invoiceItem->sub_total   = $request->sub_total[$i];
                 $invoiceItem->line   = $request->line[$i];
                 $invoiceItem->product_price   = $request->product_price[$i];
@@ -1006,7 +1014,7 @@ class InvoiceController extends Controller
 
             if ($response_mh->estado === 'RECHAZADO') {
 
-                log::info('Error al invalidar DTE: ' . json_encode($response_mh->observaciones));
+                log::info('Error al anular DTE: ' . json_encode($response_mh->observaciones));
 
                 if ($request->ajax()) {
                     return response()->json(['result' => 'errorMH', 'message' => _lang('Error al invalidar DTE'), 'data' => $response]);
@@ -1016,7 +1024,7 @@ class InvoiceController extends Controller
             } else {
 
                 $invoice->status = 'Canceled';
-                $invoice->note = $invoice->note . (($invoice->note != null && trim($invoice->note) != '') ? ' | Motivo de invalidación' . $request->motivo_anulacion : 'Motivo de invalidación: ' . $request->motivo_anulacion);
+                $invoice->note = $invoice->note . (($invoice->note != null && trim($invoice->note) != '') ? ' | Motivo de anulación' . $request->motivo_anulacion : 'Motivo de anulación: ' . $request->motivo_anulacion);
                 // $invoice->note = 'Motivo de anulación: '.$request->motivo_anulacion;
                 $invoice->save();
 
@@ -1310,6 +1318,9 @@ class InvoiceController extends Controller
             case '14': // FSE
                 return view('backend.accounting.invoice.fse.view', compact('invoice', 'transactions', 'invoice_taxes', 'id', 'url'));
                 break;
+            case '15': // CD
+                return view('backend.accounting.invoice.cd.view', compact('invoice', 'transactions', 'invoice_taxes', 'id', 'url'));
+                break;
 
             default:
                 return view('backend.accounting.invoice.view', compact('invoice', 'transactions', 'invoice_taxes', 'id', 'url'));
@@ -1411,6 +1422,10 @@ class InvoiceController extends Controller
                 $customPaper = array(0, 0, 1275, 1650);
                 $pdf->setPaper('letter', 'portrait');
                 break;
+            case '15': // COMPROBANTE DE DONACION
+                $pdf = PDF::loadView("backend.accounting.invoice.cd.facturaCD", $data);
+                $pdf->setPaper('letter', 'portrait');
+                break;
         }
 
         $pdf->setWarnings(false);
@@ -1478,6 +1493,9 @@ class InvoiceController extends Controller
                 break;
             case '14':
                 $dteJson = self::getDteJsonSujetoExcluido($invoice, $versionJson, $ambiente);
+                break;
+            case '15':
+                $dteJson = self::getDteJsonComprobanteDonacion($invoice, $versionJson, $ambiente);
                 break;
             default:
                 break;
@@ -1580,6 +1598,7 @@ class InvoiceController extends Controller
 
         $invoice        = Invoice::find($invoice_id);
         $company        = Company::find($invoice->company_id);
+        $cash           = get_cash();
         $ambiente       = env('API_AMBIENTE_MH');
         $dteJson        = [];
 
@@ -1596,10 +1615,10 @@ class InvoiceController extends Controller
             "nombre"                => get_option('company_name'),
             "tipoEstablecimiento"   => $company->tipoest_id,
             "nomEstablecimiento"    => get_option('tradename'),
-            "codEstableMH"          => null,
-            "codEstable"            => null,
-            "codPuntoVentaMH"       => null,
-            "codPuntoVenta"         => null,
+            "codEstableMH"          => $company->codigo_sucursal,
+            "codEstable"            => $company->codigo_sucursal,
+            "codPuntoVentaMH"       => $cash->cash_code,
+            "codPuntoVenta"         => $cash->cash_code,
             "telefono"              => $company->cellphone,
             "correo"                => $company->email
         ];
@@ -1758,6 +1777,7 @@ class InvoiceController extends Controller
 
         $invoice    = Invoice::find($id);
         $company    = Company::find($invoice->company_id);
+        $cash       = get_cash();
         $ambiente   = env('API_AMBIENTE_MH');
         $dteJson    = [];
 
@@ -1775,9 +1795,9 @@ class InvoiceController extends Controller
             "nombreResponsable"     => $request->responsableEstablecimiento,
             "tipoDocResponsable"    => $request->tipoDocRespEstablecimiento,
             "numeroDocResponsable"  => $request->numDocRespEstablecimiento,
-	    "tipoEstablecimiento"   => $company->tipoest_id,
-	    "codPuntoVenta"         => null,
-            "codEstableMH"          => null,
+	        "tipoEstablecimiento"   => $company->tipoest_id,
+	        "codEstableMH"          => $company->codigo_sucursal,
+            "codPuntoVenta"         => $cash->cash_code,
             "telefono"              => str_replace(['-', '+'], '', $company->cellphone),
             "correo"                => $company->email
         ];
@@ -1949,12 +1969,17 @@ class InvoiceController extends Controller
                 }
                 if ($response_mh->estado === 'RECHAZADO') {
 
-                    log::info('Error al reenviar DTE en contingencia: ' . $response_mh->mensaje);
+                    if(isset($response_mh->mensaje))
+                        $message_errors = [$response_mh->mensaje];
+                    else if(isset($response_mh->observaciones))
+                        $message_errors = $response_mh->observaciones;
+
+                    log::info('Error al reenviar DTE en contingencia: ' . json_encode($message_errors));
 
                     if ($request->ajax()) {
-                        return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang($response_mh->mensaje), 'data' => $reenvio_dte]);
+                        return response()->json(['result' => 'errorMH', 'action' => 'store', 'message' => _lang("Error al reenviar DTE en contingencia"), 'data' => $message_errors]);
                     } else {
-                        return redirect()->route('invoices.create', $invoice->id)->with('error', _lang($response_mh->mensaje));
+                        return redirect()->route('invoices.create', $invoice->id)->with('error', _lang("Error al reenviar DTE en contingencia"));
                     }
                 }
             } else {
@@ -2056,6 +2081,7 @@ class InvoiceController extends Controller
     {
         // dd($invoice);
         $company = Company::find($invoice->company_id);
+        $cash = get_cash();
         $details = [];
         $documentosRelacionados = null;
 
@@ -2231,10 +2257,10 @@ class InvoiceController extends Controller
                 // "telefono"=> $company->cellphone,
                 "telefono" => str_replace(['-', '+'], '', $company->cellphone),
                 "correo" => $company->email,
-                "codEstableMH" => null,
-                "codEstable" => null,
-                "codPuntoVentaMH" => null,
-                "codPuntoVenta" => null
+                "codEstableMH" => $company->codigo_sucursal,
+                "codEstable" => $company->codigo_sucursal,
+                "codPuntoVentaMH" => $cash->cash_code,
+                "codPuntoVenta" => $cash->cash_code
             ],
             "receptor" => [
                 "nit" => str_replace('-', '', $invoice->client->nit),
@@ -2329,6 +2355,7 @@ class InvoiceController extends Controller
     public static function getDteJsonFE($invoice, $versionJson, $ambiente)
     {
         $company = Company::find($invoice->company_id);
+        $cash = get_cash();
         $details = [];
         $documentosRelacionados = null;
 
@@ -2519,10 +2546,10 @@ class InvoiceController extends Controller
                 ],
                 "telefono" => $company->cellphone,
                 "correo" => $company->email,
-                "codEstableMH" => null,
-                "codEstable" => null,
-                "codPuntoVentaMH" => null,
-                "codPuntoVenta" => null
+                "codEstableMH" => $company->codigo_sucursal,
+                "codEstable" => $company->codigo_sucursal,
+                "codPuntoVentaMH" => $cash->cash_code,
+                "codPuntoVenta" => $cash->cash_code
             ],
             "receptor" => [
                 "tipoDocumento" => $invoice->tdocrec_id ?? null,
@@ -2848,6 +2875,7 @@ class InvoiceController extends Controller
     public static function getDteJsonFEX($invoice, $versionJson, $ambiente)
     {
         $company = Company::find($invoice->company_id);
+        $cash = get_cash();
         $details = [];
 
         $noSujetoSum        = 0;
@@ -2962,10 +2990,10 @@ class InvoiceController extends Controller
                 ],
                 "telefono"          => $company->cellphone,
                 "correo"            => $company->email,
-                "codEstableMH"      => null,
-                "codEstable"        => null,
-                "codPuntoVentaMH"   => null,
-                "codPuntoVenta"     => null,
+                "codEstableMH" => $company->codigo_sucursal,
+                "codEstable" => $company->codigo_sucursal,
+                "codPuntoVentaMH" => $cash->cash_code,
+                "codPuntoVenta" => $cash->cash_code,
                 //TIPO DE ITEM  1 = BIENES; 2 = SERVICIOS; 3 = AMBOS
                 "tipoItemExpor"     => 3,
                 "recintoFiscal"     => ( isset($tributos->refisc_id) && $tributos->refisc_id != '' ) ? $tributos->refisc_id : null,
@@ -3027,6 +3055,7 @@ class InvoiceController extends Controller
     {
 
         $company = Company::find($invoice->company_id);
+        $cash = get_cash();
         $details = [];
         $documentosRelacionados = [];
         $documentosRelacionados = collect($documentosRelacionados);
@@ -3092,10 +3121,10 @@ class InvoiceController extends Controller
             ],
             "telefono"          => $company->cellphone,
             "correo"            => $company->email,
-            "codEstableMH"      => null,
-            "codEstable"        => null,
-            "codPuntoVentaMH"   => null,
-            "codPuntoVenta"     => null
+            "codEstableMH" => $company->codigo_sucursal,
+            "codEstable" => $company->codigo_sucursal,
+            "codPuntoVentaMH" => $cash->cash_code,
+            "codPuntoVenta" => $cash->cash_code
         ];
 
         //Número de documento de receptor
@@ -3137,6 +3166,9 @@ class InvoiceController extends Controller
                 $exento         = $value->sub_total;
                 $exentoSum      += $value->sub_total;
                 $descExentoSum  += $value->discount;
+
+                $gravadoSum     += $value->sub_total;
+                $descGravadoSum += $value->discount;
             } else if ($invoice->nosujeto_iva == 'si') {
                 $noSujeto           = $value->sub_total;
                 $noSujetoSum        += $value->sub_total;
@@ -3274,6 +3306,7 @@ class InvoiceController extends Controller
     {
 
         $company = Company::find($invoice->company_id);
+        $cash = get_cash();
         $details = [];
         $documentosRelacionados = [];
         $documentosRelacionados = collect($documentosRelacionados);
@@ -3336,10 +3369,10 @@ class InvoiceController extends Controller
                 "complemento"   => $company->address
             ],
             "telefono"          => $company->cellphone,
-            "codEstableMH"      => null,
-            "codEstable"        => null,
-            "codPuntoVentaMH"   => null,
-            "codPuntoVenta"     => null,
+            "codEstableMH"      => $company->codigo_sucursal,
+            "codEstable"        => $company->codigo_sucursal,
+            "codPuntoVentaMH"   => $cash->cash_code,
+            "codPuntoVenta"     => $cash->cash_code,
             "correo"            => $company->email,
         ];
 
@@ -3467,6 +3500,156 @@ class InvoiceController extends Controller
         return $dteJson;
     }
 
+    /**
+     * Generacion Json tipo Comprobante de Donacion (CD)
+     */
+    public static function getDteJsonComprobanteDonacion($invoice, $versionJson, $ambiente)
+    {
+        $company = Company::find($invoice->company_id);
+        $cash = get_cash();
+        $details = [];
+
+        $total = 0;
+        foreach ($invoice->invoice_items as $key => $value) 
+        {
+            // Calcular el subtotal
+            $subTotal = floatval($value->quantity) * floatval($value->unit_cost);
+            $total += $subTotal;
+
+            array_push($details, [
+                "numItem" => $value->line,
+                "descripcion" => $value->description,
+                "codigo" => $value->item->product->product_code,
+                "depreciacion" => 0,
+                "tipoDonacion" => $value->tipodon_id,
+                "uniMedida" => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
+                "valorUni" => floatval(number_format($value->unit_cost, 6, '.', '')),
+                "cantidad" => intval($value->quantity),
+                "valor" => $subTotal,
+            ]);
+        }
+
+        // Separar los componentes de la fecha
+        $fechaComponents = explode('/', $invoice->invoice_date);
+
+        // Construir la fecha en el formato 'yyyy-mm-dd'
+        $fechaFormateada = $fechaComponents[2] . '-' . $fechaComponents[1] . '-' . $fechaComponents[0];
+
+        // Crear un objeto DateTime con la fecha formateada
+        $fechaDateTime = new DateTime($fechaFormateada);
+
+        //Número de documento de receptor
+        $documento = null;
+        if( $invoice->num_documento != '' ){
+            $documento = $invoice->num_documento;
+            $documento = str_replace('-', '', $documento);
+    
+            if ($invoice->tdocrec_id == 13) {
+                $parte1 = substr($documento, 0, 8);
+                $parte2 = substr($documento, 8);
+                $documento = $parte1 . '-' . $parte2;
+            }
+        }
+
+        $dteJson = [
+            "identificacion" => [
+                "version"       => intval($versionJson),
+                "ambiente"      => $ambiente,
+                "tipoDte"       => $invoice->tipodoc_id,
+                "numeroControl" => $invoice->numero_control,
+                "codigoGeneracion" => $invoice->codigo_generacion,
+                "tipoModelo"    => intval($invoice->modfact_id),
+                "tipoOperacion" => intval($invoice->tipotrans_id),
+                "fecEmi"        => $fechaDateTime->format('Y-m-d'),
+                "horEmi"        => (new DateTime($invoice->created_at))->format('H:i:s'),
+                "tipoMoneda"    => "USD"
+            ],
+            "donatario" => [
+                "nrc"               => str_replace('-', '', get_option('nrc')),
+                "nombre"            => get_option('company_name'),
+                "codActividad"      => get_option('cod_actividad'),
+                "descActividad"     => get_option('desc_actividad'),
+                "nombreComercial"   => get_option('tradename'),
+                "tipoEstablecimiento" => $company->tipoest_id,
+                "direccion" => [
+                    "departamento"  => $company->depa_id,
+                    "municipio"     => Municipio::find($company->munidepa_id)->muni_id,
+                    "complemento"   => $company->address
+                ],
+                "telefono"          => $company->cellphone,
+                "correo"            => $company->email,
+                "codEstableMH"      => $company->codigo_sucursal,
+                "codEstable"        => $company->codigo_sucursal,
+                "codPuntoVentaMH"   => $cash->cash_code,
+                "codPuntoVenta"     => $cash->cash_code,
+                "tipoDocumento"     => "36", // automatizar por tipo documento
+                "numDocumento"      => str_replace('-', '', get_option('nit')),
+            ],
+            "donante" => [
+                "tipoDocumento"     => $invoice->tdocrec_id ?? null,
+                "numDocumento"      => $documento, // DUI debe ir con guion
+                "nrc"               => str_replace('-', '',  $invoice->client->nrc),
+                "nombre"            => $invoice->name_invoice,
+                "codActividad"      => $invoice->client->actie_id,
+                "descActividad"     => $invoice->client->descActividad,
+                "codDomiciliado"    => 1,
+                "codPais"           => $invoice->client->pais->pais_code??null,
+                //"nombrePais"        => $invoice->client->pais->pais_nombre??null,
+                "direccion" => !isset($invoice->client->munidepa_id) ? null : [ 
+                    "departamento"  => $invoice->client->depa_id ?? '06',
+                    "municipio"     => $invoice->client->district->municipio->muni_id ?? '23',
+                    "complemento"   => $invoice->complemento.', '.ucwords(strtolower(($invoice->client->district->dist_name??''))).'.'
+                ],
+                "telefono"          => str_replace(['-', '+'], '', $invoice->telefono),
+                "correo"            => $invoice->correo
+            ],
+            "resumen" => [
+                "valorTotal"    => floatval(number_format($total, 2, '.', '')),
+                "totalLetras"   => _lang('It is') . ' ' . dollarToText(floatval(number_format($total, 2, '.', ''))) . ' USD',
+                "pagos" => [
+                    [
+                        "codigo"        => $invoice->forp_id,
+                        "montoPago"     => floatval(number_format($total, 2, '.', '')),
+                        "referencia"    => null
+                    ]
+                ]
+            ],
+            "cuerpoDocumento" => $details,
+            "otrosDocumentos" => [
+                [
+                    "descDocumento"     => "Resolucion #1188",
+                    "codDocAsociado"    => 2,
+                    "detalleDocumento"  => "Aprobada por la MH 30/04/1971"
+                ]
+            ],
+            "apendice" => [
+                [
+                    "campo"     => "sucursal",
+                    "etiqueta"  => "Sucursal",
+                    "valor"     => $company->company_name
+                ],
+                [
+                    "campo"     => "condicion_operacion",
+                    "etiqueta"  => "Condicion de la operacion",
+                    "valor"     => $invoice->condicion_operacion ? $invoice->condicion_operacion->conop_nombre : null,
+
+                ],
+                /* [
+                    "campo" => "vendedor",
+                    "etiqueta" => "Vendedor",
+                    "valor" => "0000S60"
+                ],
+                [
+                    "campo" => "codigo_cxc",
+                    "etiqueta" => "Codigo CXC",
+                    "valor" => "0"
+                ] */
+            ]
+        ];
+        // log::info('DTE FE', json_encode($dteJson));
+        return $dteJson;
+    }
+    
     public static function get_no_anexo($invoice_date)
     {
 
@@ -3729,6 +3912,7 @@ class InvoiceController extends Controller
         $json               = [];
         $informacion_dte    = TipoDocumento::where('tipodoc_id', '=', $tipoDte)->first();
         $company            = Company::find(1);
+        $cash               = get_cash();
         $ambiente           = env('API_AMBIENTE_MH');
 
         $user = User::find(7);
@@ -3768,10 +3952,10 @@ class InvoiceController extends Controller
                     ],
                     "telefono"          => $company->cellphone,
                     "correo"            => $company->email,
-                    "codEstableMH"      => null,
-                    "codEstable"        => null,
-                    "codPuntoVentaMH"   => null,
-                    "codPuntoVenta"     => null
+                    "codEstableMH"      => $company->codigo_sucursal,
+                    "codEstable"        => $company->codigo_sucursal,
+                    "codPuntoVentaMH"   => $cash->cash_code,
+                    "codPuntoVenta"     => $cash->cash_code
                 ],
                 "receptor" => [
                     "tipoDocumento" => "36",
@@ -3883,10 +4067,10 @@ class InvoiceController extends Controller
                     ],
                     "telefono"          => $company->cellphone,
                     "correo"            => $company->email,
-                    "codEstableMH"      => null,
-                    "codEstable"        => null,
-                    "codPuntoVentaMH"   => null,
-                    "codPuntoVenta"     => null
+                    "codEstableMH"      => $company->codigo_sucursal,
+                    "codEstable"        => $company->codigo_sucursal,
+                    "codPuntoVentaMH"   => $cash->cash_code,
+                    "codPuntoVenta"     => $cash->cash_code
                 ],
                 "receptor" => [
                     "nit"               =>  "06140301171038",
@@ -4003,10 +4187,10 @@ class InvoiceController extends Controller
                     ],
                     "telefono"          => $company->cellphone,
                     "correo"            => $company->email,
-                    "codEstableMH"      => null,
-                    "codEstable"        => null,
-                    "codPuntoVentaMH"   => null,
-                    "codPuntoVenta"     => null
+                    "codEstableMH"      => $company->codigo_sucursal,
+                    "codEstable"        => $company->codigo_sucursal,
+                    "codPuntoVentaMH"   => $cash->cash_code,
+                    "codPuntoVenta"     => $cash->cash_code
                 ],
                 "receptor" => [
                     "tipoDocumento"     => "36",
@@ -4342,10 +4526,10 @@ class InvoiceController extends Controller
                         "complemento"   => $company->address
                     ],
                     "telefono"          => $company->cellphone,
-                    "codEstableMH"      => null,
-                    "codEstable"        => null,
-                    "codPuntoVentaMH"   => null,
-                    "codPuntoVenta"     => null,
+                   "codEstableMH"      => $company->codigo_sucursal,
+                    "codEstable"        => $company->codigo_sucursal,
+                    "codPuntoVentaMH"   => $cash->cash_code,
+                    "codPuntoVenta"     => $cash->cash_code,
                     "correo"            => $company->email,
                 ],
                 "sujetoExcluido" => [
