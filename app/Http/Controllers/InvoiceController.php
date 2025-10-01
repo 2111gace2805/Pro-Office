@@ -477,10 +477,11 @@ class InvoiceController extends Controller
                 $invoiceItem->unit_cost   = $request->unit_cost[$i];
                 $invoiceItem->discount    = $request->discount[$i];
                 $invoiceItem->tax_amount  = $request->product_tax[$i];
-                $invoiceItem->tipodon_id  = $request->tipodon[$i] ?? null;
+                //$invoiceItem->tipodon_id  = $request->tipodon[$i] ?? null;
                 $invoiceItem->sub_total   = $request->sub_total[$i];
                 $invoiceItem->line   = $request->line[$i];
                 $invoiceItem->product_price   = $request->product_price[$i];
+                $invoiceItem->factor = $request->factor[$i] ?? null;
     
                 if( $request->input('tipodoc_id') == '05' || $request->input('tipodoc_id') == '06' ){
     
@@ -3521,7 +3522,6 @@ class InvoiceController extends Controller
                 "descripcion" => $value->description,
                 "codigo" => $value->item->product->product_code,
                 "depreciacion" => 0,
-                "tipoDonacion" => $value->tipodon_id,
                 "uniMedida" => ( $value->item_id > 0 ) ? intval($value->item->product->unim_id) : 59,
                 "valorUni" => floatval(number_format($value->unit_cost, 6, '.', '')),
                 "cantidad" => intval($value->quantity),
