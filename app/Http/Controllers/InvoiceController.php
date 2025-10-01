@@ -481,7 +481,7 @@ class InvoiceController extends Controller
                 $invoiceItem->sub_total   = $request->sub_total[$i];
                 $invoiceItem->line   = $request->line[$i];
                 $invoiceItem->product_price   = $request->product_price[$i];
-                $invoiceItem->factor = $request->factor[$i] ?? null;
+              // $invoiceItem->factor = $request->factor[$i] ?? null;
     
                 if( $request->input('tipodoc_id') == '05' || $request->input('tipodoc_id') == '06' ){
     
