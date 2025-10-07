@@ -77,7 +77,7 @@
         <table style="width: 100%;">
             <tr>
                 <td class="center" style="width: 25%;">
-			<img src="data:image/png;base64,{{ base64_encode($codigoQR) }}" alt="Código QR">
+                    <img src="{{ get_logo() }}" style="max-height: 100px;" width="200" height="100" alt="Código QR">
 		</td>
                 <td class="center" style="width: 50%;">
                     <div>DOCUMENTO TRIBUTARIO ELECTRÓNICO</div>
@@ -87,7 +87,8 @@
                     <div>{{ strtoupper(get_option('business_line')) }}</div>
                 </td>
 		<td class="center" style="width: 25%;">
-			<img src="{{ get_logo() }}" style="max-height: 100px;" width="200" height="100" alt="Código QR">
+			
+            <img src="data:image/png;base64,{{ base64_encode($codigoQR) }}" alt="Código QR">
                 </td>
             </tr>
         </table>

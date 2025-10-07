@@ -45,6 +45,7 @@
                         <div style="font-size: 14px">FACTURA</div>
                     </td>
                     <td class="text-right" style="width:30%">
+                        
                         {!! QrCode::size(150)->generate($url) !!}
                     </td>
                 </tr>
