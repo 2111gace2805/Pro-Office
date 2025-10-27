@@ -92,3 +92,11 @@ valet/
 /public/storage/*.json
 /bootstrap/cache/*.php
 /bootstrap/cache/*.json
+
+
+# Laravel cache y configuración compilada
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
